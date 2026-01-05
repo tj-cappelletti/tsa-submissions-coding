@@ -1,3 +1,10 @@
+# Docker Compose configuration for TSA Submissions platform
+# Compatible with both Docker Compose and Podman Compose (4.0+)
+# 
+# Usage:
+#   docker-compose up --build    # Docker
+#   podman compose up --build    # Podman
+
 services:
   api:
     build:

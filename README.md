@@ -31,7 +31,7 @@ A platform to host and manage the TSA Coding challenge for regional and state co
 
 - Node.js 20.x or higher
 - .NET 10 SDK
-- Docker (for containerization)
+- Docker or Podman (for containerization)
 
 ### UI Development
 
@@ -76,13 +76,17 @@ Publish output will be in `api/publish/`
 
 ## Docker Images
 
-Both UI and API have Dockerfile configurations for containerization:
+Both UI and API have Dockerfile configurations for containerization.
+
+> **Note**: All Docker commands below work with both Docker and Podman. Simply replace `docker` with `podman` or `docker-compose` with `podman compose` as needed.
 
 ### Build UI Docker Image
 
 ```bash
 cd ui
 docker build -t tsa-ui:latest .
+# OR with Podman
+podman build -t tsa-ui:latest .
 ```
 
 ### Build API Docker Image
@@ -90,6 +94,8 @@ docker build -t tsa-ui:latest .
 ```bash
 cd api
 docker build -t tsa-api:latest .
+# OR with Podman
+podman build -t tsa-api:latest .
 ```
 
 ### Run with Docker Compose
@@ -98,6 +104,8 @@ The easiest way to run both services together is using Docker Compose:
 
 ```bash
 docker-compose up --build
+# OR with Podman (4.0+)
+podman compose up --build
 ```
 
 This will:
@@ -110,6 +118,8 @@ To stop the services:
 
 ```bash
 docker-compose down
+# OR with Podman
+podman compose down
 ```
 
 ## CI/CD
