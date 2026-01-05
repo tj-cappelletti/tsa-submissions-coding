@@ -4,18 +4,20 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'api/**'
+      - 'src/**'
+      - 'tests/**'
       - '.github/workflows/api-build.yml'
   pull_request:
     branches: [main, develop]
     paths:
-      - 'api/**'
+      - 'src/**'
+      - 'tests/**'
       - '.github/workflows/api-build.yml'
   workflow_dispatch:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  API_PROJECT_PATH: './api/TsaSubmissions.Api.csproj'
+  SOLUTION_PATH: './Tsa.Submissions.Coding.sln'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/api
 
@@ -36,22 +38,21 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore ${{ env.API_PROJECT_PATH }}
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
 
       - name: Build
         run: |
-          dotnet build ${{ env.API_PROJECT_PATH }} \
+          dotnet build ${{ env.SOLUTION_PATH }} \
             --configuration Release --no-restore
 
       - name: Test
         run: |
-          dotnet test ${{ env.API_PROJECT_PATH }} \
-            --configuration Release --no-build --verbosity normal || \
-            echo "No tests found"
+          dotnet test ${{ env.SOLUTION_PATH }} \
+            --configuration Release --no-build --verbosity normal
 
       - name: Publish
         run: |
-          dotnet publish ${{ env.API_PROJECT_PATH }} \
+          dotnet publish src/Tsa.Submissions.Coding.WebApi/Tsa.Submissions.Coding.WebApi.csproj \
             --configuration Release --no-build --output ./publish
 
       - name: Upload build artifacts
@@ -87,7 +88,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v5
         with:
-          context: ./api
+          context: ./src/Tsa.Submissions.Coding.WebApi
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

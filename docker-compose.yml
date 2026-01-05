@@ -8,7 +8,7 @@
 services:
   api:
     build:
-      context: ./api
+      context: ./src/Tsa.Submissions.Coding.WebApi
       dockerfile: Dockerfile
     ports:
       - "5000:8080"

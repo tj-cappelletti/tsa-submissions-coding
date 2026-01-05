@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy csproj and restore dependencies
-COPY TsaSubmissions.Api.csproj .
+COPY Tsa.Submissions.Coding.WebApi.csproj .
 RUN dotnet restore
 
 # Copy everything else and build
@@ -20,4 +20,4 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "TsaSubmissions.Api.dll"]
+ENTRYPOINT ["dotnet", "Tsa.Submissions.Coding.WebApi.dll"]

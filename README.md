@@ -11,18 +11,23 @@ A platform to host and manage the TSA Coding challenge for regional and state co
 ## Project Structure
 
 ```
-├── ui/                     # Angular 21 frontend application
-│   ├── src/               # Source files
-│   ├── Dockerfile         # Docker build configuration
-│   └── nginx.conf         # Nginx configuration for production
-├── api/                   # .NET 10 backend API
-│   ├── Program.cs         # API entry point
-│   ├── Dockerfile         # Docker build configuration
-│   └── *.csproj          # Project file
+├── src/
+│   └── Tsa.Submissions.Coding.WebApi/   # .NET 10 backend API
+│       ├── Program.cs                   # API entry point
+│       ├── Dockerfile                   # Docker build configuration
+│       └── *.csproj                     # Project file
+├── tests/
+│   └── Tsa.Submissions.Coding.UnitTests/ # xUnit test project
+│       └── *.csproj                      # Test project file
+├── ui/                                   # Angular 21 frontend application
+│   ├── src/                             # Source files
+│   ├── Dockerfile                       # Docker build configuration
+│   └── nginx.conf                       # Nginx configuration for production
+├── Tsa.Submissions.Coding.sln           # Solution file
 └── .github/
-    └── workflows/         # CI/CD workflows
-        ├── ui-build.yml   # UI build and deployment
-        └── api-build.yml  # API build and deployment
+    └── workflows/                       # CI/CD workflows
+        ├── ui-build.yml                 # UI build and deployment
+        └── api-build.yml                # API build and deployment
 ```
 
 ## Development
@@ -46,7 +51,7 @@ The UI will be available at `http://localhost:4200`
 ### API Development
 
 ```bash
-cd api
+cd src/Tsa.Submissions.Coding.WebApi
 dotnet restore
 dotnet run
 ```
@@ -54,6 +59,18 @@ dotnet run
 The API will be available at `http://localhost:5000` (HTTP) and `https://localhost:5001` (HTTPS)
 
 ## Building
+
+### Build Solution
+
+```bash
+dotnet build Tsa.Submissions.Coding.sln --configuration Release
+```
+
+### Run Tests
+
+```bash
+dotnet test Tsa.Submissions.Coding.sln --configuration Release
+```
 
 ### UI Build
 
@@ -64,15 +81,14 @@ npm run build
 
 Build output will be in `ui/dist/ui/browser/`
 
-### API Build
+### API Build and Publish
 
 ```bash
-cd api
-dotnet build --configuration Release
-dotnet publish --configuration Release --output ./publish
+dotnet build src/Tsa.Submissions.Coding.WebApi/Tsa.Submissions.Coding.WebApi.csproj --configuration Release
+dotnet publish src/Tsa.Submissions.Coding.WebApi/Tsa.Submissions.Coding.WebApi.csproj --configuration Release --output ./publish
 ```
 
-Publish output will be in `api/publish/`
+Publish output will be in `./publish/`
 
 ## Docker Images
 
@@ -92,7 +108,7 @@ podman build -t tsa-ui:latest .
 ### Build API Docker Image
 
 ```bash
-cd api
+cd src/Tsa.Submissions.Coding.WebApi
 docker build -t tsa-api:latest .
 # OR with Podman
 podman build -t tsa-api:latest .
