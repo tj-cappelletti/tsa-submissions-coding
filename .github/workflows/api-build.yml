@@ -2,12 +2,12 @@ name: API Build
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - 'api/**'
       - '.github/workflows/api-build.yml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
     paths:
       - 'api/**'
       - '.github/workflows/api-build.yml'
@@ -27,60 +27,67 @@ jobs:
       packages: write
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
-      run: dotnet restore ${{ env.API_PROJECT_PATH }}
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.API_PROJECT_PATH }}
 
-    - name: Build
-      run: dotnet build ${{ env.API_PROJECT_PATH }} --configuration Release --no-restore
+      - name: Build
+        run: |
+          dotnet build ${{ env.API_PROJECT_PATH }} \
+            --configuration Release --no-restore
 
-    - name: Test
-      run: dotnet test ${{ env.API_PROJECT_PATH }} --configuration Release --no-build --verbosity normal || echo "No tests found"
+      - name: Test
+        run: |
+          dotnet test ${{ env.API_PROJECT_PATH }} \
+            --configuration Release --no-build --verbosity normal || \
+            echo "No tests found"
 
-    - name: Publish
-      run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --no-build --output ./publish
+      - name: Publish
+        run: |
+          dotnet publish ${{ env.API_PROJECT_PATH }} \
+            --configuration Release --no-build --output ./publish
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: api-artifacts
-        path: ./publish
-        retention-days: 30
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-artifacts
+          path: ./publish
+          retention-days: 30
 
-    - name: Log in to Container Registry
-      if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata for Docker
-      if: github.event_name != 'pull_request'
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
+      - name: Extract metadata for Docker
+        if: github.event_name != 'pull_request'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push Docker image
-      if: github.event_name != 'pull_request'
-      uses: docker/build-push-action@v5
-      with:
-        context: ./api
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push Docker image
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
