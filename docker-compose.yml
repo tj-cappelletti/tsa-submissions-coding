@@ -1,0 +1,38 @@
+# Docker Compose configuration for TSA Submissions platform
+# Compatible with both Docker Compose and Podman Compose (4.0+)
+# 
+# Usage:
+#   docker-compose up --build    # Docker
+#   podman compose up --build    # Podman
+
+services:
+  api:
+    build:
+      context: ./src/Tsa.Submissions.Coding.WebApi
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+    networks:
+      - tsa-network
+
+  ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    environment:
+      - API_URL=http://api:8080
+    depends_on:
+      - api
+    networks:
+      - tsa-network
+
+networks:
+  tsa-network:
+    driver: bridge
