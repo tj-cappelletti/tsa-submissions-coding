@@ -45,7 +45,7 @@ public class TestCaseRunnerTests
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public async Task RunTestCasesAsync_WithInvalidPythonCode_ShouldReturnCompilationError()
+    public async Task RunTestCasesAsync_WithInvalidPythonCode_ShouldReturnRuntimeError()
     {
         // Arrange
         var runner = new TestCaseRunner();
@@ -71,9 +71,10 @@ public class TestCaseRunnerTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.False(result.Success);
-        Assert.NotNull(result.ErrorMessage);
-        Assert.Contains("Compilation failed", result.ErrorMessage);
+        Assert.True(result.Success); // Execution succeeded (no compilation), but test failed
+        Assert.Single(result.TestResults);
+        Assert.False(result.TestResults[0].Passed); // Test failed due to runtime error
+        Assert.NotNull(result.TestResults[0].Error);
     }
 
     [Fact]
