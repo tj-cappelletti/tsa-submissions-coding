@@ -8,16 +8,6 @@ on:
 
   workflow_dispatch:
 
-env:
-  DOTNET_VERSION: '9.0.x'
-  IMAGE_NAME: ${{ github.repository }}/api
-  REGISTRY: ghcr.io
-  SOLUTION_PATH: 'api/Tsa.Submissions.Coding.sln'
-  UNIT_TEST_PROJECT_FILE: 'Tsa.Submissions.Coding.UnitTests.csproj'
-  UNIT_TEST_PROJECT_FOLDER: 'api/Tsa.Submissions.Coding.UnitTests'
-  PUBLISH_PROJECT_FILE: 'Tsa.Submissions.Coding.WebApi.csproj'
-  PUBLISH_PROJECT_FOLDER: 'api/Tsa.Submissions.Coding.WebApi'
-
 jobs:
   gitVersionJob:
     name: CI - GitVersion Workflow
@@ -27,9 +17,9 @@ jobs:
     name: CI - Verify Code Style Workflow
     uses: webstorm-tech/workflows/.github/workflows/dotnet-verify-code-style-workflow.yml@v5
     with:
-      dotnetVersion: ${{ env.DOTNET_VERSION }}
+      dotnetVersion: ${{ vars.DOTNET_VERSION }}
       runner: windows-latest
-      solutionFile: ${{ env.SOLUTION_PATH }}
+      solutionFile: ${{ vars.DOTNET_SOLUTION_PATH }}
 
   buildApplicationJob:
     name: CI - Build Workflow
@@ -37,14 +27,14 @@ jobs:
     uses: webstorm-tech/workflows/.github/workflows/dotnet-build-app-workflow.yml@v5
     with:
       artifactName: web-api
-      dotnetVersion: ${{ env.DOTNET_VERSION }}
+      dotnetVersion: ${{ vars.DOTNET_VERSION }}
       semVer: ${{ needs.gitVersionJob.outputs.semVer }}
       sendToCodecov: true
-      solutionFile: ${{ env.SOLUTION_PATH }}
-      unitTestProjectFile: ${{ env.UNIT_TEST_PROJECT_FILE }}
-      unitTestProjectFolder: ${{ env.UNIT_TEST_PROJECT_FOLDER }}
-      publishProjectFile: ${{ env.PUBLISH_PROJECT_FILE }}
-      publishProjectFolder: ${{ env.PUBLISH_PROJECT_FOLDER }}
+      solutionFile: ${{ vars.DOTNET_SOLUTION_PATH }}
+      unitTestProjectFile: ${{ vars.DOTNET_UNIT_TEST_PROJECT_FILE }}
+      unitTestProjectFolder: ${{ vars.DOTNET_UNIT_TEST_PROJECT_FOLDER }}
+      publishProjectFile: ${{ vars.DOTNET_PUBLISH_PROJECT_FILE }}
+      publishProjectFolder: ${{ vars.DOTNET_PUBLISH_PROJECT_FOLDER }}
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -53,7 +43,7 @@ jobs:
     needs: [gitVersionJob, buildApplicationJob]
     uses: webstorm-tech/workflows/.github/workflows/docker-build-container-workflow.yml@v5
     with:
-      dockerfile: ${{ env.PUBLISH_PROJECT_FOLDER }}/Dockerfile
+      dockerfile: ${{ vars.DOTNET_PUBLISH_PROJECT_FOLDER }}/Dockerfile
       dockerNamespace: tsa/submissions/coding/api
       dockerRegistry: ghcr.io
       dockerRepository: tj-cappelletti
