@@ -47,7 +47,7 @@ jobs:
       dockerNamespace: tsa/submissions/coding/api
       dockerRegistry: ghcr.io
       dockerRepository: tj-cappelletti
-      dockerWorkingDirectory: src/
+      dockerWorkingDirectory: api/
       majorVersion: ${{ needs.gitVersionJob.outputs.majorReleaseLabel }}
       majorMinorVersion: ${{ needs.gitVersionJob.outputs.majorMinorReleaseLabel }}
       pushContainerImage: ${{ github.event_name != 'pull_request' }}
