@@ -2,93 +2,73 @@ name: API Build
 
 on:
   push:
-    branches: [main, develop]
     paths:
-      - 'src/**'
-      - 'tests/**'
+      - 'api/**'
       - '.github/workflows/api-build.yml'
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - '.github/workflows/api-build.yml'
+
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '10.0.x'
-  SOLUTION_PATH: './Tsa.Submissions.Coding.sln'
-  REGISTRY: ghcr.io
+  DOTNET_VERSION: '9.0.x'
   IMAGE_NAME: ${{ github.repository }}/api
+  REGISTRY: ghcr.io
+  SOLUTION_PATH: 'api/Tsa.Submissions.Coding.sln'
+  UNIT_TEST_PROJECT_FILE: 'Tsa.Submissions.Coding.UnitTests.csproj'
+  UNIT_TEST_PROJECT_FOLDER: 'api/Tsa.Submissions.Coding.UnitTests'
+  PUBLISH_PROJECT_FILE: 'Tsa.Submissions.Coding.WebApi.csproj'
+  PUBLISH_PROJECT_FOLDER: 'api/Tsa.Submissions.Coding.WebApi'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+  gitVersionJob:
+    name: CI - GitVersion Workflow
+    uses: webstorm-tech/workflows/.github/workflows/gitversion-workflow.yml@v5
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  verifyCodeStyleJob:
+    name: CI - Verify Code Style Workflow
+    uses: webstorm-tech/workflows/.github/workflows/dotnet-verify-code-style-workflow.yml@v5
+    with:
+      dotnetVersion: ${{ env.DOTNET_VERSION }}
+      runner: windows-latest
+      solutionFile: ${{ env.SOLUTION_PATH }}
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+  buildApplicationJob:
+    name: CI - Build Workflow
+    needs: gitVersionJob
+    uses: webstorm-tech/workflows/.github/workflows/dotnet-build-app-workflow.yml@v5
+    with:
+      artifactName: web-api
+      dotnetVersion: ${{ env.DOTNET_VERSION }}
+      semVer: ${{ needs.gitVersionJob.outputs.semVer }}
+      sendToCodecov: true
+      solutionFile: ${{ env.SOLUTION_PATH }}
+      unitTestProjectFile: ${{ env.UNIT_TEST_PROJECT_FILE }}
+      unitTestProjectFolder: ${{ env.UNIT_TEST_PROJECT_FOLDER }}
+      publishProjectFile: ${{ env.PUBLISH_PROJECT_FILE }}
+      publishProjectFolder: ${{ env.PUBLISH_PROJECT_FOLDER }}
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Restore dependencies
-        run: dotnet restore ${{ env.SOLUTION_PATH }}
+  buildDockerContainerJob:
+    name: CI - Build Docker Container
+    needs: [gitVersionJob, buildApplicationJob]
+    uses: webstorm-tech/workflows/.github/workflows/docker-build-container-workflow.yml@v5
+    with:
+      dockerfile: ${{ env.PUBLISH_PROJECT_FOLDER }}/Dockerfile
+      dockerNamespace: tsa/submissions/coding/api
+      dockerRegistry: ghcr.io
+      dockerRepository: tj-cappelletti
+      dockerWorkingDirectory: src/
+      majorVersion: ${{ needs.gitVersionJob.outputs.majorReleaseLabel }}
+      majorMinorVersion: ${{ needs.gitVersionJob.outputs.majorMinorReleaseLabel }}
+      pushContainerImage: ${{ github.event_name != 'pull_request' }}
+      semVer: ${{ needs.gitVersionJob.outputs.semVer }}
+    secrets:
+      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build
-        run: |
-          dotnet build ${{ env.SOLUTION_PATH }} \
-            --configuration Release --no-restore
-
-      - name: Test
-        run: |
-          dotnet test ${{ env.SOLUTION_PATH }} \
-            --configuration Release --no-build --verbosity normal
-
-      - name: Publish
-        run: |
-          dotnet publish src/Tsa.Submissions.Coding.WebApi/Tsa.Submissions.Coding.WebApi.csproj \
-            --configuration Release --no-build --output ./publish
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-artifacts
-          path: ./publish
-          retention-days: 30
-
-      - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata for Docker
-        if: github.event_name != 'pull_request'
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push Docker image
-        if: github.event_name != 'pull_request'
-        uses: docker/build-push-action@v5
-        with:
-          context: ./src/Tsa.Submissions.Coding.WebApi
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+  tagRepositoryJob:
+    name: CI - Tag Repository
+    if: github.ref == 'refs/heads/main'
+    needs: [gitVersionJob]
+    uses: webstorm-tech/workflows/.github/workflows/github-tag-repo-workflow.yml@v5
+    with:
+      semVer: ${{ needs.gitVersionJob.outputs.semVer }}
