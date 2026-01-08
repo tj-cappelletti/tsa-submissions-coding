@@ -5,8 +5,6 @@ VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tsa.Submissions.Coding.WebApi", "Tsa.Submissions.Coding.WebApi\Tsa.Submissions.Coding.WebApi.csproj", "{3A351817-A111-43AA-AE7F-86BD77E3FB8D}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose\docker-compose.dcproj", "{C5617AAC-43AC-4FCF-9799-B7A28163A11E}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tsa.Submissions.Coding.UnitTests", "Tsa.Submissions.Coding.UnitTests\Tsa.Submissions.Coding.UnitTests.csproj", "{B1A8DB68-9D8D-4EAF-B7F8-CBA4E291045A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8B43357D-03BD-490F-B3BB-224C00DD4703}"
