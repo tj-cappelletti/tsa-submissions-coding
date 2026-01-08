@@ -44,9 +44,9 @@ jobs:
     uses: webstorm-tech/workflows/.github/workflows/docker-build-container-workflow.yml@v5
     with:
       dockerfile: ${{ vars.DOTNET_PUBLISH_PROJECT_FOLDER }}/Dockerfile
-      dockerNamespace: tsa/submissions/coding/api
+      dockerNamespace: api
       dockerRegistry: ghcr.io
-      dockerRepository: tj-cappelletti
+      dockerRepository: ${{ github.repository }}
       dockerWorkingDirectory: api/
       majorVersion: ${{ needs.gitVersionJob.outputs.majorReleaseLabel }}
       majorMinorVersion: ${{ needs.gitVersionJob.outputs.majorMinorReleaseLabel }}
