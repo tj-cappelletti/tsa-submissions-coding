@@ -41,6 +41,8 @@ jobs:
   buildDockerContainerJob:
     name: CI - Build Docker Container
     needs: [gitVersionJob, buildApplicationJob]
+    permissions:
+      packages: write
     uses: webstorm-tech/workflows/.github/workflows/docker-build-container-workflow.yml@v5
     with:
       dockerfile: ${{ vars.DOTNET_PUBLISH_PROJECT_FOLDER }}/Dockerfile
