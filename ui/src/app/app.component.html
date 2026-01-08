@@ -1,0 +1,44 @@
+<!-- Header -->
+<header class="navbar navbar-expand-lg navbar-light bg-light border-bottom mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="assets/images/patsa_logo.png" alt="PA TSA" width="100" class="me-2" />
+      <span class="fw-bold">TSA Coding Submissions</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        </li>
+        <li class="nav-item" *ngIf="isAuthenticated">
+          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        </li>
+        <li class="nav-item" *ngIf="isAuthenticated">
+          <a class="nav-link" routerLink="/problems" routerLinkActive="active">Problems</a>
+        </li>
+        <li class="nav-item" *ngIf="isAuthenticated">
+          <a class="nav-link" routerLink="/submissions" routerLinkActive="active">Submissions</a>
+        </li>
+      </ul>
+      <button class="btn btn-outline-secondary ms-2" (click)="toggleTheme()" title="Toggle light/dark mode">
+        <span *ngIf="theme === 'light'" aria-label="Switch to dark mode">🌙</span>
+        <span *ngIf="theme === 'dark'" aria-label="Switch to light mode">☀️</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="bottom-padding flex-grow-1 container my-4">
+  <router-outlet />
+</main>
+
+<!-- Footer -->
+<footer class="footer bg-light border-top py-3 fixed-bottom">
+  <div class="text-center">
+    <span>&copy; 2025 TSA Submissions. All rights reserved.</span>
+  </div>
+</footer>

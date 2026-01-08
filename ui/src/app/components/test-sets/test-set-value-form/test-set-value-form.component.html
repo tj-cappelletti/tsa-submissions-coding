@@ -1,0 +1,24 @@
+<p>test-set-value-form works!</p>
+<form (ngSubmit)="onSubmit()" #tsvForm="ngForm" class="p-3">
+  <div class="mb-3">
+    <label for="dataType" class="form-label">Data Type</label>
+    <input id="dataType" name="dataType" class="form-control" [(ngModel)]="dataType" required />
+  </div>
+  <div class="mb-3">
+    <label for="index" class="form-label">Input Position Index</label>
+    <input id="index" name="index" type="number" class="form-control" [(ngModel)]="index" required />
+  </div>
+  <div class="mb-3 form-check">
+    <input id="isArray" name="isArray" type="checkbox" class="form-check-input" [(ngModel)]="isArray" />
+    <label for="isArray" class="form-check-label">Is Array</label>
+  </div>
+  <div class="mb-3">
+    <label for="valueAsJson" class="form-label">Value (as JSON)</label>
+    <textarea id="valueAsJson" name="valueAsJson" class="form-control font-monospace" [(ngModel)]="valueAsJson" rows="3" required></textarea>
+    <div class="form-text">Enter the value as a JSON string (e.g., <code>"42"</code> or <code>"[1,2,3]"</code>).</div>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+  </div>
+</form>

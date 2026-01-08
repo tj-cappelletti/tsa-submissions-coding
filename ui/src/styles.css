@@ -1,1 +1,94 @@
 /* You can add global styles to this file, and also import other style files */
+@import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
+
+html, body, app-root {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main.flex-grow-1 {
+  flex: 1 0 auto;
+}
+
+.footer {
+  flex-shrink: 0;
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+body[data-theme="dark"] {
+  background-color: #181a1b;
+  color: #f1f1f1;
+}
+
+body[data-theme="dark"] .navbar,
+body[data-theme="dark"] .footer,
+body[data-theme="dark"] .bg-light {
+  background-color: #23272b !important;
+  color: #f1f1f1 !important;
+}
+
+body[data-theme="dark"] .border-bottom,
+body[data-theme="dark"] .border-top {
+  border-color: #343a40 !important;
+}
+
+body[data-theme="dark"] .nav-link,
+body[data-theme="dark"] .navbar-brand {
+  color: #f1f1f1 !important;
+}
+
+body[data-theme="dark"] .nav-link.active {
+  color: #0d6efd !important;
+}
+
+body[data-theme="dark"] .container,
+body[data-theme="dark"] main.flex-grow-1 {
+  background-color: #181a1b;
+}
+
+body[data-theme="dark"] .footer {
+  background-color: #23272b !important;
+  color: #f1f1f1 !important;
+}
+
+.card {
+  border-radius: 0.75rem;
+  background-color: var(--bs-card-bg, #fff);
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+  color: var(--bs-body-color, #212529);
+  transition: background-color 0.2s, color 0.2s;
+  overflow: hidden;
+}
+
+body[data-theme="dark"] .bg-body-tertiary,
+body[data-theme="dark"] .card,
+body[data-theme="dark"] .card-body {
+  background-color: #23272b !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.25);
+  color: #f1f1f1 !important;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+.btn-primary {
+  background-color: #ec3725 !important;
+  border-color: #ec3725 !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: #c42d1e !important;
+  border-color: #c42d1e !important;
+}

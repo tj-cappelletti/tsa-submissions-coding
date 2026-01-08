@@ -1,0 +1,21 @@
+<h1>{{ problem?.title }}</h1>
+
+<div class="container-fluid">
+    <div *ngIf="problem?.description" markdown>
+        {{ problem?.description }}
+    </div>
+</div>
+
+<div *ngIf="problem?.testSets?.length">
+  <h3>Public Test Sets</h3>
+  <ul class="list-group">
+    <ng-container *ngFor="let testSet of problem?.testSets">
+      <li class="list-group-item" *ngIf="testSet.isPublic">
+        <strong>Inputs:</strong> {{ testSet.inputs }}<br>
+        <!-- <strong>Output:</strong> {{ testSet.output }} -->
+      </li>
+    </ng-container>
+  </ul>
+</div>
+
+

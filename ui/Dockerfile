@@ -1,32 +1,29 @@
-# Build stage
-FROM node:20-alpine AS build
+# Use an official Node.js runtime as a parent image
+FROM node:23-alpine AS build
+
+# Set the working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
-# Copy source files
+# Copy the rest of the application code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the Angular application
+RUN npm run build --prod
 
-# Runtime stage
-FROM nginx:alpine AS final
-WORKDIR /usr/share/nginx/html
+# Use an Nginx image to serve the Angular app
+FROM nginx:alpine
 
-# Remove default nginx static assets
-RUN rm -rf ./*
+# Copy the built Angular app to the Nginx HTML directory
+COPY --from=build /app/dist/tsa-submissions-coding-ui/browser /usr/share/nginx/html
 
-# Copy built application from build stage
-COPY --from=build /app/dist/ui/browser .
-
-# Copy nginx configuration if needed (optional)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
+# Expose port 80
 EXPOSE 80
 
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
