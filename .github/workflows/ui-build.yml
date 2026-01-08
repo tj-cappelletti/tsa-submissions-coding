@@ -64,11 +64,11 @@ jobs:
     needs: [gitVersionJob, buildApplicationJob]
     uses: webstorm-tech/workflows/.github/workflows/docker-build-container-workflow.yml@v5
     with:
-      dockerfile: Dockerfile
+      dockerfile: ui/Dockerfile
       dockerNamespace: ui
       dockerRegistry: ghcr.io
       dockerRepository: ${{ github.repository }}
-      dockerWorkingDirectory: .
+      dockerWorkingDirectory: ui/
       majorVersion: ${{ needs.gitVersionJob.outputs.majorReleaseLabel }}
       majorMinorVersion: ${{ needs.gitVersionJob.outputs.majorMinorReleaseLabel }}
       pushContainerImage: ${{ github.event_name != 'pull_request' }}
