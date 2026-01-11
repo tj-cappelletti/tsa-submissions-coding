@@ -38,3 +38,6 @@ publish/
 *.dll
 *.exe
 *.pdb
+
+# Exclude RabbitMQ data directory
+docker/rabbitmq/data/
