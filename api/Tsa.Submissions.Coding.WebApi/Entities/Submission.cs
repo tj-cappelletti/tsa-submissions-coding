@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public class Submission : IMongoDbEntity
 {
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    [SwaggerSchema(ReadOnly = true)]
     public string? Id { get; set; }
 
     public bool IsFinalSubmission { get; set; }
@@ -16,9 +22,9 @@ public class Submission : IMongoDbEntity
 
     public string? Solution { get; set; }
 
-    public DateTime? SubmittedOn { get; set; }
-
-    public MongoDBRef? User { get; set; }
+    public DateTimeOffset? SubmittedOn { get; set; }
 
     public IList<TestSetResult>? TestSetResults { get; set; }
+
+    public MongoDBRef? User { get; set; }
 }
