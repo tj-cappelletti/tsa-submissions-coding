@@ -45,7 +45,7 @@ public class Startup(IConfiguration configuration)
 
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        app.UseEndpoints(configure: endpoints => { endpoints.MapControllers(); });
     }
 
     public void ConfigureServices(IServiceCollection services)
@@ -101,7 +101,7 @@ public class Startup(IConfiguration configuration)
             new IgnoreExtraElementsConvention(true)
         };
 
-        ConventionRegistry.Register("DefaultConventionPack", conventionPack, _ => true);
+        ConventionRegistry.Register("DefaultConventionPack", conventionPack, filter: _ => true);
 
         var mongoCredential = MongoCredential.CreateCredential(
             submissionsDatabase.LoginDatabase,
@@ -125,40 +125,46 @@ public class Startup(IConfiguration configuration)
 
         // Add MongoDB Services
         const string servicesNamespace = "Tsa.Submissions.Coding.WebApi.Services";
-        var mongoDbServiceTypes = assemblyTypes
-            .Where(type => type.Namespace == servicesNamespace && type is
-            { IsAbstract: false, IsClass: true, IsGenericType: false, IsInterface: false, IsNested: false })
+        var serviceTypes = assemblyTypes
+            .Where(predicate: type => type.Namespace == servicesNamespace && type is
+                { IsAbstract: false, IsClass: true, IsGenericType: false, IsInterface: false, IsNested: false })
             .ToList();
 
         var mongoEntityServiceInterfaceType = typeof(IMongoEntityService<>);
         var pingableServiceInterfaceType = typeof(IPingableService);
 
-        foreach (var mongoDbServiceType in mongoDbServiceTypes)
+        foreach (var serviceType in serviceTypes)
         {
-            var interfaceType = mongoDbServiceType
-                .GetInterfaces()
-                .SingleOrDefault(type =>
-                    type.Name != mongoEntityServiceInterfaceType.Name &&
-                    type.Name != pingableServiceInterfaceType.Name);
+            var interfaceTypes = serviceType.GetInterfaces();
 
-            if (interfaceType == null) continue;
+            if (interfaceTypes.Length == 0) continue;
 
-            services.AddScoped(interfaceType, mongoDbServiceType);
+            foreach (var interfaceType in interfaceTypes)
+            {
+                // Add Pingable Services
+                if (interfaceType.Name == pingableServiceInterfaceType.Name)
+                {
+                    services.AddScoped(pingableServiceInterfaceType, serviceType);
+                    continue;
+                }
+
+                var implementsMongoEntityService = interfaceType
+                    .GetInterfaces()
+                    .Any(predicate: type => type.Name == mongoEntityServiceInterfaceType.Name);
+
+                if (implementsMongoEntityService)
+                {
+                    services.AddScoped(interfaceType, serviceType);
+                }
+            }
         }
 
-        // Add Pingable Services - Should match MongoDB Services
-        var pingableServiceType = typeof(IPingableService);
-        var pingableServices = assemblyTypes
-            .Where(type => pingableServiceType.IsAssignableFrom(type) && type is { IsInterface: false, IsAbstract: false })
-            .ToList();
-
-        foreach (var pingableService in pingableServices)
-        {
-            services.AddSingleton(typeof(IPingableService), pingableService);
-        }
+        // Add RabbitMQ Service
+        services.Configure<RabbitMQConfig>(Configuration.GetSection(RabbitMQConfig.SectionName));
+        services.AddSingleton<ISubmissionsQueueService, RabbitMQService>();
 
         // Add Redis Service
-        services.AddStackExchangeRedisCache(options =>
+        services.AddStackExchangeRedisCache(setupAction: options =>
         {
             options.Configuration = Configuration.GetConnectionString(ConfigurationKeys.RedisConnectionString);
             options.InstanceName = "Tsa.Submissions.Coding.WebApi";
@@ -167,12 +173,12 @@ public class Startup(IConfiguration configuration)
         services.AddSingleton<ICacheService, CacheService>();
 
         // Add Authentication
-        services.AddAuthentication(options =>
+        services.AddAuthentication(configureOptions: options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(options =>
+            .AddJwtBearer(configureOptions: options =>
             {
                 options.RequireHttpsMetadata = jwtSettings.RequireHttpsMetadata;
 
@@ -198,14 +204,14 @@ public class Startup(IConfiguration configuration)
         // Setup Controllers
         services
             .AddControllers()
-            .AddNewtonsoftJson(options =>
+            .AddNewtonsoftJson(setupAction: options =>
             {
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
             });
 
         // Add Swagger
-        services.AddSwaggerGen(options =>
+        services.AddSwaggerGen(setupAction: options =>
         {
             var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
