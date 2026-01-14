@@ -15,7 +15,7 @@ public class SubmissionModel
 
     public string? Solution { get; set; }
 
-    public DateTime? SubmittedOn { get; set; }
+    public DateTimeOffset? SubmittedOn { get; set; }
 
     public IList<TestSetResultModel>? TestSetResults { get; set; }
 
