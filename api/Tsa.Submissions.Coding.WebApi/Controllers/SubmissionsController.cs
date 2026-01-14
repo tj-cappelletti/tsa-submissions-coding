@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.ExtensionMethods;
+using Tsa.Submissions.Coding.WebApi.Messages;
 using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 
@@ -21,13 +22,16 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 public class SubmissionsController : ControllerBase
 {
     private readonly ILogger<SubmissionsController> _logger;
+    private readonly ISubmissionsQueueService _submissionsQueueService;
     private readonly ISubmissionsService _submissionsService;
     private readonly IUsersService _usersService;
 
-    public SubmissionsController(ILogger<SubmissionsController> logger, ISubmissionsService submissionsService, IUsersService usersService)
+    public SubmissionsController(ILogger<SubmissionsController> logger, ISubmissionsService submissionsService,
+        ISubmissionsQueueService submissionsQueueService, IUsersService usersService)
     {
         _logger = logger;
         _submissionsService = submissionsService;
+        _submissionsQueueService = submissionsQueueService;
         _usersService = usersService;
     }
 
@@ -90,7 +94,7 @@ public class SubmissionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<SubmissionModel>))]
     [ProducesResponseType(StatusCodes.Status424FailedDependency, Type = typeof(ApiErrorResponseModel))]
     public async Task<ActionResult<IList<SubmissionModel>>> GetAll(
-        [FromQuery] string? problemId = null,
+        [FromQuery]string? problemId = null,
         CancellationToken cancellationToken = default)
     {
         //TODO: Add pagination
@@ -117,18 +121,28 @@ public class SubmissionsController : ControllerBase
     /// <response code="201">Returns the requested submission</response>
     /// <response code="400">The submission is not in a valid state and cannot be created</response>
     /// <response code="403">You do not have permission to use this endpoint</response>
-    [Authorize(Roles = SubmissionRoles.Judge)]
+    [Authorize(Roles = SubmissionRoles.Participant)]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<CreatedAtActionResult> Post(SubmissionModel submissionModel, CancellationToken cancellationToken = default)
     {
+        var submittedOn = DateTimeOffset.UtcNow;
+
         var submission = submissionModel.ToEntity();
         submission.Id = null;
-        submission.SubmittedOn = DateTime.UtcNow;
+        submission.SubmittedOn = submittedOn;
 
         await _submissionsService.CreateAsync(submission, cancellationToken);
+
+        var submissionMessage = new SubmissionMessage
+        {
+            SubmissionId = submission.Id,
+            SubmittedAt = submittedOn
+        };
+
+        await _submissionsQueueService.EnqueueSubmissionAsync(submissionMessage, cancellationToken);
 
         submissionModel.Id = submission.Id;
 
@@ -144,7 +158,7 @@ public class SubmissionsController : ControllerBase
     /// <response code="204">Acknowledgement that the submission was updated</response>
     /// <response code="400">The submission is not in a valid state and cannot be updated</response>
     /// <response code="404">The submission requested to be updated could not be found</response>
-    [Authorize(Roles = SubmissionRoles.Judge)]
+    [Authorize(Roles = SubmissionRoles.JudgeOrSystem)]
     [HttpPut("{id:length(24)}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
