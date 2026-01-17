@@ -1,0 +1,84 @@
+# Docker Compose configuration for TSA Submissions platform
+# Compatible with both Docker Compose and Podman Compose (4.0+)
+# 
+# Usage:
+#   docker-compose up --build    # Docker
+#   podman compose up --build    # Podman
+
+services:
+  api:
+    hostname: api.tsa.localdev.me
+    build:
+      context: ../api
+      dockerfile: ../api/Tsa.Submissions.Coding.WebApi/Dockerfile
+    ports:
+      - "5000:8080"  # HTTP port
+      - "4024:4024"  # Debug port
+    environment:
+      ASPNETCORE_ENVIRONMENT: 'Development'
+      ASPNETCORE_HTTP_PORTS: 8080
+      DOCKER_CONTAINER: 'Y'
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+    networks:
+      - backend
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - redis
+
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    hostname: mongodb.tsa.localdev.me
+    environment:
+      MONGO_INITDB_DATABASE: tsa_submissions_coding
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongodb/data:/data/db:rw
+      - ./mongodb/seedData:/docker-entrypoint-initdb.d:ro
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    hostname: rabbitmq.tsa.localdev.me
+    environment:
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+    networks:
+      - backend
+
+  redis:
+    image: redis:latest
+    hostname: redis.tsa.localdev.me
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  # ui:
+  #   build:
+  #     context: ../ui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "4200:80"
+  #   environment:
+  #     - API_URL=http://api:8080
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - backend
+
+networks:
+  backend:
+    driver: bridge
