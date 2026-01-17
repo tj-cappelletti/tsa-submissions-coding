@@ -16,7 +16,7 @@ public class Submission : IMongoDbEntity
 
     public bool IsFinalSubmission { get; set; }
 
-    public string? Language { get; set; }
+    public ProgrammingLanguage? Language { get; set; }
 
     public MongoDBRef? Problem { get; set; }
 

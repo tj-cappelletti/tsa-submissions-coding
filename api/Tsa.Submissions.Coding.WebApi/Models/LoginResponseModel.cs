@@ -6,9 +6,9 @@ public class LoginResponseModel
 {
     public string Token { get; set; }
 
-    public DateTime Expiration { get; set; }
+    public DateTimeOffset Expiration { get; set; }
 
-    public LoginResponseModel(string token, DateTime expiration)
+    public LoginResponseModel(string token, DateTimeOffset expiration)
     {
         Token = token;
         Expiration = expiration;

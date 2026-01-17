@@ -9,7 +9,7 @@ public class SubmissionModel
 
     public bool IsFinalSubmission { get; set; }
 
-    public string? Language { get; set; }
+    public ProgrammingLanguageModel? Language { get; set; }
 
     public string? ProblemId { get; set; }
 

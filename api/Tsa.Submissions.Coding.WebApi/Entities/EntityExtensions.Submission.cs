@@ -17,7 +17,7 @@ public static partial class EntityExtensions
         {
             Id = submission.Id,
             IsFinalSubmission = submission.IsFinalSubmission,
-            Language = submission.Language,
+            Language = submission.Language?.ToModel(),
             // Problem is required, if null, we are in a bad state
             ProblemId = submission.Problem!.Id.AsString,
             Solution = submission.Solution,

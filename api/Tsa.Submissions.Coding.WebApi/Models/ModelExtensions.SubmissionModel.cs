@@ -12,7 +12,7 @@ public static partial class ModelExtensions
         {
             Id = submissionModel.Id,
             IsFinalSubmission = submissionModel.IsFinalSubmission,
-            Language = submissionModel.Language,
+            Language = submissionModel.Language?.ToEntity(),
             Problem = new MongoDBRef(ProblemsService.MongoDbCollectionName, submissionModel.ProblemId),
             Solution = submissionModel.Solution,
             SubmittedOn = submissionModel.SubmittedOn,
