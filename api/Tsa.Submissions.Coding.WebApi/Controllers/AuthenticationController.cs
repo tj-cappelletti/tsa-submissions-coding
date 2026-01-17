@@ -61,7 +61,7 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers
 
             _logger.LogInformation("Creating JWT token for user {UserName}", user.UserName.SanitizeForLogging());
             _logger.LogInformation("Token expiration time: {TokenExpiration}", _jwtSettings.ExpirationInHours);
-            var tokenExpiration = DateTime.UtcNow.AddHours(_jwtSettings.ExpirationInHours);
+            var tokenExpiration = DateTimeOffset.UtcNow.AddHours(_jwtSettings.ExpirationInHours);
 
             _logger.LogInformation("Fetching JWT key");
             // JWT Settings are validated in Startup.cs
@@ -72,7 +72,7 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers
             {
                 Audience = _jwtSettings.Audience,
                 Issuer = _jwtSettings.Issuer,
-                Expires = tokenExpiration,
+                Expires = tokenExpiration.UtcDateTime,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Subject = new ClaimsIdentity(new[]
                 {
