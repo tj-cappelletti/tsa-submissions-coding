@@ -7,13 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tsa.Submissions.Coding.Code
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tsa.Submissions.Coding.CodeExecutor.Shared", "Tsa.Submissions.Coding.CodeExecutor.Shared\Tsa.Submissions.Coding.CodeExecutor.Shared.csproj", "{3B95873F-9F5A-42E8-99EF-9AABD336D005}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-	ProjectSection(SolutionItems) = preProject
-		..\docker\rabbitmq\definitions.json = ..\docker\rabbitmq\definitions.json
-		..\docker\rabbitmq\enabled_plugins = ..\docker\rabbitmq\enabled_plugins
-		..\docker\rabbitmq\rabbitmq.conf = ..\docker\rabbitmq\rabbitmq.conf
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
