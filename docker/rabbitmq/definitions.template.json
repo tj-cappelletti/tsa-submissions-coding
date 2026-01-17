@@ -1,0 +1,64 @@
+{
+  "users": [
+    {
+      "name": "coding",
+      "password_hash": "<generated-by-setup-script>",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": ["administrator"]
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "coding",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "tsa_submissions_dlx",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "tsa_submissions_coding_dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "tsa_submissions_coding",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "tsa_submissions_dlx",
+        "x-dead-letter-routing-key": "tsa_submissions_coding_dlq"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "tsa_submissions_dlx",
+      "vhost": "/",
+      "destination": "tsa_submissions_coding_dlq",
+      "destination_type": "queue",
+      "routing_key": "tsa_submissions_coding_dlq",
+      "arguments": {}
+    }
+  ]
+}
