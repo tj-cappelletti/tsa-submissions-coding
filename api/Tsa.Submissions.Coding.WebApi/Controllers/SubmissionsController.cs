@@ -68,9 +68,9 @@ public class SubmissionsController : ControllerBase
 
         _logger.LogInformation("Submission with ID {Id} found", id.SanitizeForLogging());
 
-        if (User.IsInRole(SubmissionRoles.Judge))
+        if (User.IsInRole(SubmissionRoles.Judge) || User.IsInRole(SubmissionRoles.System))
         {
-            _logger.LogInformation("User is a judge, returning submission with ID {Id}", id.SanitizeForLogging());
+            _logger.LogInformation("User is a judge or system, returning submission with ID {Id}", id.SanitizeForLogging());
             return submission.ToModel();
         }
 
@@ -78,6 +78,7 @@ public class SubmissionsController : ControllerBase
 
         var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
 
+        // TODO: Log if the user does not own the submission
         return submission.User!.Id.AsString == user!.Id
             ? submission.ToModel()
             : NotFound();
