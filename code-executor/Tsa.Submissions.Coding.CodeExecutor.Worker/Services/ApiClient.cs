@@ -15,13 +15,12 @@ public class ApiClient
         _logger = logger;
     }
 
-    public async Task<SubmissionModel> GetSubmissionAsync(Guid submissionId, CancellationToken cancellationToken = default)
+    public async Task<SubmissionModel> GetSubmissionAsync(string submissionId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching submission {SubmissionId} from API", submissionId);
 
         var response = await _httpClient.GetAsync($"/api/submissions/{submissionId}", cancellationToken);
 
-        // Let 4xx/5xx throw HttpRequestException via EnsureSuccessStatusCode
         response.EnsureSuccessStatusCode();
 
         var submissionModel = await response.Content.ReadFromJsonAsync<SubmissionModel>(cancellationToken);
@@ -32,6 +31,5 @@ public class ApiClient
         _logger.LogError("Failed to deserialize submission {SubmissionId} from API response: {Content}", submissionId, content);
 
         throw new InvalidOperationException($"Failed to deserialize submission {submissionId}");
-
     }
 }
