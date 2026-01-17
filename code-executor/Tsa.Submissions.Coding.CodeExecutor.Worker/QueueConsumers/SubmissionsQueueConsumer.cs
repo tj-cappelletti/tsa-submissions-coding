@@ -52,7 +52,8 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
 
             // Fetch and validate submission
             _logger.LogInformation("Fetching submission from API");
-            var submission = await _apiClient.GetSubmissionAsync(submissionMessage.SubmissionId, cancellationToken);
+            // The null-forgiving operator is safe here due to prior validation
+            var submission = await _apiClient.GetSubmissionAsync(submissionMessage.SubmissionId!, cancellationToken);
             submission.EnsureModelIsValid();
 
             _logger.LogInformation("Processing submission {SubmissionId}", submissionMessage.SubmissionId);
