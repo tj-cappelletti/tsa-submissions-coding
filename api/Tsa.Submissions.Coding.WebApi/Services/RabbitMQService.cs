@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using RabbitMQ.Client;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Messages;
@@ -13,10 +14,16 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 
 public class RabbitMQService : ISubmissionsQueueService, IDisposable
 {
+    private static readonly JsonSerializerSettings SerializerSettings = new()
+    {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        NullValueHandling = NullValueHandling.Ignore
+    };
+
     private readonly IChannel _channel;
-    private readonly RabbitMQConfig _rabbitMQConfig;
     private readonly IConnection _connection;
     private readonly ILogger<RabbitMQService> _logger;
+    private readonly RabbitMQConfig _rabbitMQConfig;
 
     private bool _disposed;
 
@@ -77,7 +84,7 @@ public class RabbitMQService : ISubmissionsQueueService, IDisposable
     {
         submissionMessage.EnsureMessageIsValid();
 
-        var json = JsonConvert.SerializeObject(submissionMessage);
+        var json = JsonConvert.SerializeObject(submissionMessage, SerializerSettings);
         var body = Encoding.UTF8.GetBytes(json);
 
         var properties = new BasicProperties
@@ -89,6 +96,7 @@ public class RabbitMQService : ISubmissionsQueueService, IDisposable
 
         await _channel.BasicPublishAsync(string.Empty, _rabbitMQConfig.QueueName, false, properties, body, cancellationToken);
 
-        _logger.LogInformation("Published submission {SubmissionId} to RabbitMQ queue {QueueName}", submissionMessage.SubmissionId, _rabbitMQConfig.QueueName);
+        _logger.LogInformation("Published submission {SubmissionId} to RabbitMQ queue {QueueName}", submissionMessage.SubmissionId,
+            _rabbitMQConfig.QueueName);
     }
 }
