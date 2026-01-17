@@ -24,7 +24,11 @@ internal class SubmissionsTestData : IEnumerable<object[]>
             {
                 Id = "000000000000000000000001",
                 IsFinalSubmission = true,
-                Language = "csharp",
+                Language = new ProgrammingLanguage
+                {
+                    Name = "C#",
+                    Version = "10.0"
+                },
                 Problem = new MongoDBRef(ProblemsService.MongoDbCollectionName, "000000000000000000000001"),
                 Solution = "The solution",
                 SubmittedOn = DateTime.Now,

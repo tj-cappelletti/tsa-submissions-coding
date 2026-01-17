@@ -83,13 +83,21 @@ public class EntityExtensions
         {
             Id = submission.Id,
             IsFinalSubmission = submission.IsFinalSubmission,
-            Language = submission.Language,
             ProblemId = submission.Problem?.Id.AsString,
             Solution = submission.Solution,
             SubmittedOn = submission.SubmittedOn,
             TestSetResults = new List<TestSetResultModel>(),
             User = new UserModel { Id = submission.User?.Id.AsString }
         };
+
+        if(submission.Language != null)
+        {
+            expectedSubmissionModel.Language = new ProgrammingLanguageModel
+            {
+                Name = submission.Language.Name,
+                Version = submission.Language.Version
+            };
+        }
 
         submission.TestSetResults =
         [
@@ -301,13 +309,22 @@ public class EntityExtensions
             {
                 Id = submission.Id,
                 IsFinalSubmission = submission.IsFinalSubmission,
-                Language = submission.Language,
                 ProblemId = submission.Problem?.Id.AsString,
                 Solution = submission.Solution,
                 SubmittedOn = submission.SubmittedOn,
                 TestSetResults = new List<TestSetResultModel>(),
                 User = new UserModel { Id = submission.User?.Id.AsString }
             };
+
+            if (submission.Language != null)
+            {
+                expectedSubmissionModel.Language = new ProgrammingLanguageModel
+                {
+                    Name = submission.Language.Name,
+                    Version = submission.Language.Version
+                };
+            }
+
             foreach (var submissionTestSetResult in submission.TestSetResults!)
             {
                 expectedSubmissionModel.TestSetResults.Add(new TestSetResultModel
