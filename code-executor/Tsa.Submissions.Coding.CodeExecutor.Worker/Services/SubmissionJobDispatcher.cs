@@ -82,9 +82,9 @@ public class SubmissionJobDispatcher : BackgroundService
 
         using var scope = _serviceProvider.CreateScope();
         var apiClient = scope.ServiceProvider.GetRequiredService<ApiClient>();
-        //var jobManager = scope.ServiceProvider.GetRequiredService<KubernetesJobManager>();
+        var jobManager = scope.ServiceProvider.GetRequiredService<KubernetesJobManager>();
 
-        var consumer = new SubmissionsQueueConsumer(apiClient, _channel, _logger, cancellationToken);
+        var consumer = new SubmissionsQueueConsumer(apiClient, _channel, jobManager, _logger);
 
         // Start consuming messages
         await _channel.BasicConsumeAsync(
