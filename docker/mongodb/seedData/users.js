@@ -1,6 +1,7 @@
 db = db.getSiblingDB('tsa_submissions_coding');
 
 db.users.insertMany([
+    { "_id": ObjectId('000000000000000000000000'), "passwordHash": "$2a$11$Xe3ZSGK0MP9BPwjK4sqUK.nU2z0cdzzaykvpn3aYrlX9YzqajzT7q", "role": "system", "userName": "system" },
     { "_id": ObjectId('000000000000000000000001'), "passwordHash": "$2a$11$klfPt6XrXUjn5FOyQsSE9.d97DorSuCPYvhXZ4JX6isk4Msn8Zgs2", "role": "judge", "userName": "judge01" },
     { "_id": ObjectId('000000000000000000000002'), "passwordHash": "$2a$11$g2OTpfvk.MiTZNwhlVb9J.1ke2QYsNElPyKbe6csOZoL3lG3WULkO", "role": "judge", "userName": "judge02" },
     { "_id": ObjectId('000000000000000000000003'), "passwordHash": "$2a$11$Smxd5bon2KTGzqaC37rSt.Nkz2wr9R9tc9vglSVl.OPxVUVtDQ8CK", "role": "participant", "team": { "competitionLevel": 2, "schoolNumber": "2001", "teamNumber": "902" }, "userName": "2001-902" },
