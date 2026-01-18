@@ -24,7 +24,9 @@ public class Program
 
         var logger = loggerFactory.CreateLogger<Program>();
 
+        builder.Services.Configure<KubernetesCluster>(builder.Configuration.GetSection(KubernetesCluster.SectionName));
         builder.Services.Configure<RabbitMQConfig>(builder.Configuration.GetSection(RabbitMQConfig.SectionName));
+        builder.Services.Configure<RunnerImageRegistry>(builder.Configuration.GetSection(RunnerImageRegistry.SectionName));
         builder.Services.Configure<SubmissionsApiConfig>(builder.Configuration.GetSection(SubmissionsApiConfig.SectionName));
 
         builder.Services.AddOptions<SubmissionsApiConfig>()
