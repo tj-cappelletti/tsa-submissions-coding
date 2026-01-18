@@ -10,14 +10,14 @@ namespace Tsa.Submissions.Coding.CodeExecutor.Worker.QueueConsumers;
 internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
 {
     private readonly ApiClient _apiClient;
-    private readonly CancellationToken _cancellationToken;
+    private readonly KubernetesJobManager _kubernetesJobManager;
     private readonly ILogger _logger;
 
-    public SubmissionsQueueConsumer(ApiClient apiClient, IChannel channel, ILogger logger, CancellationToken cancellationToken) : base(channel)
+    public SubmissionsQueueConsumer(ApiClient apiClient, IChannel channel, KubernetesJobManager kubernetesJobManager, ILogger logger) : base(channel)
     {
         _apiClient = apiClient;
+        _kubernetesJobManager = kubernetesJobManager;
         _logger = logger;
-        _cancellationToken = cancellationToken;
     }
 
     public override async Task HandleBasicDeliverAsync(
@@ -83,8 +83,14 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
 
     private async Task<bool> ProcessSubmissionAsync(SubmissionModel submission, CancellationToken cancellationToken)
     {
-        // Placeholder for actual submission processing logic
-        await Task.Delay(1000); // Simulate some processing delay
-        return true; // Indicate successful processing
+        await _kubernetesJobManager.ExecuteJobAsync(new RunnerJobPayload
+        {
+            SubmissionId = submission.Id!,
+            Language = submission.Language!,
+            Solution = submission.Solution!,
+            ProblemId = submission.ProblemId!
+        }, cancellationToken);
+
+        return true;
     }
 }
