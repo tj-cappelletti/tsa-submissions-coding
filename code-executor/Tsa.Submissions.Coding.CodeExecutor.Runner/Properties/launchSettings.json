@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Tsa.Submissions.Coding.CodeExecutor.Runner": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
