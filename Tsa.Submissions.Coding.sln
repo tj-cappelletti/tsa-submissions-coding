@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared-components", "shared
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tsa.Submissions.Coding.UnitTests", "shared-components\Tsa.Submissions.Coding.UnitTests\Tsa.Submissions.Coding.UnitTests.csproj", "{E9295BE8-5BF3-4A00-9ABE-D892C0C45346}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tsa.Submissions.Coding.Shared", "shared-components\Tsa.Submissions.Coding.Shared\Tsa.Submissions.Coding.Shared.csproj", "{A3F6D298-727D-4DE9-8B6C-ACECEE365E9E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tsa.Submissions.Coding.Contracts", "shared-components\Tsa.Submissions.Coding.Contracts\Tsa.Submissions.Coding.Contracts.csproj", "{A3F6D298-727D-4DE9-8B6C-ACECEE365E9E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
