@@ -18,10 +18,9 @@ using MongoDB.Driver;
 using MongoDB.Driver.Core.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Tsa.Submissions.Coding.Contracts.Validators;
 using Tsa.Submissions.Coding.WebApi.Configuration;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
-using Tsa.Submissions.Coding.WebApi.Validators;
 
 namespace Tsa.Submissions.Coding.WebApi;
 
@@ -45,7 +44,7 @@ public class Startup(IConfiguration configuration)
 
         app.UseAuthorization();
 
-        app.UseEndpoints(configure: endpoints => { endpoints.MapControllers(); });
+        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }
 
     public void ConfigureServices(IServiceCollection services)
@@ -101,7 +100,7 @@ public class Startup(IConfiguration configuration)
             new IgnoreExtraElementsConvention(true)
         };
 
-        ConventionRegistry.Register("DefaultConventionPack", conventionPack, filter: _ => true);
+        ConventionRegistry.Register("DefaultConventionPack", conventionPack, _ => true);
 
         var mongoCredential = MongoCredential.CreateCredential(
             submissionsDatabase.LoginDatabase,
@@ -126,7 +125,7 @@ public class Startup(IConfiguration configuration)
         // Add MongoDB Services
         const string servicesNamespace = "Tsa.Submissions.Coding.WebApi.Services";
         var serviceTypes = assemblyTypes
-            .Where(predicate: type => type.Namespace == servicesNamespace && type is
+            .Where(type => type.Namespace == servicesNamespace && type is
                 { IsAbstract: false, IsClass: true, IsGenericType: false, IsInterface: false, IsNested: false })
             .ToList();
 
@@ -150,7 +149,7 @@ public class Startup(IConfiguration configuration)
 
                 var implementsMongoEntityService = interfaceType
                     .GetInterfaces()
-                    .Any(predicate: type => type.Name == mongoEntityServiceInterfaceType.Name);
+                    .Any(type => type.Name == mongoEntityServiceInterfaceType.Name);
 
                 if (implementsMongoEntityService)
                 {
@@ -164,7 +163,7 @@ public class Startup(IConfiguration configuration)
         services.AddSingleton<ISubmissionsQueueService, RabbitMQService>();
 
         // Add Redis Service
-        services.AddStackExchangeRedisCache(setupAction: options =>
+        services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = Configuration.GetConnectionString(ConfigurationKeys.RedisConnectionString);
             options.InstanceName = "Tsa.Submissions.Coding.WebApi";
@@ -173,12 +172,12 @@ public class Startup(IConfiguration configuration)
         services.AddSingleton<ICacheService, CacheService>();
 
         // Add Authentication
-        services.AddAuthentication(configureOptions: options =>
+        services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(configureOptions: options =>
+            .AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = jwtSettings.RequireHttpsMetadata;
 
@@ -196,20 +195,21 @@ public class Startup(IConfiguration configuration)
             });
 
         // Add Validators
+        services.AddValidatorsFromAssemblyContaining<AuthenticationRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<UserCreateRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<UserModifyRequestValidator>();
 
         // Setup Controllers
         services
             .AddControllers()
-            .AddNewtonsoftJson(setupAction: options =>
+            .AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
             });
 
         // Add Swagger
-        services.AddSwaggerGen(setupAction: options =>
+        services.AddSwaggerGen(options =>
         {
             var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
