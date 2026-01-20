@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using Tsa.Submissions.Coding.Contracts.Users;
 
 namespace Tsa.Submissions.Coding.WebApi.Models;
 
+[Obsolete($"This model is obsolete and should be replaced with {nameof(TeamResponse)}")]
 public class TeamModel
 {
     public string? CompetitionLevel { get; set; }

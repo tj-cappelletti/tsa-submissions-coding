@@ -1,5 +1,9 @@
-﻿namespace Tsa.Submissions.Coding.WebApi.Models;
+﻿using System;
+using Tsa.Submissions.Coding.Contracts.Users;
 
+namespace Tsa.Submissions.Coding.WebApi.Models;
+
+[Obsolete($"This model is obsolete and should be replaced with {nameof(UserResponse)}")]
 public class UserModel
 {
     public string? Id { get; set; }
