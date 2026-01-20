@@ -29,6 +29,7 @@
     <PackageReference Include="StackExchange.Redis" Version="2.8.37" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.1" />
+    <ProjectReference Include="..\..\shared-components\Tsa.Submissions.Coding.Contracts\Tsa.Submissions.Coding.Contracts.csproj" />
     <Using Include="BCrypt.Net.BCrypt" Alias="BC" />
   </ItemGroup>
 
