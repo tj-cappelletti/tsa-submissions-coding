@@ -1,36 +1,30 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.WebApi.Models;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
-    public static UserModel ToModel(this User user)
+    public static UserResponse ToResponse(this User user)
     {
-        var userModel = new UserModel
-        {
-            Id = user.Id,
-            Role = user.Role,
-            UserName = user.UserName,
-            Team = user.Team?.ToModel()
-        };
+        if (string.IsNullOrWhiteSpace(user.Id)) throw new InvalidOperationException("User ID cannot be null or empty.");
 
-        return userModel;
+        if (string.IsNullOrWhiteSpace(user.Role)) throw new InvalidOperationException("User Role cannot be null or empty.");
+
+        if (string.IsNullOrWhiteSpace(user.UserName)) throw new InvalidOperationException("User UserName cannot be null or empty.");
+
+        return new UserResponse(
+            user.Id,
+            user.Role,
+            user.Team?.ToResponse(),
+            user.UserName);
     }
 
-    public static List<UserModel> ToModels(this IList<User> users)
+    public static IEnumerable<UserResponse> ToResponses(this IEnumerable<User> users)
     {
-        return UsersToUserModels(users);
-    }
-
-    public static List<UserModel> ToModels(this IEnumerable<User> users)
-    {
-        return UsersToUserModels(users);
-    }
-
-    private static List<UserModel> UsersToUserModels(this IEnumerable<User> users)
-    {
-        return [.. users.Select(user => user.ToModel())];
+        return [.. users.Select(selector: user => user.ToResponse())];
     }
 }
