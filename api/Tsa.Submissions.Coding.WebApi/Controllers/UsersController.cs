@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.Models;
@@ -83,14 +84,14 @@ public class UsersController : ControllerBase
     /// <response code="403">You do not have permission to use this endpoint</response>
     [Authorize(Roles = SubmissionRoles.Judge)]
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IList<UserModel>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<UserResponse>))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
     [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponseModel))]
     public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
     {
         var users = await GetUsersFromCache(cancellationToken);
 
-        return Ok(users.ToModels());
+        return Ok(users.ToResponses());
     }
 
     /// <summary>
@@ -104,7 +105,7 @@ public class UsersController : ControllerBase
     /// <response code="404">The user does not exist in your context</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet("{id:length(24)}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserModel))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserResponse))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
     [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponseModel))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponseModel))]
@@ -119,7 +120,7 @@ public class UsersController : ControllerBase
             return CreateUserNotFoundError(id);
         }
 
-        return Ok(user.ToModel());
+        return Ok(user.ToResponse());
     }
 
     private async Task<T?> GetOrSetCacheAsync<T>(string cacheKey, Func<CancellationToken, Task<T?>> fetchFromService, CancellationToken cancellationToken)
@@ -142,7 +143,7 @@ public class UsersController : ControllerBase
     {
         return await GetOrSetCacheAsync(
             $"{UserIdCacheKey}:{id}",
-            async ct => await _usersService.GetAsync(id, ct),
+            fetchFromService: async ct => await _usersService.GetAsync(id, ct),
             cancellationToken
         );
     }
@@ -151,7 +152,7 @@ public class UsersController : ControllerBase
     {
         return await GetOrSetCacheAsync(
             UsersCacheKey,
-            async ct => await _usersService.GetAsync(ct),
+            fetchFromService: async ct => await _usersService.GetAsync(ct),
             cancellationToken
         ) ?? [];
     }
@@ -159,7 +160,7 @@ public class UsersController : ControllerBase
     /// <summary>
     ///     Creates a new user
     /// </summary>
-    /// <param name="userModel">The user to be created</param>
+    /// <param name="userCreateRequest">The user to be created</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="201">Returns the created user</response>
     /// <response code="400">The user to create is not in a valid state and cannot be created</response>
@@ -168,34 +169,30 @@ public class UsersController : ControllerBase
     /// <response code="404">The team specified for the user could not be found</response>
     [Authorize(Roles = SubmissionRoles.Judge)]
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(UserModel))]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Post(UserModel userModel, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Post(UserCreateRequest userCreateRequest, CancellationToken cancellationToken = default)
     {
-        var existingUser = await _usersService.GetByUserNameAsync(userModel.UserName, cancellationToken);
+        var existingUser = await _usersService.GetByUserNameAsync(userCreateRequest.UserName, cancellationToken);
 
-        if (existingUser != null) return Conflict(ApiErrorResponseModel.EntityAlreadyExists(nameof(User), userModel.UserName!));
+        if (existingUser != null) return Conflict(ApiErrorResponseModel.EntityAlreadyExists(nameof(User), userCreateRequest.UserName));
 
-        var passwordHash = BC.HashPassword(userModel.Password);
-
-        var user = userModel.ToEntity();
-
-        user.PasswordHash = passwordHash;
+        var user = ToEntity(userCreateRequest);
 
         await _usersService.CreateAsync(user, cancellationToken);
 
         await SetUserCache(user, cancellationToken);
 
-        return CreatedAtAction(nameof(Get), new { id = user.Id }, user.ToModel());
+        return CreatedAtAction(nameof(Get), new { id = user.Id }, user.ToResponse());
     }
 
     /// <summary>
     ///     Creates multiple users in a batch operation
     /// </summary>
-    /// <param name="userModels">An array of users to be created</param>
+    /// <param name="userCreateRequests">An array of users to be created</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="201">Returns the created users</response>
     /// <response code="400">The user to create is not in a valid state and cannot be created</response>
@@ -203,13 +200,13 @@ public class UsersController : ControllerBase
     /// <response code="403">You do not have permission to use this endpoint</response>
     [Authorize(Roles = SubmissionRoles.Judge)]
     [HttpPost("batch")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(IList<UserModel>))]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(IList<UserResponse>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Post(UserModel[] userModels, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Post(UserCreateRequest[] userCreateRequests, CancellationToken cancellationToken = default)
     {
-        if (userModels.Length == 0)
+        if (userCreateRequests.Length == 0)
         {
             return BadRequest(new ValidationProblemDetails
             {
@@ -218,23 +215,23 @@ public class UsersController : ControllerBase
             });
         }
 
-        var batchOperationModel = new BatchOperationModel<UserModel>();
+        var batchOperationModel = new BatchOperationModel<UserCreateRequest, UserResponse>();
 
-        foreach (var userModel in userModels)
+        foreach (var userCreateRequest in userCreateRequests)
         {
-            var actionResult = await Post(userModel, cancellationToken);
+            var actionResult = await Post(userCreateRequest, cancellationToken);
 
             if (actionResult is not CreatedAtActionResult createdAtActionResult)
             {
-                batchOperationModel.FailedItems.Add(new ItemFailureModel<UserModel>
+                batchOperationModel.FailedItems.Add(new ItemFailureModel<UserCreateRequest>
                 {
                     ErrorMessage = ExtractErrorMessageFromActionResult(actionResult),
-                    Item = userModel
+                    Item = userCreateRequest
                 });
             }
             else
             {
-                batchOperationModel.CreatedItems.Add((UserModel)createdAtActionResult.Value!);
+                batchOperationModel.CreatedItems.Add((UserResponse)createdAtActionResult.Value!);
             }
         }
 
@@ -270,27 +267,66 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Put(string id, UserModel updatedUserModel, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Put(string id, UserModifyRequest updatedUserModel, CancellationToken cancellationToken = default)
     {
         // Team is required and is enforced in the model validation
         var user = await _usersService.GetAsync(id, cancellationToken);
 
         if (user == null) return CreateUserNotFoundError(id);
 
-        updatedUserModel.Id = user.Id;
+        var updatedUser = ToEntity(updatedUserModel);
+        updatedUser.Id = user.Id;
 
-        await _usersService.UpdateAsync(updatedUserModel.ToEntity(), cancellationToken);
+        if (string.IsNullOrWhiteSpace(updatedUser.PasswordHash))
+        {
+            updatedUser.PasswordHash = user.PasswordHash;
+        }
 
-        await SetUserCache(user, cancellationToken);
+        await _usersService.UpdateAsync(updatedUser, cancellationToken);
+
+        await SetUserCache(updatedUser, cancellationToken);
 
         return NoContent();
     }
 
     private async Task SetUserCache(User user, CancellationToken cancellationToken)
     {
-        if (user.Id == null) throw new NullReferenceException("The user's ID cannot be null when adding it to the cache.");
+        if (user.Id == null) throw new InvalidOperationException("The user's ID cannot be null when adding it to the cache.");
 
         await _cacheService.SetAsync($"{UserIdCacheKey}:{user.Id}", user, _cacheExpiration, cancellationToken);
         await _cacheService.RemoveAsync(UsersCacheKey, cancellationToken);
+    }
+
+    private static Team ToEntity(TeamRequest teamRequest)
+    {
+        return new Team
+        {
+            // CompetitionLevel is required, if null, we are in a bad state
+            // TeamModelValidator will ensure that this is not null
+            CompetitionLevel = Enum.Parse<CompetitionLevel>(teamRequest.CompetitionLevel),
+            SchoolNumber = teamRequest.SchoolNumber,
+            TeamNumber = teamRequest.TeamNumber
+        };
+    }
+
+    private static User ToEntity(IUserRequest userRequest)
+    {
+        var user = new User
+        {
+            Role = userRequest.Role,
+            Team = userRequest.Team == null ? null : ToEntity(userRequest.Team),
+            UserName = userRequest.UserName
+        };
+
+        if (userRequest.Password != null)
+        {
+            user.PasswordHash = BC.HashPassword(userRequest.Password);
+        }
+        else if (userRequest is UserCreateRequest)
+        {
+            throw new InvalidOperationException("Password is required for user creation.");
+        }
+
+        return user;
     }
 }
