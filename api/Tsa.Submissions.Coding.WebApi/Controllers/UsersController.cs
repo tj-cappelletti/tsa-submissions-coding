@@ -185,7 +185,7 @@ public class UsersController : WebApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Post(UserCreateRequest userCreateRequest, CancellationToken cancellationToken = default)
     {
-        var validatedResult = await ValidateAsync(userCreateRequest, _userCreateRequestValidator);
+        var validatedResult = await ValidateAsync(userCreateRequest, _userCreateRequestValidator, cancellationToken);
 
         if (validatedResult.IsInvalid) return validatedResult.GetError();
 
@@ -282,7 +282,7 @@ public class UsersController : WebApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Put(string id, UserModifyRequest updatedUserModel, CancellationToken cancellationToken = default)
     {
-        var validatedResult = await ValidateAsync(updatedUserModel, _userModifyRequestValidator);
+        var validatedResult = await ValidateAsync(updatedUserModel, _userModifyRequestValidator, cancellationToken);
 
         if (validatedResult.IsInvalid) return validatedResult.GetError();
 
