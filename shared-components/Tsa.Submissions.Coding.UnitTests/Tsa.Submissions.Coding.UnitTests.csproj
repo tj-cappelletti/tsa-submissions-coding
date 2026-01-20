@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tsa.Submissions.Coding.WebApi\Tsa.Submissions.Coding.WebApi.csproj" />
+    <ProjectReference Include="..\..\api\Tsa.Submissions.Coding.WebApi\Tsa.Submissions.Coding.WebApi.csproj" />
   </ItemGroup>
 
 </Project>
