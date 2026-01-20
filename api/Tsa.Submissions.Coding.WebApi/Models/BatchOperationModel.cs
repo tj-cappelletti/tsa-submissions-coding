@@ -2,17 +2,17 @@
 
 namespace Tsa.Submissions.Coding.WebApi.Models;
 
-public class BatchOperationModel<T>
+public class BatchOperationModel<TRequest, TResponse>
 {
-    public List<T> CreatedItems { get; set; } = [];
+    public List<TResponse> CreatedItems { get; set; } = [];
 
-    public List<T> DeletedItems { get; set; } = [];
+    public List<TResponse> DeletedItems { get; set; } = [];
 
-    public List<ItemFailureModel<T>> FailedItems { get; set; } = [];
+    public List<ItemFailureModel<TRequest>> FailedItems { get; set; } = [];
 
     public string? Result { get; set; }
 
-    public List<T> UpdatedItems { get; set; } = [];
+    public List<TResponse> UpdatedItems { get; set; } = [];
 }
 
 public enum BatchOperationResult
