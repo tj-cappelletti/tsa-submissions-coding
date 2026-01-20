@@ -1,15 +1,17 @@
-﻿using System.Collections.Generic;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using Swashbuckle.AspNetCore.Annotations;
-
-namespace Tsa.Submissions.Coding.WebApi.Entities;
+﻿namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public class Team
 {
-    public CompetitionLevel? CompetitionLevel { get; set; }
+    public CompetitionLevel CompetitionLevel { get; set; }
 
-    public string? SchoolNumber { get; set; }
+    public string SchoolNumber { get; set; }
 
-    public string? TeamNumber { get; set; }
+    public string TeamNumber { get; set; }
+
+    public Team(CompetitionLevel competitionLevel, string schoolNumber, string teamNumber)
+    {
+        CompetitionLevel = competitionLevel;
+        SchoolNumber = schoolNumber;
+        TeamNumber = teamNumber;
+    }
 }
