@@ -299,14 +299,10 @@ public class UsersController : ControllerBase
 
     private static Team ToEntity(TeamRequest teamRequest)
     {
-        return new Team
-        {
-            // CompetitionLevel is required, if null, we are in a bad state
-            // TeamModelValidator will ensure that this is not null
-            CompetitionLevel = Enum.Parse<CompetitionLevel>(teamRequest.CompetitionLevel),
-            SchoolNumber = teamRequest.SchoolNumber,
-            TeamNumber = teamRequest.TeamNumber
-        };
+        return new Team(
+            Enum.Parse<CompetitionLevel>(teamRequest.CompetitionLevel),
+            teamRequest.SchoolNumber,
+            teamRequest.TeamNumber);
     }
 
     private static User ToEntity(IUserRequest userRequest)
