@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,18 +17,26 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
-public class UsersController : ControllerBase
+public class UsersController : WebApiBaseController
 {
     private const string UserIdCacheKey = "user_id";
     private const string UsersCacheKey = "users";
     private readonly TimeSpan _cacheExpiration = TimeSpan.FromHours(2);
 
     private readonly ICacheService _cacheService;
+    private readonly IValidator<UserCreateRequest> _userCreateRequestValidator;
+    private readonly IValidator<UserModifyRequest> _userModifyRequestValidator;
     private readonly IUsersService _usersService;
 
-    public UsersController(ICacheService cacheService, IUsersService usersService)
+    public UsersController(
+        ICacheService cacheService,
+        IValidator<UserCreateRequest> userCreateRequestValidator,
+        IValidator<UserModifyRequest> userModifyRequestValidator,
+        IUsersService usersService)
     {
         _cacheService = cacheService;
+        _userCreateRequestValidator = userCreateRequestValidator;
+        _userModifyRequestValidator = userModifyRequestValidator;
         _usersService = usersService;
     }
 
@@ -176,6 +185,10 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Post(UserCreateRequest userCreateRequest, CancellationToken cancellationToken = default)
     {
+        var validatedResult = await ValidateAsync(userCreateRequest, _userCreateRequestValidator);
+
+        if (validatedResult.IsInvalid) return validatedResult.GetError();
+
         var existingUser = await _usersService.GetByUserNameAsync(userCreateRequest.UserName, cancellationToken);
 
         if (existingUser != null) return Conflict(ApiErrorResponseModel.EntityAlreadyExists(nameof(User), userCreateRequest.UserName));
@@ -269,7 +282,10 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Put(string id, UserModifyRequest updatedUserModel, CancellationToken cancellationToken = default)
     {
-        // Team is required and is enforced in the model validation
+        var validatedResult = await ValidateAsync(updatedUserModel, _userModifyRequestValidator);
+
+        if (validatedResult.IsInvalid) return validatedResult.GetError();
+
         var user = await _usersService.GetAsync(id, cancellationToken);
 
         if (user == null) return CreateUserNotFoundError(id);
