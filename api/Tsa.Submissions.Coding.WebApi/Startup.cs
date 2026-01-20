@@ -12,7 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Configuration;
@@ -196,10 +196,8 @@ public class Startup(IConfiguration configuration)
             });
 
         // Add Validators
-        services.AddScoped<IValidator<ProblemModel>, ProblemModelValidator>();
-        services.AddScoped<IValidator<TeamModel>, TeamModelValidator>();
-        services.AddScoped<IValidator<TestSetModel>, TestSetModelValidator>();
-        services.AddScoped<IValidator<UserModel>, UserModelValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserCreateRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<UserModifyRequestValidator>();
 
         // Setup Controllers
         services
@@ -231,20 +229,21 @@ public class Startup(IConfiguration configuration)
                     "Enter 'Bearer' [space] and then your token in the text input below.\n\nExample: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'"
             });
 
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
-            });
+            // TODO: Determine replacement/update for this code
+            //options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            //{
+            //    {
+            //        new OpenApiSecurityScheme
+            //        {
+            //            Reference = new OpenApiReference
+            //            {
+            //                Type = ReferenceType.SecurityScheme,
+            //                Id = "Bearer"
+            //            }
+            //        },
+            //        Array.Empty<string>()
+            //    }
+            //});
         });
     }
 }
