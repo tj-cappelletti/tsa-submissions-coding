@@ -6,6 +6,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Tsa.Submissions.Coding.Contracts;
 using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
@@ -42,7 +43,7 @@ public class UsersController : WebApiBaseController
 
     private NotFoundObjectResult CreateUserNotFoundError(string id)
     {
-        return NotFound(ApiErrorResponseModel.EntityNotFound(nameof(Entities.User), id));
+        return NotFound(ApiErrorEntityNotFound(nameof(Entities.User), id));
     }
 
     /// <summary>
@@ -57,9 +58,9 @@ public class UsersController : WebApiBaseController
     [Authorize(Roles = SubmissionRoles.Judge)]
     [HttpDelete("{id:length(24)}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
-    [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponseModel))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponseModel))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponse))]
     public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken = default)
     {
         var user = await _usersService.GetAsync(id, cancellationToken);
@@ -79,7 +80,7 @@ public class UsersController : WebApiBaseController
         return actionResult switch
         {
             BadRequestObjectResult badRequest => ((ValidationProblemDetails)badRequest.Value!).Detail,
-            ConflictObjectResult conflict => ((ApiErrorResponseModel)conflict.Value!).Message,
+            ConflictObjectResult conflict => ((ApiErrorResponse)conflict.Value!).Message,
             _ => actionResult.ToString()
         };
     }
@@ -94,8 +95,8 @@ public class UsersController : WebApiBaseController
     [Authorize(Roles = SubmissionRoles.Judge)]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<UserResponse>))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
-    [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponseModel))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponse))]
     public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
     {
         var users = await GetUsersFromCache(cancellationToken);
@@ -115,9 +116,9 @@ public class UsersController : WebApiBaseController
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet("{id:length(24)}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserResponse))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
-    [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponseModel))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponseModel))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponse))]
     public async Task<IActionResult> Get(string id, CancellationToken cancellationToken = default)
     {
         var user = await GetUserFromCache(id, cancellationToken);
@@ -180,7 +181,7 @@ public class UsersController : WebApiBaseController
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Post(UserCreateRequest userCreateRequest, CancellationToken cancellationToken = default)
@@ -191,7 +192,7 @@ public class UsersController : WebApiBaseController
 
         var existingUser = await _usersService.GetByUserNameAsync(userCreateRequest.UserName, cancellationToken);
 
-        if (existingUser != null) return Conflict(ApiErrorResponseModel.EntityAlreadyExists(nameof(User), userCreateRequest.UserName));
+        if (existingUser != null) return Conflict(ApiErrorEntityAlreadyExists(nameof(User), userCreateRequest.UserName));
 
         var user = ToEntity(userCreateRequest);
 
@@ -215,7 +216,7 @@ public class UsersController : WebApiBaseController
     [HttpPost("batch")]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(IList<UserResponse>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Post(UserCreateRequest[] userCreateRequests, CancellationToken cancellationToken = default)
     {
@@ -278,7 +279,7 @@ public class UsersController : WebApiBaseController
     [HttpPut("{id:length(24)}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponseModel))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Put(string id, UserModifyRequest updatedUserModel, CancellationToken cancellationToken = default)
     {
