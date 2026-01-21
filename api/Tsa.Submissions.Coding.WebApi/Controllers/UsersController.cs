@@ -135,6 +135,7 @@ public class UsersController : WebApiBaseController
         return Ok(user.ToResponse());
     }
 
+    // TODO: Move to UsersService
     private async Task<T?> GetOrSetCacheAsync<T>(string cacheKey, Func<CancellationToken, Task<T?>> fetchFromService, CancellationToken cancellationToken)
     {
         var cachedData = await _cacheService.GetAsync<T>(cacheKey, cancellationToken);
@@ -151,6 +152,7 @@ public class UsersController : WebApiBaseController
         return data;
     }
 
+    // TODO: Move to UsersService
     private async Task<User?> GetUserFromCache(string id, CancellationToken cancellationToken)
     {
         return await GetOrSetCacheAsync(
@@ -160,6 +162,7 @@ public class UsersController : WebApiBaseController
         );
     }
 
+    // TODO: Move to UsersService
     private async Task<List<User>> GetUsersFromCache(CancellationToken cancellationToken)
     {
         return await GetOrSetCacheAsync(
