@@ -91,7 +91,7 @@ Write-Info "Generating random Erlang cookie..."
 $erlangCookie = New-RandomString -Length 32
 
 Write-Host ""
-$rabbitMQPasswordHash = Get-RabbitMQPasswordHash -Password $rabbitMQPasswordPlain
+$rabbitMQPasswordHash = Get-RabbitMQPasswordHash -Password $rabbitMQPasswordSecure
 
 # Generate .env file
 Write-Host ""
