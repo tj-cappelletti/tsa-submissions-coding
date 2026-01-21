@@ -7,7 +7,7 @@ public class TestSetResult
 {
     public bool Passed { get; set; }
 
-    public TimeSpan? RunDuration { get; set; }
+    public TimeSpan RunDuration { get; set; }
 
     public MongoDBRef? TestSet { get; set; }
 }
