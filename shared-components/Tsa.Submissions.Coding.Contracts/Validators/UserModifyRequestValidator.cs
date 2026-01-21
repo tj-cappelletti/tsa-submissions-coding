@@ -2,4 +2,4 @@
 
 namespace Tsa.Submissions.Coding.Contracts.Validators;
 
-public class UserModifyRequestValidator : UserRequestValidator<UserCreateRequest>;
+public class UserModifyRequestValidator : UserRequestValidator<UserModifyRequest>;
