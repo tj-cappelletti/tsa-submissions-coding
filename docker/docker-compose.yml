@@ -6,27 +6,6 @@
 #   podman compose up --build    # Podman
 
 services:
-  api:
-    hostname: api.tsa.localdev.me
-    build:
-      context: ../api
-      dockerfile: ../api/Tsa.Submissions.Coding.WebApi/Dockerfile
-    ports:
-      - "5000:8080"  # HTTP port
-      - "4024:4024"  # Debug port
-    environment:
-      ASPNETCORE_ENVIRONMENT: 'Development'
-      ASPNETCORE_HTTP_PORTS: 8080
-      DOCKER_CONTAINER: 'Y'
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
-    networks:
-      - backend
-    depends_on:
-      - mongodb
-      - rabbitmq
-      - redis
-
   mongodb:
     image: mongodb/mongodb-community-server:latest
     hostname: mongodb.tsa.localdev.me
