@@ -14,7 +14,6 @@ using Tsa.Submissions.Coding.Contracts.Authentication;
 using Tsa.Submissions.Coding.Contracts.Validators;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.ExtensionMethods;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
@@ -61,7 +60,7 @@ public class AuthenticationController : WebApiBaseController
         if (user == null)
         {
             _logger.LogWarning("Login failed for user {UserName}: User not found", authenticationRequest.UserName.SanitizeForLogging());
-            return Unauthorized(ApiErrorResponseModel.Unauthorized);
+            return Unauthorized(ApiErrorUnauthorized());
         }
 
         var passwordVerified = BC.Verify(authenticationRequest.Password, user.PasswordHash);
@@ -69,7 +68,7 @@ public class AuthenticationController : WebApiBaseController
         if (!passwordVerified)
         {
             _logger.LogWarning("Login failed for user {UserName}: Invalid password", authenticationRequest.UserName.SanitizeForLogging());
-            return Unauthorized(ApiErrorResponseModel.Unauthorized);
+            return Unauthorized(ApiErrorUnauthorized());
         }
 
         _logger.LogInformation("User {UserName} logged in successfully", user.UserName);
