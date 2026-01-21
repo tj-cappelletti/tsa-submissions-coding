@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Tsa.Submissions.Coding.Contracts;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.WebApi.Exceptions;
 using Tsa.Submissions.Coding.WebApi.Validators;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
