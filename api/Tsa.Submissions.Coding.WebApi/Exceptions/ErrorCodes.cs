@@ -1,4 +1,4 @@
-namespace Tsa.Submissions.Coding.WebApi.Models;
+namespace Tsa.Submissions.Coding.WebApi.Exceptions;
 
 public enum ErrorCodes
 {
