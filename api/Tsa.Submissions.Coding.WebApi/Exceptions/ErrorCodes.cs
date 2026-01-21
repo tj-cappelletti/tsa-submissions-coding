@@ -8,5 +8,6 @@ public enum ErrorCodes
     UnexpectedMissingResource = 4000,
     EntityNotFound = 5000,
     EntityAlreadyExists = 6000,
-    InvalidId = 7000
+    InvalidId = 7000,
+    SubmissionAlreadyEvaluated = 8000
 }
