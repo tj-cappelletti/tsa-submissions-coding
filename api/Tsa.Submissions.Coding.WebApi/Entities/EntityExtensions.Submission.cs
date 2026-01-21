@@ -1,40 +1,55 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.Submissions;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
-    private static List<SubmissionModel> SubmissionsToSubmissionModels(IEnumerable<Submission> submissions)
+    public static ProgrammingLanguageResponse ToResponse(this ProgrammingLanguage programmingLanguage)
     {
-        return submissions.Select(submission => submission.ToModel()).ToList();
+        return new ProgrammingLanguageResponse(
+            programmingLanguage.Name,
+            programmingLanguage.Version);
     }
 
-    public static SubmissionModel ToModel(this Submission submission)
+    public static SubmissionResponse ToResponse(this Submission submission, IList<TestSetResultResponse>? testSetResultResponses = null)
     {
-        return new SubmissionModel
-        {
-            Id = submission.Id,
-            IsFinalSubmission = submission.IsFinalSubmission,
-            Language = submission.Language?.ToModel(),
-            // Problem is required, if null, we are in a bad state
-            ProblemId = submission.Problem!.Id.AsString,
-            Solution = submission.Solution,
-            SubmittedOn = submission.SubmittedOn,
-            TestSetResults = submission.TestSetResults?.ToModels(),
-            // User is required, if null, we are in a bad state
-            User = new UserModel { Id = submission.User!.Id.AsString }
-        };
+        if (string.IsNullOrWhiteSpace(submission.Id)) throw new InvalidOperationException("Submission ID is required.");
+
+        if (submission.Language == null) throw new InvalidOperationException("Submission Programming Language is required.");
+
+        if (submission.Problem == null) throw new InvalidOperationException("Submission Problem is required.");
+
+        if (string.IsNullOrWhiteSpace(submission.Solution)) throw new InvalidOperationException("Submission Solution is required.");
+
+        if (submission.SubmittedOn == null) throw new InvalidOperationException("Submission Submitted On is required.");
+
+        if (submission.User == null) throw new InvalidOperationException("Submission User is required.");
+
+        return new SubmissionResponse(
+            submission.Id,
+            submission.Language.ToResponse(),
+            submission.Problem.Id.AsString,
+            submission.Solution,
+            submission.SubmittedOn.Value,
+            testSetResultResponses ?? [],
+            submission.User.Id.AsString);
     }
 
-    public static List<SubmissionModel> ToModels(this IList<Submission> submissions)
+    public static TestSetResultResponse ToResponse(this TestSetResult testSetResult)
     {
-        return SubmissionsToSubmissionModels(submissions);
+        if (testSetResult.TestSet == null) throw new InvalidOperationException("Test Set Result Test Set is required.");
+
+        return new TestSetResultResponse(
+            testSetResult.Passed,
+            testSetResult.RunDuration,
+            testSetResult.TestSet.Id.AsString);
     }
 
-    public static List<SubmissionModel> ToModels(this IEnumerable<Submission> submissions)
+    public static IEnumerable<SubmissionResponse> ToResponses(this IEnumerable<Submission> submissions)
     {
-        return SubmissionsToSubmissionModels(submissions);
+        return submissions.Select(submission => submission.ToResponse()).ToList();
     }
 }
