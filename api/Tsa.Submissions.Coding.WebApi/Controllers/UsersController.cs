@@ -75,14 +75,16 @@ public class UsersController : WebApiBaseController
         return NoContent();
     }
 
-    private static string? ExtractErrorMessageFromActionResult(IActionResult actionResult)
+    private static string ExtractErrorMessageFromActionResult(IActionResult actionResult)
     {
-        return actionResult switch
+        var extractedErrorMessage = actionResult switch
         {
             BadRequestObjectResult badRequest => ((ValidationProblemDetails)badRequest.Value!).Detail,
             ConflictObjectResult conflict => ((ApiErrorResponse)conflict.Value!).Message,
             _ => actionResult.ToString()
         };
+
+        return extractedErrorMessage ?? "Unknown Error";
     }
 
     /// <summary>
@@ -153,7 +155,7 @@ public class UsersController : WebApiBaseController
     {
         return await GetOrSetCacheAsync(
             $"{UserIdCacheKey}:{id}",
-            fetchFromService: async ct => await _usersService.GetAsync(id, ct),
+            async ct => await _usersService.GetAsync(id, ct),
             cancellationToken
         );
     }
@@ -162,7 +164,7 @@ public class UsersController : WebApiBaseController
     {
         return await GetOrSetCacheAsync(
             UsersCacheKey,
-            fetchFromService: async ct => await _usersService.GetAsync(ct),
+            async ct => await _usersService.GetAsync(ct),
             cancellationToken
         ) ?? [];
     }
@@ -229,7 +231,7 @@ public class UsersController : WebApiBaseController
             });
         }
 
-        var batchOperationModel = new BatchOperationModel<UserCreateRequest, UserResponse>();
+        var batchOperationModel = new BatchOperationResponse<UserCreateRequest, UserResponse>();
 
         foreach (var userCreateRequest in userCreateRequests)
         {
@@ -237,11 +239,11 @@ public class UsersController : WebApiBaseController
 
             if (actionResult is not CreatedAtActionResult createdAtActionResult)
             {
-                batchOperationModel.FailedItems.Add(new ItemFailureModel<UserCreateRequest>
-                {
-                    ErrorMessage = ExtractErrorMessageFromActionResult(actionResult),
-                    Item = userCreateRequest
-                });
+                batchOperationModel.FailedItems.Add(
+                    new ItemFailureResponse<UserCreateRequest>(
+                        ExtractErrorMessageFromActionResult(actionResult),
+                        userCreateRequest
+                    ));
             }
             else
             {
