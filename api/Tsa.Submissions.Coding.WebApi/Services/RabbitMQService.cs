@@ -7,8 +7,8 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using RabbitMQ.Client;
+using Tsa.Submissions.Coding.Contracts.Messages;
 using Tsa.Submissions.Coding.WebApi.Configuration;
-using Tsa.Submissions.Coding.WebApi.Messages;
 
 namespace Tsa.Submissions.Coding.WebApi.Services;
 
@@ -82,8 +82,6 @@ public class RabbitMQService : ISubmissionsQueueService, IDisposable
 
     public async Task EnqueueSubmissionAsync(SubmissionMessage submissionMessage, CancellationToken cancellationToken = default)
     {
-        submissionMessage.EnsureMessageIsValid();
-
         var json = JsonConvert.SerializeObject(submissionMessage, SerializerSettings);
         var body = Encoding.UTF8.GetBytes(json);
 

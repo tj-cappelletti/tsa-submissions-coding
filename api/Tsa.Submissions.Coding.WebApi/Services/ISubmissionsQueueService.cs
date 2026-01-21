@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Tsa.Submissions.Coding.WebApi.Messages;
+using Tsa.Submissions.Coding.Contracts.Messages;
 
 namespace Tsa.Submissions.Coding.WebApi.Services;
 
