@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.HealthChecks;
 using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
@@ -27,7 +27,7 @@ public class StatusController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<ServicesStatusModel>> Get(CancellationToken cancellationToken = default)
+    public async Task<ActionResult<ServicesStatusResponse>> Get(CancellationToken cancellationToken = default)
     {
         var concurrentBag = new ConcurrentBag<Tuple<string, bool>>();
 
@@ -46,20 +46,20 @@ public class StatusController : ControllerBase
             concurrentBag.Add(new Tuple<string, bool>(pingableService.ServiceName, isAlive));
         });
 
-        var servicesStatusModelType = typeof(ServicesStatusModel);
-        var servicesStatusModel = new ServicesStatusModel();
+        var servicesStatusResponseType = typeof(ServicesStatusResponse);
+        var servicesStatusResponse = new ServicesStatusResponse();
 
         foreach (var tuple in concurrentBag)
         {
-            var propertyInfo = servicesStatusModelType.GetProperty($"{tuple.Item1}ServiceIsAlive");
+            var propertyInfo = servicesStatusResponseType.GetProperty($"{tuple.Item1}ServiceIsAlive");
 
             if (propertyInfo == null) continue;
 
-            propertyInfo.SetValue(servicesStatusModel, tuple.Item2);
+            propertyInfo.SetValue(servicesStatusResponse, tuple.Item2);
         }
 
-        return servicesStatusModel.IsHealthy
-            ? Ok(servicesStatusModel)
-            : StatusCode(StatusCodes.Status500InternalServerError, servicesStatusModel);
+        return servicesStatusResponse.IsHealthy
+            ? Ok(servicesStatusResponse)
+            : StatusCode(StatusCodes.Status500InternalServerError, servicesStatusResponse);
     }
 }
