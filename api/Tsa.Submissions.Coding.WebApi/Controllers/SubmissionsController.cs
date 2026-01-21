@@ -7,11 +7,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using Tsa.Submissions.Coding.Contracts;
+using Tsa.Submissions.Coding.Contracts.Messages;
+using Tsa.Submissions.Coding.Contracts.Submissions;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.ExtensionMethods;
-using Tsa.Submissions.Coding.WebApi.Messages;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
@@ -19,17 +21,23 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
-public class SubmissionsController : ControllerBase
+public class SubmissionsController : WebApiBaseController
 {
     private readonly ILogger<SubmissionsController> _logger;
+    private readonly IProblemsService _problemsService;
     private readonly ISubmissionsQueueService _submissionsQueueService;
     private readonly ISubmissionsService _submissionsService;
     private readonly IUsersService _usersService;
 
-    public SubmissionsController(ILogger<SubmissionsController> logger, ISubmissionsService submissionsService,
-        ISubmissionsQueueService submissionsQueueService, IUsersService usersService)
+    public SubmissionsController(
+        ILogger<SubmissionsController> logger,
+        IProblemsService problemsService,
+        ISubmissionsService submissionsService,
+        ISubmissionsQueueService submissionsQueueService,
+        IUsersService usersService)
     {
         _logger = logger;
+        _problemsService = problemsService;
         _submissionsService = submissionsService;
         _submissionsQueueService = submissionsQueueService;
         _usersService = usersService;
@@ -44,10 +52,10 @@ public class SubmissionsController : ControllerBase
     /// <response code="404">The submission does not exist in the database</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet("{id:length(24)}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SubmissionModel))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SubmissionResponse))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SubmissionModel>> Get(string id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<SubmissionResponse>> Get(string id, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching submission with ID {Id}", id.SanitizeForLogging());
         var sanitizedId = id.SanitizeForLogging();
@@ -55,7 +63,7 @@ public class SubmissionsController : ControllerBase
         if (sanitizedId != id)
         {
             _logger.LogWarning("Submission ID {Id} is not valid", sanitizedId);
-            return BadRequest(ApiErrorResponseModel.InvalidId);
+            return BadRequest(ApiErrorInvalidId());
         }
 
         var submission = await _submissionsService.GetAsync(id, cancellationToken);
@@ -71,17 +79,21 @@ public class SubmissionsController : ControllerBase
         if (User.IsInRole(SubmissionRoles.Judge) || User.IsInRole(SubmissionRoles.System))
         {
             _logger.LogInformation("User is a judge or system, returning submission with ID {Id}", id.SanitizeForLogging());
-            return submission.ToModel();
+            return submission.ToResponse();
         }
 
         _logger.LogInformation("User is not a judge, checking if they are the owner of the submission with ID {Id}", id.SanitizeForLogging());
 
         var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
 
-        // TODO: Log if the user does not own the submission
-        return submission.User!.Id.AsString == user!.Id
-            ? submission.ToModel()
-            : NotFound();
+        if (submission.User!.Id.AsString == user!.Id)
+        {
+            _logger.LogInformation("The user {UserId} is the owner of the submission with ID {SubmissionId}", user.Id, submission.Id);
+            return submission.ToResponse();
+        }
+
+        _logger.LogWarning("The user {UserId} is not the owner of the submission with ID {SubmissionId}", user.Id, submission.Id);
+        return NotFound();
     }
 
     /// <summary>
@@ -92,9 +104,9 @@ public class SubmissionsController : ControllerBase
     /// <response code="200">All available submissions returned</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<SubmissionModel>))]
-    [ProducesResponseType(StatusCodes.Status424FailedDependency, Type = typeof(ApiErrorResponseModel))]
-    public async Task<ActionResult<IList<SubmissionModel>>> GetAll(
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<SubmissionResponse>))]
+    [ProducesResponseType(StatusCodes.Status424FailedDependency, Type = typeof(ApiErrorResponse))]
+    public async Task<ActionResult<IList<SubmissionResponse>>> GetAll(
         [FromQuery]string? problemId = null,
         CancellationToken cancellationToken = default)
     {
@@ -103,21 +115,20 @@ public class SubmissionsController : ControllerBase
             ? await _submissionsService.GetAsync(cancellationToken)
             : await _submissionsService.GetByProblemIdAsync(problemId, cancellationToken);
 
-        if (User.IsInRole(SubmissionRoles.Judge)) return submissions.ToModels();
+        if (User.IsInRole(SubmissionRoles.Judge)) return submissions.ToResponses().ToList();
 
         var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
 
         return submissions
-            // Team is required, if null, we are in a bad state
             .Where(submission => submission.User!.Id.AsString == user!.Id)
-            .ToList()
-            .ToModels();
+            .ToResponses()
+            .ToList();
     }
 
     /// <summary>
     ///     Creates a new submission
     /// </summary>
-    /// <param name="submissionModel">The submission to be created</param>
+    /// <param name="submissionCreateRequest">The submission to be created</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="201">Returns the requested submission</response>
     /// <response code="400">The submission is not in a valid state and cannot be created</response>
@@ -127,34 +138,68 @@ public class SubmissionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<CreatedAtActionResult> Post(SubmissionModel submissionModel, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Post(SubmissionCreateRequest submissionCreateRequest, CancellationToken cancellationToken = default)
     {
         var submittedOn = DateTimeOffset.UtcNow;
 
-        var submission = submissionModel.ToEntity();
-        submission.Id = null;
-        submission.SubmittedOn = submittedOn;
+        _logger.LogInformation(
+            "Creating submission for problem ID {ProblemId} for user {UserName}",
+            submissionCreateRequest.ProblemId.SanitizeForLogging(),
+            User.Identity?.Name.SanitizeForLogging() ?? "Unknown");
+
+        if (string.IsNullOrWhiteSpace(User.Identity?.Name))
+        {
+            _logger.LogWarning("User identity name is null or whitespace");
+            return Forbid();
+        }
+
+        var user = await _usersService.GetByUserNameAsync(User.Identity.Name, cancellationToken);
+
+        if (user == null)
+        {
+            _logger.LogWarning("User {UserName} not found", User.Identity.Name.SanitizeForLogging());
+            return Forbid();
+        }
+
+        var problem = await _problemsService.GetAsync(submissionCreateRequest.ProblemId, cancellationToken);
+
+        if (problem == null)
+        {
+            _logger.LogWarning("Problem with ID {ProblemId} not found", submissionCreateRequest.ProblemId.SanitizeForLogging());
+            return BadRequest(ApiErrorEntityNotFound("Problem", submissionCreateRequest.ProblemId.SanitizeForLogging()));
+        }
+
+        var submission = new Submission
+        {
+            Language = new ProgrammingLanguage
+            {
+                Name = submissionCreateRequest.Language.Name,
+                Version = submissionCreateRequest.Language.Version
+            },
+            Problem = new MongoDBRef(ProblemsService.MongoDbCollectionName, problem.Id),
+            Solution = submissionCreateRequest.Solution,
+            SubmittedOn = submittedOn,
+            User = new MongoDBRef(UsersService.MongoDbCollectionName, user.Id)
+        };
 
         await _submissionsService.CreateAsync(submission, cancellationToken);
 
-        var submissionMessage = new SubmissionMessage
-        {
-            SubmissionId = submission.Id,
-            SubmittedAt = submittedOn
-        };
+        var submissionMessage = new SubmissionMessage(
+            submission.Problem.Id.AsString,
+            submission.Id!,
+            submittedOn,
+            submission.User.Id.AsString);
 
         await _submissionsQueueService.EnqueueSubmissionAsync(submissionMessage, cancellationToken);
 
-        submissionModel.Id = submission.Id;
-
-        return CreatedAtAction(nameof(Get), new { id = submission.Id }, submissionModel);
+        return CreatedAtAction(nameof(Get), new { id = submission.Id }, submission.ToResponse());
     }
 
     /// <summary>
     ///     Updates the specified submission
     /// </summary>
     /// <param name="id">The ID of the submission to update</param>
-    /// <param name="updatedSubmissionModel">The submission that should replace the one in the database</param>
+    /// <param name="submissionModifyRequest">The submission that should replace the one in the database</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="204">Acknowledgement that the submission was updated</response>
     /// <response code="400">The submission is not in a valid state and cannot be updated</response>
@@ -165,19 +210,31 @@ public class SubmissionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Put(string id, SubmissionModel updatedSubmissionModel, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Put(string id, SubmissionModifyRequest submissionModifyRequest, CancellationToken cancellationToken = default)
     {
         var submission = await _submissionsService.GetAsync(id, cancellationToken);
 
         if (submission == null) return NotFound();
 
-        updatedSubmissionModel.Id = submission.Id;
+        submission.EvaluatedOn = submissionModifyRequest.EvaluatedOn;
 
-        // The following values are immutable and should not be updated
-        updatedSubmissionModel.SubmittedOn = submission.SubmittedOn;
-        updatedSubmissionModel.Solution = submission.Solution;
+        if (submission.TestSetResults != null && submission.TestSetResults.Count != 0)
+        {
+            _logger.LogWarning("Submission {SubmissionId} already has been evaluated and cannot be modified.", id);
+            return BadRequest(ApiErrorSubmissionAlreadyEvaluated());
+        }
 
-        await _submissionsService.UpdateAsync(updatedSubmissionModel.ToEntity(), cancellationToken);
+        var testSetResults = submissionModifyRequest.TestSetResults
+            .Select(testSetResultRequest => new TestSetResult
+            {
+                Passed = testSetResultRequest.Passed,
+                RunDuration = testSetResultRequest.RunDuration,
+                TestSet = new MongoDBRef(TestSetsService.MongoDbCollectionName, testSetResultRequest.TestSetId)
+            }).ToList();
+
+        submission.TestSetResults = testSetResults;
+
+        await _submissionsService.UpdateAsync(submission, cancellationToken);
 
         return NoContent();
     }
