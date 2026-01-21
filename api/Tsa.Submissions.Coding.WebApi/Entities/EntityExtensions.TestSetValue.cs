@@ -1,34 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.TestSets;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
-    private static List<TestSetValueModel> TestSetValuesToTestSetValueModels(this IEnumerable<TestSetValue> testSetValues)
+    public static TestSetValueResponse ToResponse(this TestSetValue testSetValue)
     {
-        return testSetValues.Select(testSetValue => testSetValue.ToModel()).ToList();
+        if (string.IsNullOrWhiteSpace(testSetValue.DataType)) throw new InvalidOperationException("Test Set Value Data Type is required.");
+
+        if (testSetValue.Index == null) throw new InvalidOperationException("Test Set Value Index is required.");
+
+        if (string.IsNullOrWhiteSpace(testSetValue.ValueAsJson)) throw new InvalidOperationException("Test Set Value JSON is required.");
+
+        return new TestSetValueResponse(
+            testSetValue.DataType,
+            testSetValue.Index.Value,
+            testSetValue.IsArray,
+            testSetValue.ValueAsJson);
     }
 
-    public static TestSetValueModel ToModel(this TestSetValue testSetValue)
+    public static List<TestSetValueResponse> ToResponses(this IEnumerable<TestSetValue> testSetValues)
     {
-        return new TestSetValueModel
-        {
-            DataType = testSetValue.DataType,
-            Index = testSetValue.Index,
-            IsArray = testSetValue.IsArray,
-            ValueAsJson = testSetValue.ValueAsJson
-        };
-    }
-
-    public static List<TestSetValueModel> ToModels(this IList<TestSetValue> testSetInputs)
-    {
-        return TestSetValuesToTestSetValueModels(testSetInputs);
-    }
-
-    public static List<TestSetValueModel> ToModels(this IEnumerable<TestSetValue> testSetInputs)
-    {
-        return TestSetValuesToTestSetValueModels(testSetInputs);
+        return testSetValues.Select(testSetValue => testSetValue.ToResponse()).ToList();
     }
 }
