@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using Tsa.Submissions.Coding.Contracts;
 using Tsa.Submissions.Coding.WebApi.Models;
 
 namespace Tsa.Submissions.Coding.WebApi.Exceptions;
@@ -16,12 +17,8 @@ public class RequiredEntityNotFoundException : Exception, IWebApiException
         HttpStatusCode = HttpStatusCode.NotFound;
     }
 
-    public ApiErrorResponseModel ToApiErrorResponseModel()
+    public ApiErrorResponse ToApiErrorResponse()
     {
-        return new ApiErrorResponseModel
-        {
-            ErrorCode = (int)ErrorCodes.RequiredEntityNotFound,
-            Message = Message
-        };
+        return new ApiErrorResponse((int)ErrorCodes.RequiredEntityNotFound, Message);
     }
 }
