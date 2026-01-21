@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
+using Tsa.Submissions.Coding.Contracts.TestSets;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.Exceptions;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
@@ -66,14 +67,14 @@ public class TestSetsController : ControllerBase
     /// <response code="200">All available testSets returned</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TestSetModel>))]
-    public async Task<ActionResult<IList<TestSetModel>>> Get(CancellationToken cancellationToken = default)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TestSetResponse>))]
+    public async Task<ActionResult<IList<TestSetResponse>>> Get(CancellationToken cancellationToken = default)
     {
         var testSets = await _testSetsService.GetAsync(cancellationToken);
 
         return User.IsInRole(SubmissionRoles.Participant)
-            ? testSets.ToModels().Where(testSetModel => testSetModel.IsPublic).ToList()
-            : testSets.ToModels();
+            ? testSets.Where(testSetModel => testSetModel.IsPublic).ToResponses().ToList()
+            : testSets.ToResponses().ToList();
     }
 
     /// <summary>
@@ -85,9 +86,9 @@ public class TestSetsController : ControllerBase
     /// <response code="404">The testSet does not exist in the database</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet("{id:length(24)}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TestSetModel))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TestSetResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<TestSetModel>> Get(string id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TestSetResponse>> Get(string id, CancellationToken cancellationToken = default)
     {
         var testSet = await _testSetsService.GetAsync(id, cancellationToken);
 
@@ -99,13 +100,13 @@ public class TestSetsController : ControllerBase
             return NotFound();
         }
 
-        return testSet.ToModel();
+        return testSet.ToResponse();
     }
 
     /// <summary>
     ///     Creates a new testSet
     /// </summary>
-    /// <param name="testSetModel">The testSet to be created</param>
+    /// <param name="testSetRequest">The testSet to be created</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="201">Returns the requested testSet</response>
     /// <response code="400">The testSet is not in a valid state and cannot be created</response>
@@ -115,18 +116,16 @@ public class TestSetsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<CreatedAtActionResult> Post(TestSetModel testSetModel, CancellationToken cancellationToken = default)
+    public async Task<CreatedAtActionResult> Post(TestSetRequest testSetRequest, CancellationToken cancellationToken = default)
     {
         // The ProblemModelValidator will ensure ProblemId is not null
-        await EnsureProblemExists(testSetModel.ProblemId!, nameof(TestSetModel.ProblemId));
+        await EnsureProblemExists(testSetRequest.ProblemId, nameof(TestSetResponse.ProblemId));
 
-        var testSet = testSetModel.ToEntity();
+        var testSet = ToEntity(testSetRequest);
 
         await _testSetsService.CreateAsync(testSet, cancellationToken);
 
-        testSetModel.Id = testSet.Id;
-
-        return CreatedAtAction(nameof(Get), new { id = testSet.Id }, testSetModel);
+        return CreatedAtAction(nameof(Get), new { id = testSet.Id }, testSet.ToResponse());
     }
 
     /// <summary>
@@ -144,19 +143,45 @@ public class TestSetsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Put(string id, TestSetModel updatedTestSetModel, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Put(string id, TestSetRequest updatedTestSetModel, CancellationToken cancellationToken = default)
     {
         // The ProblemModelValidator will ensure ProblemId is not null
-        await EnsureProblemExists(updatedTestSetModel.ProblemId!, nameof(TestSetModel.ProblemId));
+        await EnsureProblemExists(updatedTestSetModel.ProblemId, nameof(TestSetRequest.ProblemId));
 
         var testSet = await _testSetsService.GetAsync(id, cancellationToken);
 
         if (testSet == null) return NotFound();
 
-        updatedTestSetModel.Id = testSet.Id;
-
-        await _testSetsService.UpdateAsync(updatedTestSetModel.ToEntity(), cancellationToken);
+        await _testSetsService.UpdateAsync(ToEntity(updatedTestSetModel, id), cancellationToken);
 
         return NoContent();
+    }
+
+    public static TestSet ToEntity(TestSetRequest testSetRequest, string? id = null)
+    {
+        var testSet = new TestSet
+        {
+            Id = id,
+            IsPublic = testSetRequest.IsPublic,
+            Name = testSetRequest.Name,
+            Problem = new MongoDBRef(ProblemsService.MongoDbCollectionName, testSetRequest.ProblemId)
+        };
+
+        if (testSetRequest.Inputs.Count == 0) return testSet;
+
+        testSet.Inputs = new List<TestSetValue>();
+
+        foreach (var input in testSetRequest.Inputs)
+        {
+            testSet.Inputs.Add(new TestSetValue
+            {
+                DataType = input.DataType,
+                Index = input.Index,
+                IsArray = input.IsArray,
+                ValueAsJson = input.ValueAsJson
+            });
+        }
+
+        return testSet;
     }
 }
