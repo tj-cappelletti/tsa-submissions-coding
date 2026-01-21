@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using MongoDB.Bson.Serialization.Conventions;
@@ -18,6 +19,8 @@ using MongoDB.Driver;
 using MongoDB.Driver.Core.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Tsa.Submissions.Coding.Contracts.Authentication;
+using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.Contracts.Validators;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Services;
@@ -192,12 +195,59 @@ public class Startup(IConfiguration configuration)
                     // JWT settings are validated up above
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key!))
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // Log when no token or header is present
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+                        var authHeader = context.Request.Headers.Authorization.ToString();
+
+                        if (string.IsNullOrWhiteSpace(authHeader))
+                        {
+                            logger.LogWarning("JWT message received without Authorization header. Path={Path}", context.Request.Path);
+                        }
+                        else if (!authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            logger.LogWarning("Authorization header present but not Bearer. Path={Path}", context.Request.Path);
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+                        logger.LogWarning(context.Exception, "JWT authentication failed. Path={Path}", context.Request.Path);
+
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        // Fires when authentication fails and a 401 is about to be returned
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+                        logger.LogInformation(
+                            "JWT challenge issued. Path={Path}, Error={Error}, Description={Description}",
+                            context.Request.Path,
+                            context.Error,
+                            context.ErrorDescription);
+
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+                        logger.LogDebug("JWT token validated successfully. Path={Path}, Subject={Sub}", context.Request.Path,
+                            context.Principal?.Identity?.Name);
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         // Add Validators
-        services.AddValidatorsFromAssemblyContaining<AuthenticationRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<UserCreateRequestValidator>();
-        services.AddValidatorsFromAssemblyContaining<UserModifyRequestValidator>();
+        services.AddScoped<IValidator<AuthenticationRequest>, AuthenticationRequestValidator>();
+        services.AddScoped<IValidator<UserCreateRequest>, UserCreateRequestValidator>();
+        services.AddScoped<IValidator<UserModifyRequest>, UserModifyRequestValidator>();
 
         // Setup Controllers
         services
@@ -211,39 +261,17 @@ public class Startup(IConfiguration configuration)
         // Add Swagger
         services.AddSwaggerGen(options =>
         {
-            var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-
-            options.SwaggerDoc("v1", new OpenApiInfo { Title = "Tsa.Submissions.Coding.WebApi", Version = "v1" });
-
-            options.EnableAnnotations();
-
-            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
             {
-                Name = "Authorization",
                 Type = SecuritySchemeType.Http,
-                Scheme = "Bearer",
+                Scheme = "bearer",
                 BearerFormat = "JWT",
-                In = ParameterLocation.Header,
-                Description =
-                    "Enter 'Bearer' [space] and then your token in the text input below.\n\nExample: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'"
+                Description = "JWT Authorization header using the Bearer scheme."
             });
-
-            // TODO: Determine replacement/update for this code
-            //options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            //{
-            //    {
-            //        new OpenApiSecurityScheme
-            //        {
-            //            Reference = new OpenApiReference
-            //            {
-            //                Type = ReferenceType.SecurityScheme,
-            //                Id = "Bearer"
-            //            }
-            //        },
-            //        Array.Empty<string>()
-            //    }
-            //});
+            options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("bearer", document)] = []
+            });
         });
     }
 }
