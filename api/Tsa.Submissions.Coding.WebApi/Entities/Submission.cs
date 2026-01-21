@@ -9,12 +9,12 @@ namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public class Submission : IMongoDbEntity
 {
+    public DateTimeOffset? EvaluatedOn { get; set; }
+
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     [SwaggerSchema(ReadOnly = true)]
     public string? Id { get; set; }
-
-    public bool IsFinalSubmission { get; set; }
 
     public ProgrammingLanguage? Language { get; set; }
 
