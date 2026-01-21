@@ -1,6 +1,6 @@
 ﻿namespace Tsa.Submissions.Coding.Contracts.TestSets;
 
-public class TestSetValueResponse(
+public record TestSetValueResponse(
     string DataType,
     int Index,
     bool IsArray,
