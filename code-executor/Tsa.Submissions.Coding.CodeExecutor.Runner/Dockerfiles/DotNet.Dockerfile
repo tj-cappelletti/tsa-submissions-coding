@@ -7,18 +7,18 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy the project files and restore dependencies
-COPY ["Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.Coding.CodeExecutor.Runner.csproj", "Tsa.Submissions.Coding.CodeExecutor.Runner/"]
-COPY ["Tsa.Submissions.Coding.CodeExecutor.Shared/Tsa.Submissions.Coding.CodeExecutor.Shared.csproj", "Tsa.Submissions.Coding.CodeExecutor.Shared/"]
+COPY ["shared-components/Tsa.Submissions.Coding.Contracts/Tsa.Submissions.Coding.Contracts.csproj", "shared-components/Tsa.Submissions.Coding.Contracts/Tsa.Submissions.Coding.Contracts/"]
+COPY ["code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.Coding.CodeExecutor.Runner.csproj", "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/"]
 
 # Restore dependencies
-RUN dotnet restore "Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.Coding.CodeExecutor.Runner.csproj"
+RUN dotnet restore "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.Coding.CodeExecutor.Runner.csproj"
 
 # Copy source code
-COPY ["Tsa.Submissions.Coding.CodeExecutor.Shared/", "Tsa.Submissions.Coding.CodeExecutor.Shared/"]
-COPY ["Tsa.Submissions.Coding.CodeExecutor.Runner/", "Tsa.Submissions.Coding.CodeExecutor.Runner/"]
+COPY ["shared-components/Tsa.Submissions.Coding.Contracts", "shared-components/Tsa.Submissions.Coding.Contracts/"]
+COPY ["code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner", "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/"]
 
 # Build and publish as self-contained executable
-WORKDIR /src/Tsa.Submissions.Coding.CodeExecutor.Runner
+WORKDIR /src/code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner
 RUN dotnet publish -c Release -o /app/publish --self-contained true -r linux-x64 /p:PublishSingleFile=true
 
 # Final Stage - Runtime
