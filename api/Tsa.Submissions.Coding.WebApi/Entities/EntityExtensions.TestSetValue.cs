@@ -22,8 +22,8 @@ public static partial class EntityExtensions
             testSetValue.ValueAsJson);
     }
 
-    public static List<TestSetValueResponse> ToResponses(this IEnumerable<TestSetValue> testSetValues)
+    public static IEnumerable<TestSetValueResponse> ToResponses(this IEnumerable<TestSetValue> testSetValues)
     {
-        return testSetValues.Select(testSetValue => testSetValue.ToResponse()).ToList();
+        return testSetValues.Select(testSetValue => testSetValue.ToResponse());
     }
 }

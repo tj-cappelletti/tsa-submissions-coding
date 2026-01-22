@@ -9,7 +9,7 @@ namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
-    public static ProblemResponse ToResponse(this Problem problem, IList<TestSetResponse>? testSetResponses = null)
+    public static ProblemResponse ToResponse(this Problem problem, IEnumerable<TestSetResponse>? testSetResponses = null)
     {
         if (string.IsNullOrWhiteSpace(problem.Description)) throw new InvalidOperationException("Problem description is required.");
 
@@ -22,11 +22,11 @@ public static partial class EntityExtensions
             problem.Title,
             problem.Description,
             problem.IsActive,
-            testSetResponses ?? []);
+            testSetResponses?.ToList() ?? []);
     }
 
     public static IEnumerable<ProblemResponse> ToResponses(this IEnumerable<Problem> problems)
     {
-        return problems.Select(p => p.ToResponse()).ToList();
+        return problems.Select(p => p.ToResponse());
     }
 }

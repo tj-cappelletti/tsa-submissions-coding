@@ -20,7 +20,7 @@ public static partial class EntityExtensions
 
         return new TestSetResponse(
             testSet.Id,
-            testSet.Inputs?.ToResponses() ?? [],
+            testSet.Inputs?.ToResponses().ToList() ?? [],
             testSet.IsPublic,
             testSet.Name,
             testSet.Problem.Id.AsString);

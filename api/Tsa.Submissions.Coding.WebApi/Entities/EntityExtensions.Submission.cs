@@ -14,7 +14,7 @@ public static partial class EntityExtensions
             programmingLanguage.Version);
     }
 
-    public static SubmissionResponse ToResponse(this Submission submission, IList<TestSetResultResponse>? testSetResultResponses = null)
+    public static SubmissionResponse ToResponse(this Submission submission)
     {
         if (string.IsNullOrWhiteSpace(submission.Id)) throw new InvalidOperationException("Submission ID is required.");
 
@@ -27,6 +27,8 @@ public static partial class EntityExtensions
         if (submission.SubmittedOn == null) throw new InvalidOperationException("Submission Submitted On is required.");
 
         if (submission.User == null) throw new InvalidOperationException("Submission User is required.");
+
+        var testSetResultResponses = submission.TestSetResults?.Select(testSetResult => testSetResult.ToResponse()).ToList();
 
         return new SubmissionResponse(
             submission.Id,
@@ -50,6 +52,6 @@ public static partial class EntityExtensions
 
     public static IEnumerable<SubmissionResponse> ToResponses(this IEnumerable<Submission> submissions)
     {
-        return submissions.Select(submission => submission.ToResponse()).ToList();
+        return submissions.Select(submission => submission.ToResponse());
     }
 }

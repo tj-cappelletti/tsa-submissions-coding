@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Tsa.Submissions.Coding.Contracts.Users;
-using Tsa.Submissions.Coding.WebApi.Models;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
@@ -25,6 +24,6 @@ public static partial class EntityExtensions
 
     public static IEnumerable<UserResponse> ToResponses(this IEnumerable<User> users)
     {
-        return [.. users.Select(selector: user => user.ToResponse())];
+        return users.Select(user => user.ToResponse());
     }
 }
