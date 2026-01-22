@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Tsa.Submissions.Coding.Contracts.Authentication;
-using Tsa.Submissions.Coding.Contracts.Validators;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.ExtensionMethods;
 using Tsa.Submissions.Coding.WebApi.Services;
@@ -23,13 +23,13 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 [Produces("application/json")]
 public class AuthenticationController : WebApiBaseController
 {
-    private readonly AuthenticationRequestValidator _authenticationRequestValidator;
+    private readonly IValidator<AuthenticationRequest> _authenticationRequestValidator;
     private readonly JwtSettings _jwtSettings;
     private readonly ILogger<AuthenticationController> _logger;
     private readonly IUsersService _usersService;
 
     public AuthenticationController(
-        AuthenticationRequestValidator authenticationRequestValidator,
+        IValidator<AuthenticationRequest> authenticationRequestValidator,
         IOptions<JwtSettings> jwtSettings,
         ILogger<AuthenticationController> logger,
         IUsersService usersService)
