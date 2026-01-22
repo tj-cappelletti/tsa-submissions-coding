@@ -35,7 +35,7 @@ public class RequiredEntityNotFoundExceptionTests
         var requiredEntityNotFoundException = new RequiredEntityNotFoundException(entityName);
 
         // Act
-        var apiErrorResponseModel = requiredEntityNotFoundException.ToApiErrorResponseModel();
+        var apiErrorResponseModel = requiredEntityNotFoundException.ToApiErrorResponse();
 
         // Assert
         Assert.Equal(errorCode, apiErrorResponseModel.ErrorCode);

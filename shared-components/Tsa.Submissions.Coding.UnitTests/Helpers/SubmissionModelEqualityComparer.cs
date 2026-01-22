@@ -1,33 +1,30 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.Submissions;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers;
 
 [ExcludeFromCodeCoverage]
-internal class SubmissionModelEqualityComparer : IEqualityComparer<SubmissionModel?>, IEqualityComparer<IList<SubmissionModel>?>
+internal class SubmissionModelEqualityComparer : IEqualityComparer<SubmissionResponse?>, IEqualityComparer<IList<SubmissionResponse>?>
 {
     private readonly TestSetResultModelEqualityComparer _testSetResultModelEqualityComparer = new();
-    private readonly UserModelEqualityComparer _userModelEqualityComparer = new();
 
-    public bool Equals(SubmissionModel? x, SubmissionModel? y)
+    public bool Equals(SubmissionResponse? x, SubmissionResponse? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
         if (y is null) return false;
 
         var idsMatch = x.Id == y.Id;
-        var isFinalSubmissionModelsMatch = x.IsFinalSubmission == y.IsFinalSubmission;
         var languagesMatch = x.Language == y.Language;
         var problemsMatch = x.ProblemId == y.ProblemId;
         var solutionsMatch = x.Solution == y.Solution;
         var submittedOnsMatch = x.SubmittedOn == y.SubmittedOn;
         var testSetResultsMatch = _testSetResultModelEqualityComparer.Equals(x.TestSetResults, y.TestSetResults);
-        var usersMatch = _userModelEqualityComparer.Equals(x.User, y.User);
+        var usersMatch = x.UserId == y.UserId;
 
         return idsMatch &&
-               isFinalSubmissionModelsMatch &&
                languagesMatch &&
                problemsMatch &&
                solutionsMatch &&
@@ -36,7 +33,7 @@ internal class SubmissionModelEqualityComparer : IEqualityComparer<SubmissionMod
                usersMatch;
     }
 
-    public bool Equals(IList<SubmissionModel>? x, IList<SubmissionModel>? y)
+    public bool Equals(IList<SubmissionResponse>? x, IList<SubmissionResponse>? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
@@ -53,12 +50,12 @@ internal class SubmissionModelEqualityComparer : IEqualityComparer<SubmissionMod
         return true;
     }
 
-    public int GetHashCode(SubmissionModel? obj)
+    public int GetHashCode(SubmissionResponse? obj)
     {
         return obj == null ? 0 : obj.GetHashCode();
     }
 
-    public int GetHashCode(IList<SubmissionModel>? obj)
+    public int GetHashCode(IList<SubmissionResponse>? obj)
     {
         return obj == null ? 0 : obj.GetHashCode();
     }

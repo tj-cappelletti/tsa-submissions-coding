@@ -1,18 +1,21 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentValidation.Results;
+using Tsa.Submissions.Coding.Contracts.Authentication;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Controllers;
 using Tsa.Submissions.Coding.WebApi.Entities;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
+using Tsa.Submissions.Coding.WebApi.Validators;
 using Xunit;
 
 namespace Tsa.Submissions.Coding.UnitTests.WebApi.Controllers;
@@ -27,6 +30,13 @@ public class AuthenticationControllerTests
     {
         _mockUsersService = new Mock<IUsersService>();
 
+        var successfulValidatedResult = ValidatedResult.Success();
+
+        Mock<IValidator<AuthenticationRequest>> mockAuthenticationRequestValidator = new();
+        mockAuthenticationRequestValidator
+            .Setup(validator => validator.ValidateAsync(It.IsAny<AuthenticationRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
         Mock<ILogger<AuthenticationController>> mockLogger = new();
 
         _jwtSettings = Options.Create(new JwtSettings
@@ -37,7 +47,7 @@ public class AuthenticationControllerTests
             ExpirationInHours = 1
         });
 
-        _controller = new AuthenticationController(_jwtSettings, mockLogger.Object, _mockUsersService.Object);
+        _controller = new AuthenticationController(mockAuthenticationRequestValidator.Object, _jwtSettings, mockLogger.Object, _mockUsersService.Object);
     }
 
     [Fact]
@@ -45,11 +55,7 @@ public class AuthenticationControllerTests
     public async Task Login_InvalidPassword_ReturnsUnauthorized()
     {
         // Arrange
-        var authenticationModel = new AuthenticationModel
-        {
-            UserName = "validuser",
-            Password = "wrongpassword"
-        };
+        var authenticationModel = new AuthenticationRequest("wrongpassword", "validuser");
 
         var user = new User
         {
@@ -75,11 +81,7 @@ public class AuthenticationControllerTests
     public async Task Login_UserNotFound_ReturnsUnauthorized()
     {
         // Arrange
-        var authenticationModel = new AuthenticationModel
-        {
-            UserName = "nonexistentuser",
-            Password = "password"
-        };
+        var authenticationModel = new AuthenticationRequest("password", "nonexistentuser");
 
         _mockUsersService
             .Setup(service => service.GetByUserNameAsync(authenticationModel.UserName, It.IsAny<CancellationToken>()))
@@ -99,11 +101,7 @@ public class AuthenticationControllerTests
     public async Task Login_ValidCredentials_ReturnsToken()
     {
         // Arrange
-        var authenticationModel = new AuthenticationModel
-        {
-            UserName = "validuser",
-            Password = "correctpassword"
-        };
+        var authenticationModel = new AuthenticationRequest("correctpassword", "validuser");
 
         var user = new User
         {
@@ -123,9 +121,9 @@ public class AuthenticationControllerTests
         var okResult = Assert.IsType<OkObjectResult>(result);
 
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
-        Assert.IsType<LoginResponseModel>(okResult.Value);
+        Assert.IsType<AuthenticationResponse>(okResult.Value);
 
-        var loginResponseModel = (LoginResponseModel?)okResult.Value;
+        var loginResponseModel = (AuthenticationResponse?)okResult.Value;
 
         Assert.NotNull(loginResponseModel);
         Assert.NotNull(loginResponseModel.Token);

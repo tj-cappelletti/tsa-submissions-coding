@@ -23,7 +23,6 @@ internal class SubmissionsTestData : IEnumerable<object[]>
             new Submission
             {
                 Id = "000000000000000000000001",
-                IsFinalSubmission = true,
                 Language = new ProgrammingLanguage
                 {
                     Name = "C#",

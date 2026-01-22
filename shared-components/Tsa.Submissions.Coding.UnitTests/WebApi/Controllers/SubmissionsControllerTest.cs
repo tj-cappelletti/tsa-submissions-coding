@@ -1,23 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
-using System.Security.Claims;
-using System.Security.Principal;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Moq;
-using Tsa.Submissions.Coding.UnitTests.Data;
-using Tsa.Submissions.Coding.UnitTests.Helpers;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Controllers;
-using Tsa.Submissions.Coding.WebApi.Entities;
-using Tsa.Submissions.Coding.WebApi.Models;
-using Tsa.Submissions.Coding.WebApi.Services;
 using Xunit;
 
 namespace Tsa.Submissions.Coding.UnitTests.WebApi.Controllers;
@@ -64,11 +51,11 @@ public class SubmissionsControllerTest
                     break;
 
                 case "Post":
-                    Assert.Equal(SubmissionRoles.Judge, authorizeAttribute.Roles);
+                    Assert.Equal(SubmissionRoles.Participant, authorizeAttribute.Roles);
                     break;
 
                 case "Put":
-                    Assert.Equal(SubmissionRoles.Judge, authorizeAttribute.Roles);
+                    Assert.Equal(SubmissionRoles.JudgeOrSystem, authorizeAttribute.Roles);
                     break;
 
                 default:

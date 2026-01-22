@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.Problems;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers;
 
 //TODO: Turn into code generator
 [ExcludeFromCodeCoverage]
-internal class ProblemModelEqualityComparer : IEqualityComparer<ProblemModel?>, IEqualityComparer<IList<ProblemModel>?>
+internal class ProblemModelEqualityComparer : IEqualityComparer<ProblemResponse?>, IEqualityComparer<IList<ProblemResponse>?>
 {
     private readonly TestSetModelEqualityComparer _testSetModelEqualityComparer = new();
 
-    public bool Equals(ProblemModel? x, ProblemModel? y)
+    public bool Equals(ProblemResponse? x, ProblemResponse? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
@@ -27,29 +27,29 @@ internal class ProblemModelEqualityComparer : IEqualityComparer<ProblemModel?>, 
             x.Title == y.Title;
     }
 
-    public bool Equals(IList<ProblemModel>? x, IList<ProblemModel>? y)
+    public bool Equals(IList<ProblemResponse>? x, IList<ProblemResponse>? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
         if (y is null) return false;
         if (x.Count != y.Count) return false;
 
-        foreach (var leftProblemModel in x)
+        foreach (var leftProblemResponse in x)
         {
-            var rightProblemModel = y.SingleOrDefault(_ => _.Id == leftProblemModel.Id);
+            var rightProblemResponse = y.SingleOrDefault(_ => _.Id == leftProblemResponse.Id);
 
-            if (!Equals(leftProblemModel, rightProblemModel)) return false;
+            if (!Equals(leftProblemResponse, rightProblemResponse)) return false;
         }
 
         return true;
     }
 
-    public int GetHashCode(ProblemModel obj)
+    public int GetHashCode(ProblemResponse obj)
     {
         return HashCode.Combine(obj.Description, obj.Id, obj.IsActive, obj.TestSets, obj.Title);
     }
 
-    public int GetHashCode(IList<ProblemModel>? obj)
+    public int GetHashCode(IList<ProblemResponse>? obj)
     {
         return obj == null ? 0 : obj.GetHashCode();
     }

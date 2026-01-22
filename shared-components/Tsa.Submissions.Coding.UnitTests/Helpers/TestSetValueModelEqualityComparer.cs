@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.TestSets;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers;
 
 //TODO: Turn into code generator
 [ExcludeFromCodeCoverage]
-internal class TestSetValueModelEqualityComparer : IEqualityComparer<TestSetValueModel?>, IEqualityComparer<IList<TestSetValueModel>?>
+internal class TestSetValueModelEqualityComparer : IEqualityComparer<TestSetValueResponse?>, IEqualityComparer<IList<TestSetValueResponse>?>
 {
-    public bool Equals(TestSetValueModel? x, TestSetValueModel? y)
+    public bool Equals(TestSetValueResponse? x, TestSetValueResponse? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
@@ -24,7 +24,7 @@ internal class TestSetValueModelEqualityComparer : IEqualityComparer<TestSetValu
             x.ValueAsJson == y.ValueAsJson;
     }
 
-    public bool Equals(IList<TestSetValueModel>? x, IList<TestSetValueModel>? y)
+    public bool Equals(IList<TestSetValueResponse>? x, IList<TestSetValueResponse>? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
@@ -41,12 +41,12 @@ internal class TestSetValueModelEqualityComparer : IEqualityComparer<TestSetValu
         return true;
     }
 
-    public int GetHashCode(TestSetValueModel obj)
+    public int GetHashCode(TestSetValueResponse obj)
     {
         return HashCode.Combine(obj.DataType, obj.Index, obj.IsArray, obj.ValueAsJson);
     }
 
-    public int GetHashCode(IList<TestSetValueModel>? obj)
+    public int GetHashCode(IList<TestSetValueResponse>? obj)
     {
         return obj == null ? 0 : obj.GetHashCode();
     }

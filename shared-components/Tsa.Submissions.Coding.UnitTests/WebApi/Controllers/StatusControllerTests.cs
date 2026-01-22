@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Tsa.Submissions.Coding.Contracts.HealthChecks;
 using Tsa.Submissions.Coding.WebApi.Controllers;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 using Xunit;
 
@@ -16,7 +16,7 @@ namespace Tsa.Submissions.Coding.UnitTests.WebApi.Controllers;
 [ExcludeFromCodeCoverage]
 public class StatusControllerTests
 {
-    private static void AssertServiceStatus(ServicesStatusModel servicesStatusModel, PingableServiceFailures pingableServiceFailures)
+    private static void AssertServiceStatus(ServicesStatusResponse servicesStatusModel, PingableServiceFailures pingableServiceFailures)
     {
         Assert.Equal(servicesStatusModel.ProblemsServiceIsAlive, !pingableServiceFailures.HasFlag(PingableServiceFailures.Problems));
         Assert.Equal(servicesStatusModel.SubmissionsServiceIsAlive, !pingableServiceFailures.HasFlag(PingableServiceFailures.Submissions));
@@ -118,16 +118,16 @@ public class StatusControllerTests
 
         // Assert
         Assert.NotNull(actionResult);
-        Assert.IsType<ActionResult<ServicesStatusModel>>(actionResult);
+        Assert.IsType<ActionResult<ServicesStatusResponse>>(actionResult);
 
         var objectResult = actionResult.Result as ObjectResult;
         Assert.NotNull(objectResult);
         Assert.NotNull(objectResult.StatusCode);
         Assert.Equal(500, objectResult.StatusCode!.Value);
         Assert.NotNull(objectResult.Value);
-        Assert.IsType<ServicesStatusModel>(objectResult.Value);
+        Assert.IsType<ServicesStatusResponse>(objectResult.Value);
 
-        var servicesStatus = objectResult.Value as ServicesStatusModel;
+        var servicesStatus = objectResult.Value as ServicesStatusResponse;
         Assert.False(servicesStatus!.IsHealthy);
 
         AssertServiceStatus(servicesStatus, pingableServiceFailures);
@@ -161,16 +161,16 @@ public class StatusControllerTests
 
         // Assert
         Assert.NotNull(actionResult);
-        Assert.IsType<ActionResult<ServicesStatusModel>>(actionResult);
+        Assert.IsType<ActionResult<ServicesStatusResponse>>(actionResult);
 
         var objectResult = actionResult.Result as ObjectResult;
         Assert.NotNull(objectResult);
         Assert.NotNull(objectResult.StatusCode);
         Assert.Equal(500, objectResult.StatusCode!.Value);
         Assert.NotNull(objectResult.Value);
-        Assert.IsType<ServicesStatusModel>(objectResult.Value);
+        Assert.IsType<ServicesStatusResponse>(objectResult.Value);
 
-        var servicesStatus = objectResult.Value as ServicesStatusModel;
+        var servicesStatus = objectResult.Value as ServicesStatusResponse;
 
         Assert.False(servicesStatus!.IsHealthy);
 
@@ -296,16 +296,16 @@ public class StatusControllerTests
 
         // Assert
         Assert.NotNull(actionResult);
-        Assert.IsType<ActionResult<ServicesStatusModel>>(actionResult);
+        Assert.IsType<ActionResult<ServicesStatusResponse>>(actionResult);
 
         var okObjectResult = actionResult.Result as ObjectResult;
         Assert.NotNull(okObjectResult);
         Assert.NotNull(okObjectResult.StatusCode);
         Assert.Equal(200, okObjectResult.StatusCode!.Value);
         Assert.NotNull(okObjectResult.Value);
-        Assert.IsType<ServicesStatusModel>(okObjectResult.Value);
+        Assert.IsType<ServicesStatusResponse>(okObjectResult.Value);
 
-        var servicesStatus = okObjectResult.Value as ServicesStatusModel;
+        var servicesStatus = okObjectResult.Value as ServicesStatusResponse;
         Assert.True(servicesStatus!.IsHealthy);
     }
 
@@ -333,16 +333,16 @@ public class StatusControllerTests
 
         // Assert
         Assert.NotNull(actionResult);
-        Assert.IsType<ActionResult<ServicesStatusModel>>(actionResult);
+        Assert.IsType<ActionResult<ServicesStatusResponse>>(actionResult);
 
         var okObjectResult = actionResult.Result as ObjectResult;
         Assert.NotNull(okObjectResult);
         Assert.NotNull(okObjectResult.StatusCode);
         Assert.Equal(200, okObjectResult.StatusCode!.Value);
         Assert.NotNull(okObjectResult.Value);
-        Assert.IsType<ServicesStatusModel>(okObjectResult.Value);
+        Assert.IsType<ServicesStatusResponse>(okObjectResult.Value);
 
-        var servicesStatus = okObjectResult.Value as ServicesStatusModel;
+        var servicesStatus = okObjectResult.Value as ServicesStatusResponse;
         Assert.True(servicesStatus!.IsHealthy);
     }
 }

@@ -18,123 +18,90 @@ public class TeamsTestData : IEnumerable<object[]>
     {
         yield return
         [
-            new Team
-            {
-                CompetitionLevel = CompetitionLevel.HighSchool,
-                SchoolNumber = "2000",
-                TeamNumber = "901"
-            },
+            new Team(CompetitionLevel.HighSchool, "2000", "901"),
             TeamDataIssues.None
         ];
 
         yield return
         [
-            new Team
-            {
-                CompetitionLevel = CompetitionLevel.HighSchool,
-                SchoolNumber = "2000",
-                TeamNumber = "902"
-            },
+            new Team(CompetitionLevel.HighSchool, "2000", "902"),
             TeamDataIssues.None
         ];
 
 
         yield return
         [
-            new Team
-            {
-                CompetitionLevel = CompetitionLevel.HighSchool,
-                SchoolNumber = "2000",
-                TeamNumber = "903"
-            },
+            new Team(CompetitionLevel.HighSchool, "2000", "903"),
             TeamDataIssues.None
         ];
 
 
         yield return
         [
-            new Team
-            {
-                CompetitionLevel = CompetitionLevel.MiddleSchool,
-                SchoolNumber = "1001",
-                TeamNumber = "901"
-            },
+            new Team(CompetitionLevel.MiddleSchool, "1001", "901"),
             TeamDataIssues.None
         ];
 
 
         yield return
         [
-            new Team
-            {
-                CompetitionLevel = CompetitionLevel.MiddleSchool,
-                SchoolNumber = "1001",
-                TeamNumber = "902"
-            },
+            new Team(CompetitionLevel.MiddleSchool, "1001", "902"),
             TeamDataIssues.None
         ];
 
 
         yield return
         [
-            new Team
-            {
-                CompetitionLevel = CompetitionLevel.MiddleSchool,
-                SchoolNumber = "1001",
-                TeamNumber = "903"
-            },
+            new Team(CompetitionLevel.MiddleSchool, "1001", "903"),
             TeamDataIssues.None
         ];
 
         yield return
         [
-            new Team
-            {
-                CompetitionLevel = CompetitionLevel.MiddleSchool,
-                SchoolNumber = "dog",
-                TeamNumber = "901"
-            },
+            new Team(CompetitionLevel.MiddleSchool, "dog", "901"),
             TeamDataIssues.InvalidSchoolNumber
         ];
 
         yield return
         [
-            new Team
-            {
-                SchoolNumber = "dog",
-                TeamNumber = "101"
-            },
+            new Team(CompetitionLevel.MiddleSchool, "1001", "bird"),
             TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidSchoolNumber | TeamDataIssues.InvalidTeamNumber
         ];
 
         yield return
         [
-            new Team
-            {
-                SchoolNumber = "dog",
-                TeamNumber = "bird"
-            },
+            new Team(CompetitionLevel.MiddleSchool, "dog", "bird"),
             TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidSchoolNumber | TeamDataIssues.InvalidTeamNumber
         ];
 
         yield return
         [
-            new Team
-            {
-                SchoolNumber = "9999",
-                TeamNumber = "901",
-            },
+            new Team(CompetitionLevel.MiddleSchool, "9999", "901"),
             TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidSchoolNumber
         ];
 
         yield return
         [
-            new Team
-            {
-                SchoolNumber = "9001",
-                TeamNumber = "902"
-            },
-            TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidSchoolNumber
+            new Team(CompetitionLevel.MiddleSchool, "1001", "bird"),
+            TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidSchoolNumber | TeamDataIssues.InvalidTeamNumber
+        ];
+
+        yield return
+        [
+            new Team(CompetitionLevel.MiddleSchool, "dog", "bird"),
+            TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidSchoolNumber | TeamDataIssues.InvalidTeamNumber
+        ];
+
+        yield return
+        [
+            new Team(CompetitionLevel.MiddleSchool, "9999", "901"),
+            TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidSchoolNumber
+        ];
+
+        yield return
+        [
+            new Team(CompetitionLevel.MiddleSchool, "9001", "902"),
+            TeamDataIssues.InvalidCompetitionLevel | TeamDataIssues.InvalidSchoolNumber | TeamDataIssues.InvalidTeamNumber
         ];
     }
 }

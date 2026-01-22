@@ -26,8 +26,8 @@ internal class SubmissionEqualityComparer : IEqualityComparer<Submission?>, IEqu
         if (x is null) return false;
         if (y is null) return false;
 
+        var evaluatedOnsMatch = x.EvaluatedOn == y.EvaluatedOn;
         var idsMatch = x.Id == y.Id;
-        var isFinalSubmissionsMatch = x.IsFinalSubmission == y.IsFinalSubmission;
         var languagesMatch = x.Language == y.Language;
         var problemsMatch = x.Problem?.Id.AsString == y.Problem?.Id.AsString;
         var solutionsMatch = x.Solution == y.Solution;
@@ -39,7 +39,6 @@ internal class SubmissionEqualityComparer : IEqualityComparer<Submission?>, IEqu
         if (_ignoreDateTimes)
         {
             return idsMatch &&
-                   isFinalSubmissionsMatch &&
                    languagesMatch &&
                    problemsMatch &&
                    solutionsMatch &&
@@ -47,8 +46,8 @@ internal class SubmissionEqualityComparer : IEqualityComparer<Submission?>, IEqu
                    usersMatch;
         }
 
-        return idsMatch &&
-               isFinalSubmissionsMatch &&
+        return evaluatedOnsMatch &&
+               idsMatch &&
                languagesMatch &&
                problemsMatch &&
                solutionsMatch &&

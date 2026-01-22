@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Tsa.Submissions.Coding.Contracts.TestSets;
 using Tsa.Submissions.Coding.UnitTests.Data;
 using Tsa.Submissions.Coding.UnitTests.Helpers;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Controllers;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.Exceptions;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 using Xunit;
 
@@ -185,13 +185,13 @@ public class TestSetsControllerTests
         // Arrange
         var testSetsTestData = new TestSetsTestData();
 
-        var testSet = testSetsTestData.First(_ => (TestSetDataIssues)_[1] == TestSetDataIssues.None)[0] as TestSet;
+        var testSet = testSetsTestData.First(testData => (TestSetDataIssues)testData[1] == TestSetDataIssues.None)[0] as TestSet;
 
         var mockedProblemsService = new Mock<IProblemsService>();
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
         mockedTestSetsService
-            .Setup(_ => _.GetAsync(It.IsAny<string>(), default))
+            .Setup(testSetsService => testSetsService.GetAsync(It.IsAny<string>(), default))
             .ReturnsAsync(testSet);
 
         var problemsController = new TestSetsController(mockedProblemsService.Object, mockedTestSetsService.Object);
@@ -249,14 +249,14 @@ public class TestSetsControllerTests
         // Arrange
         var testSetsTestData = new TestSetsTestData();
 
-        var testSet = testSetsTestData.First(_ =>
-            !((TestSet)_[0]).IsPublic &&
-            (TestSetDataIssues)_[1] == TestSetDataIssues.None)[0] as TestSet;
+        var testSet = testSetsTestData.First(testData =>
+            !((TestSet)testData[0]).IsPublic &&
+            (TestSetDataIssues)testData[1] == TestSetDataIssues.None)[0] as TestSet;
 
         var mockedProblemsService = new Mock<IProblemsService>();
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(_ => _.GetAsync(It.IsAny<string>(), default))
+        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.IsAny<string>(), default))
             .ReturnsAsync(testSet);
 
         var identityMock = new Mock<IIdentity>();
@@ -293,12 +293,12 @@ public class TestSetsControllerTests
         // Arrange
         var testSetsTestData = new TestSetsTestData();
 
-        var testSet = testSetsTestData.First(_ => (TestSetDataIssues)_[1] == TestSetDataIssues.None)[0] as TestSet;
+        var testSet = testSetsTestData.First(testData => (TestSetDataIssues)testData[1] == TestSetDataIssues.None)[0] as TestSet;
 
         var mockedProblemsService = new Mock<IProblemsService>();
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(_ => _.GetAsync(It.IsAny<string>(), default))
+        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.IsAny<string>(), default))
             .ReturnsAsync(testSet);
 
         var identityMock = new Mock<IIdentity>();
@@ -331,7 +331,7 @@ public class TestSetsControllerTests
         var testSetModel = actionResult.Value;
 
         Assert.Equal(testSet!.Id, testSetModel.Id);
-        Assert.Equal(testSet.Inputs?.Count, testSetModel.Inputs?.Count);
+        Assert.Equal(testSet.Inputs?.Count, testSetModel.Inputs.Count);
         Assert.Equal(testSet.IsPublic, testSetModel.IsPublic);
         Assert.Equal(testSet.Name, testSetModel.Name);
         Assert.Equal(testSet.Problem?.Id.AsString, testSetModel.ProblemId);
@@ -344,14 +344,14 @@ public class TestSetsControllerTests
         // Arrange
         var testSetsTestData = new TestSetsTestData();
 
-        var testSet = testSetsTestData.First(_ =>
-            ((TestSet)_[0]).IsPublic &&
-            (TestSetDataIssues)_[1] == TestSetDataIssues.None)[0] as TestSet;
+        var testSet = testSetsTestData.First(testData =>
+            ((TestSet)testData[0]).IsPublic &&
+            (TestSetDataIssues)testData[1] == TestSetDataIssues.None)[0] as TestSet;
 
         var mockedProblemsService = new Mock<IProblemsService>();
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(_ => _.GetAsync(It.IsAny<string>(), default))
+        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.IsAny<string>(), default))
             .ReturnsAsync(testSet);
 
         var identityMock = new Mock<IIdentity>();
@@ -384,7 +384,7 @@ public class TestSetsControllerTests
         var testSetModel = actionResult.Value;
 
         Assert.Equal(testSet!.Id, testSetModel.Id);
-        Assert.Equal(testSet.Inputs?.Count, testSetModel.Inputs?.Count);
+        Assert.Equal(testSet.Inputs?.Count, testSetModel.Inputs.Count);
         Assert.Equal(testSet.IsPublic, testSetModel.IsPublic);
         Assert.Equal(testSet.Name, testSetModel.Name);
         Assert.Equal(testSet.Problem?.Id.AsString, testSetModel.ProblemId);
@@ -400,7 +400,7 @@ public class TestSetsControllerTests
         var mockedProblemsService = new Mock<IProblemsService>();
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(_ => _.GetAsync(It.IsAny<CancellationToken>()))
+        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(emptyTestSetList);
 
         var identityMock = new Mock<IIdentity>();
@@ -442,7 +442,7 @@ public class TestSetsControllerTests
         var mockedProblemsService = new Mock<IProblemsService>();
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(_ => _.GetAsync(It.IsAny<CancellationToken>()))
+        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(emptyTestSetList);
 
         var identityMock = new Mock<IIdentity>();
@@ -482,15 +482,15 @@ public class TestSetsControllerTests
         var testSetsTestData = new TestSetsTestData();
 
         var testSetList = testSetsTestData
-            .Where(_ => (TestSetDataIssues)_[1] == TestSetDataIssues.None)
-            .Select(_ => _[0])
+            .Where(testData => (TestSetDataIssues)testData[1] == TestSetDataIssues.None)
+            .Select(testData => testData[0])
             .Cast<TestSet>()
             .ToList();
 
         var mockedProblemsService = new Mock<IProblemsService>();
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(_ => _.GetAsync(It.IsAny<CancellationToken>()))
+        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(testSetList);
 
         var identityMock = new Mock<IIdentity>();
@@ -531,15 +531,15 @@ public class TestSetsControllerTests
         var testSetsTestData = new TestSetsTestData();
 
         var testSetList = testSetsTestData
-            .Where(_ => (TestSetDataIssues)_[1] == TestSetDataIssues.None)
-            .Select(_ => _[0])
+            .Where(testData => (TestSetDataIssues)testData[1] == TestSetDataIssues.None)
+            .Select(testData => testData[0])
             .Cast<TestSet>()
             .ToList();
 
         var mockedProblemsService = new Mock<IProblemsService>();
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(_ => _.GetAsync(It.IsAny<CancellationToken>()))
+        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(testSetList);
 
         var identityMock = new Mock<IIdentity>();
@@ -569,7 +569,7 @@ public class TestSetsControllerTests
         Assert.NotNull(actionResult);
         Assert.NotNull(actionResult.Value);
         Assert.NotEmpty(actionResult.Value!);
-        Assert.Equal(testSetList.Count(_ => _.IsPublic), actionResult.Value!.Count);
+        Assert.Equal(testSetList.Count(testSet => testSet.IsPublic), actionResult.Value!.Count);
     }
 
     [Fact]
@@ -577,27 +577,16 @@ public class TestSetsControllerTests
     public async Task Post_Should_Return_Created()
     {
         // Arrange
-        var newTestSet = new TestSetModel
-        {
-            Id = "000000000000000000000001",
-            Inputs =
+        var newTestSet = new TestSetRequest(
             [
-                new()
-                {
-                    IsArray = false,
-                    DataType = "string",
-                    Index = 0,
-                    ValueAsJson = "{ \"value\": \"string a\" }"
-                }
+                new TestSetValueRequest("string", 0, false, "{ \"value\": \"string a\" }")
             ],
-            IsPublic = true,
-            Name = "Test Set #1",
-            ProblemId = "000000000000000000000001"
-        };
+            true,
+            "Test Set #1",
+            "000000000000000000000001");
 
         Func<TestSet, bool> validateTestSet = testSetToValidate =>
         {
-            var idsMatch = testSetToValidate.Id == newTestSet.Id;
             var isPublicMatch = testSetToValidate.IsPublic == newTestSet.IsPublic;
             var namesMatch = testSetToValidate.Name == newTestSet.Name;
             var problemsMatch = testSetToValidate.Problem?.Id.AsString == newTestSet.ProblemId;
@@ -609,15 +598,22 @@ public class TestSetsControllerTests
                               testSetToValidate.Inputs[0].ValueAsJson == newTestSet.Inputs[0].ValueAsJson;
 
 
-            return idsMatch && isPublicMatch && namesMatch && problemsMatch && inputsMatch;
+            return isPublicMatch && namesMatch && problemsMatch && inputsMatch;
         };
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
-            .Setup(_ => _.ExistsAsync(It.Is(newTestSet.ProblemId, new StringEqualityComparer()), default))
+            .Setup(problemsService => problemsService.ExistsAsync(It.Is(newTestSet.ProblemId, new StringEqualityComparer()), default))
             .ReturnsAsync(true);
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
+        mockedTestSetsService.Setup(testSetsService => testSetsService.CreateAsync(It.IsAny<TestSet>(), default))
+            .Callback<TestSet, CancellationToken>((testSet, _) =>
+            {
+                // Simulate setting the ID upon creation
+                testSet.Id = "64639f6fcdde06187b09ecae";
+            })
+            .Returns(Task.CompletedTask);
 
         var problemsController = new TestSetsController(mockedProblemsService.Object, mockedTestSetsService.Object);
 
@@ -627,9 +623,10 @@ public class TestSetsControllerTests
         // Assert
         Assert.NotNull(createdAtActionResult);
 
-        Assert.IsType<TestSetModel>(createdAtActionResult.Value);
+        Assert.IsType<TestSetResponse>(createdAtActionResult.Value);
 
-        mockedTestSetsService.Verify(_ => _.CreateAsync(It.Is<TestSet>(testSet => validateTestSet(testSet)), default), Times.Once);
+        mockedTestSetsService.Verify(testSetsService => testSetsService.CreateAsync(It.Is<TestSet>(testSet => validateTestSet(testSet)), default),
+            Times.Once);
     }
 
     [Fact]
@@ -637,27 +634,17 @@ public class TestSetsControllerTests
     public async Task Post_Should_Throw_Exception_When_Problem_Is_Not_Found()
     {
         // Arrange
-        var newTestSet = new TestSetModel
-        {
-            Id = "000000000000000000000001",
-            Inputs =
+        var newTestSet = new TestSetRequest(
             [
-                new()
-                {
-                    IsArray = false,
-                    DataType = "string",
-                    Index = 0,
-                    ValueAsJson = "{ \"value\": \"string a\" }"
-                }
+                new TestSetValueRequest("string", 0, false, "{ \"value\": \"string a\" }")
             ],
-            IsPublic = true,
-            Name = "Test Set #1",
-            ProblemId = "000000000000000000000001"
-        };
+            true,
+            "Test Set #1",
+            "000000000000000000000001");
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
-            .Setup(_ => _.ExistsAsync(It.Is(newTestSet.ProblemId, new StringEqualityComparer()), default))
+            .Setup(problemsService => problemsService.ExistsAsync(It.Is(newTestSet.ProblemId, new StringEqualityComparer()), default))
             .ReturnsAsync(false);
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
@@ -675,13 +662,28 @@ public class TestSetsControllerTests
         // Arrange
         var testSetsTestData = new TestSetsTestData();
 
-        var testSet = testSetsTestData.First(_ => (TestSetDataIssues)_[1] == TestSetDataIssues.None)[0] as TestSet;
+        var testSet = testSetsTestData.First(testData => (TestSetDataIssues)testData[1] == TestSetDataIssues.None)[0] as TestSet;
 
-        var testSetModel = testSet!.ToModel();
+        var testSetValueRequest = new List<TestSetValueRequest>(testSet!.Inputs!.Count);
+
+        foreach (var testSetInput in testSet.Inputs)
+        {
+            testSetValueRequest.Add(new TestSetValueRequest(
+                testSetInput.DataType!,
+                testSetInput.Index!.Value,
+                testSetInput.IsArray,
+                testSetInput.ValueAsJson));
+        }
+
+        var testSetModel = new TestSetRequest(
+            testSetValueRequest,
+            testSet.IsPublic,
+            testSet.Name!,
+            testSet.Problem!.Id.AsString);
 
         Func<TestSet, bool> validateTestSet = testSetToValidate =>
         {
-            var idsMatch = testSetToValidate.Id == testSet!.Id;
+            var idsMatch = testSetToValidate.Id == testSet.Id;
             var isPublicMatch = testSetToValidate.IsPublic == testSet.IsPublic;
             var namesMatch = testSetToValidate.Name == testSet.Name;
             var problemsMatch = testSetToValidate.Problem?.Id.AsString == testSet.Problem?.Id.AsString;
@@ -692,7 +694,7 @@ public class TestSetsControllerTests
 
             foreach (var testSetInput in testSet.Inputs!)
             {
-                var testSetInputModel = testSetToValidate.Inputs!.SingleOrDefault(_ => _.Index == testSetInput.Index);
+                var testSetInputModel = testSetToValidate.Inputs!.SingleOrDefault(testSetValue => testSetValue.Index == testSetInput.Index);
 
                 if (testSetInputModel == null) return false;
 
@@ -707,24 +709,25 @@ public class TestSetsControllerTests
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
-            .Setup(_ => _.ExistsAsync(It.Is(testSetModel.ProblemId, new StringEqualityComparer())!, default))
+            .Setup(problemsService => problemsService.ExistsAsync(It.Is(testSetModel.ProblemId, new StringEqualityComparer()), default))
             .ReturnsAsync(true);
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
         mockedTestSetsService
-            .Setup(_ => _.GetAsync(It.Is(testSet!.Id!, new StringEqualityComparer()), default))
+            .Setup(testSetsService => testSetsService.GetAsync(It.Is(testSet.Id!, new StringEqualityComparer()), default))
             .ReturnsAsync(testSet);
 
         var problemsController = new TestSetsController(mockedProblemsService.Object, mockedTestSetsService.Object);
 
         // Act
-        var actionResult = await problemsController.Put(testSet!.Id!, testSetModel);
+        var actionResult = await problemsController.Put(testSet.Id!, testSetModel);
 
         // Assert
         Assert.NotNull(actionResult);
         Assert.IsType<NoContentResult>(actionResult);
 
-        mockedTestSetsService.Verify(_ => _.UpdateAsync(It.Is<TestSet>(testSetToValidate => validateTestSet(testSetToValidate)), default), Times.Once);
+        mockedTestSetsService.Verify(
+            testSetsService => testSetsService.UpdateAsync(It.Is<TestSet>(testSetToValidate => validateTestSet(testSetToValidate)), default), Times.Once);
     }
 
     [Fact]
@@ -734,9 +737,11 @@ public class TestSetsControllerTests
         // Arrange
         var problemId = Guid.NewGuid().ToString();
 
+        var testSetRequest = new TestSetRequest([], false, "Test Set", problemId);
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
-            .Setup(_ => _.ExistsAsync(It.Is(problemId, new StringEqualityComparer())!, default))
+            .Setup(problemsService => problemsService.ExistsAsync(It.Is(problemId, new StringEqualityComparer()), default))
             .ReturnsAsync(true);
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
@@ -744,7 +749,7 @@ public class TestSetsControllerTests
         var problemsController = new TestSetsController(mockedProblemsService.Object, mockedTestSetsService.Object);
 
         // Act
-        var actionResult = await problemsController.Put("64639f6fcdde06187b09ecae", new TestSetModel { ProblemId = problemId });
+        var actionResult = await problemsController.Put("64639f6fcdde06187b09ecae", testSetRequest);
 
         // Assert
         Assert.NotNull(actionResult);
@@ -758,13 +763,13 @@ public class TestSetsControllerTests
         // Arrange
         var testSetsTestData = new TestSetsTestData();
 
-        var testSet = testSetsTestData.First(_ => (TestSetDataIssues)_[1] == TestSetDataIssues.None)[0] as TestSet;
+        var testSet = testSetsTestData.First(testData => (TestSetDataIssues)testData[1] == TestSetDataIssues.None)[0] as TestSet;
 
-        var testSetModel = testSet!.ToModel();
+        var testSetRequest = new TestSetRequest([], false, "Test Set", "0");
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
-            .Setup(_ => _.ExistsAsync(It.Is(testSetModel.ProblemId, new StringEqualityComparer())!, default))
+            .Setup(problemsService => problemsService.ExistsAsync(It.Is(testSetRequest.ProblemId, new StringEqualityComparer()), default))
             .ReturnsAsync(false);
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
@@ -772,6 +777,6 @@ public class TestSetsControllerTests
         var problemsController = new TestSetsController(mockedProblemsService.Object, mockedTestSetsService.Object);
 
         // Act and Assert
-        await Assert.ThrowsAsync<RequiredEntityNotFoundException>(() => problemsController.Put(testSet!.Id!, testSetModel));
+        await Assert.ThrowsAsync<RequiredEntityNotFoundException>(() => problemsController.Put(testSet!.Id!, testSetRequest));
     }
 }

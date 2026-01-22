@@ -5,17 +5,18 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Tsa.Submissions.Coding.Contracts.Problems;
 using Tsa.Submissions.Coding.UnitTests.Data;
 using Tsa.Submissions.Coding.UnitTests.Helpers;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Controllers;
 using Tsa.Submissions.Coding.WebApi.Entities;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 using Xunit;
 
@@ -262,7 +263,7 @@ public class ProblemsControllerTests
         // Assert
         Assert.NotNull(actionResult);
         Assert.NotNull(actionResult.Value);
-        Assert.Equal(problem!.ToModel(), actionResult.Value, new ProblemModelEqualityComparer());
+        Assert.Equal(problem!.ToResponse(), actionResult.Value, new ProblemModelEqualityComparer());
     }
 
     [Fact]
@@ -285,8 +286,7 @@ public class ProblemsControllerTests
             .Cast<TestSet>()
             .ToList();
 
-        var expectedProblemModel = problem.ToModel();
-        expectedProblemModel.TestSets = EntityExtensions.ToModels(testSetList);
+        var expectedProblemResponse = problem.ToResponse(testSetList.ToResponses().ToList());
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
@@ -323,7 +323,7 @@ public class ProblemsControllerTests
         // Assert
         Assert.NotNull(actionResult);
         Assert.NotNull(actionResult.Value);
-        Assert.Equal(expectedProblemModel, actionResult.Value, new ProblemModelEqualityComparer());
+        Assert.Equal(expectedProblemResponse, actionResult.Value, new ProblemModelEqualityComparer());
     }
 
     [Fact]
@@ -346,10 +346,11 @@ public class ProblemsControllerTests
             .Cast<TestSet>()
             .ToList();
 
-        var expectedProblemModel = problem.ToModel();
-        expectedProblemModel.TestSets = EntityExtensions.ToModels(testSetList
+        var testSetResponses = testSetList
             .Where(testSet => testSet.IsPublic)
-            .ToList());
+            .ToResponses();
+
+        var expectedProblemResponse = problem.ToResponse(testSetResponses);
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
@@ -386,7 +387,7 @@ public class ProblemsControllerTests
         // Assert
         Assert.NotNull(actionResult);
         Assert.NotNull(actionResult.Value);
-        Assert.Equal(expectedProblemModel, actionResult.Value, new ProblemModelEqualityComparer());
+        Assert.Equal(expectedProblemResponse, actionResult.Value, new ProblemModelEqualityComparer());
     }
 
     [Fact]
@@ -442,7 +443,7 @@ public class ProblemsControllerTests
         Assert.NotNull(actionResult.Value);
         Assert.NotEmpty(actionResult.Value!);
         Assert.Equal(problemsList.Count, actionResult.Value!.Count);
-        Assert.Equal(EntityExtensions.ToModels(problemsList), actionResult.Value, new ProblemModelEqualityComparer());
+        Assert.Equal(problemsList.ToResponses(), actionResult.Value, new ProblemModelEqualityComparer());
     }
 
     [Fact]
@@ -466,13 +467,18 @@ public class ProblemsControllerTests
             .Cast<TestSet>()
             .ToList();
 
-        var expectedProblemModels = EntityExtensions.ToModels(problemsList);
+        var expectedProblemResponses = new List<ProblemResponse>(problemsList.Count);
 
-        foreach (var expectedProblemModel in expectedProblemModels)
+        foreach (var problem in problemsList)
         {
-            expectedProblemModel.TestSets = EntityExtensions.ToModels(testSetList)
-                .Where(testSetModel => testSetModel.ProblemId == expectedProblemModel.Id)
+            var testSetResponses = testSetList
+                .Where(testSet => testSet.Problem?.Id.AsString == problem.Id)
+                .ToResponses()
                 .ToList();
+
+            var problemResponse = problem.ToResponse(testSetResponses);
+
+            expectedProblemResponses.Add(problemResponse);
         }
 
         var mockedProblemsService = new Mock<IProblemsService>();
@@ -517,8 +523,8 @@ public class ProblemsControllerTests
         Assert.NotNull(actionResult);
         Assert.NotNull(actionResult.Value);
         Assert.NotEmpty(actionResult.Value!);
-        Assert.Equal(expectedProblemModels.Count, actionResult.Value!.Count);
-        Assert.Equal(expectedProblemModels, actionResult.Value, new ProblemModelEqualityComparer());
+        Assert.Equal(expectedProblemResponses.Count, actionResult.Value!.Count);
+        Assert.Equal(expectedProblemResponses, actionResult.Value, new ProblemModelEqualityComparer());
     }
 
     [Fact]
@@ -542,13 +548,15 @@ public class ProblemsControllerTests
             .Cast<TestSet>()
             .ToList();
 
-        var expectedProblemModels = EntityExtensions.ToModels(problemsList);
+        var expectedProblemModels = problemsList.ToResponses().ToList();
 
         foreach (var expectedProblemModel in expectedProblemModels)
         {
-            expectedProblemModel.TestSets = EntityExtensions.ToModels(testSetList)
-                .Where(testSetModel => testSetModel.ProblemId == expectedProblemModel.Id && testSetModel.IsPublic)
-                .ToList();
+            var testSetResponses = testSetList
+                .Where(testSet => testSet.Problem?.Id == expectedProblemModel.Id && testSet.IsPublic)
+                .ToResponses();
+
+            expectedProblemModel.TestSets.AddRange(testSetResponses.ToList());
         }
 
         var mockedProblemsService = new Mock<IProblemsService>();
@@ -773,7 +781,7 @@ public class ProblemsControllerTests
         Assert.NotNull(actionResult.Value);
         Assert.NotEmpty(actionResult.Value!);
         Assert.Equal(testSetList.Count, actionResult.Value!.Count);
-        Assert.Equal(EntityExtensions.ToModels(testSetList), actionResult.Value, new TestSetModelEqualityComparer());
+        Assert.Equal(testSetList.ToResponses(), actionResult.Value, new TestSetModelEqualityComparer());
     }
 
     [Fact]
@@ -833,7 +841,7 @@ public class ProblemsControllerTests
         Assert.NotNull(actionResult.Value);
         Assert.NotEmpty(actionResult.Value!);
         Assert.Equal(participantTestSetList.Count, actionResult.Value!.Count);
-        Assert.Equal(EntityExtensions.ToModels(participantTestSetList), actionResult.Value, new TestSetModelEqualityComparer());
+        Assert.Equal(participantTestSetList.ToResponses(), actionResult.Value, new TestSetModelEqualityComparer());
     }
 
     [Fact]
@@ -841,19 +849,28 @@ public class ProblemsControllerTests
     public async Task Post_Should_Return_Created()
     {
         // Arrange
-        var newProblem = new ProblemModel
+        var newProblem = new ProblemRequest("This is the description", true, "This is the title");
+
+        var expectedEntity = new Problem
         {
-            Description = "This is the description",
-            Id = "12345",
-            IsActive = true,
-            Title = "This is the title"
+            Description = newProblem.Description,
+            IsActive = newProblem.IsActive,
+            Title = newProblem.Title
         };
 
         var mockedProblemsService = new Mock<IProblemsService>();
+        mockedProblemsService
+            .Setup(problemsService => problemsService.CreateAsync(It.Is(expectedEntity, new ProblemEqualityComparer()), default))
+            .Callback<Problem, CancellationToken>((problem, _) =>
+            {
+                problem.Id = "64639f6fcdde06187b09ecae";
+            })
+            .Returns(Task.CompletedTask);
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
 
         var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+
 
         // Act
         var createdAtActionResult = await problemsController.Post(newProblem);
@@ -861,10 +878,7 @@ public class ProblemsControllerTests
         // Assert
         Assert.NotNull(createdAtActionResult);
 
-        Assert.IsType<ProblemModel>(createdAtActionResult.Value);
-
-        mockedProblemsService.Verify(problemsService => problemsService.CreateAsync(It.Is(newProblem.ToEntity(), new ProblemEqualityComparer()), default),
-            Times.Once);
+        Assert.IsType<ProblemResponse>(createdAtActionResult.Value);
     }
 
     [Fact]
@@ -876,16 +890,18 @@ public class ProblemsControllerTests
 
         var problem = problemsTestData.First(problemTestData => (ProblemDataIssues)problemTestData[1] == ProblemDataIssues.None)[0] as Problem;
 
-        var updatedProblem = new ProblemModel
+        var updatedProblem = new ProblemRequest("This is the description", true, "This is the title");
+
+        var expectedEntity = new Problem
         {
-            Description = "This is the description",
-            Id = "12345",
-            IsActive = true,
-            Title = "This is the title"
+            Id = problem!.Id,
+            Description = updatedProblem.Description,
+            IsActive = updatedProblem.IsActive,
+            Title = updatedProblem.Title
         };
 
         var mockedProblemsService = new Mock<IProblemsService>();
-        mockedProblemsService.Setup(problemsService => problemsService.GetAsync(It.Is(problem!.Id, new StringEqualityComparer())!, default))
+        mockedProblemsService.Setup(problemsService => problemsService.GetAsync(It.Is(problem.Id, new StringEqualityComparer())!, default))
             .ReturnsAsync(problem);
 
         var mockedTestSetsService = new Mock<ITestSetsService>();
@@ -893,14 +909,14 @@ public class ProblemsControllerTests
         var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
 
         // Act
-        var actionResult = await problemsController.Put(problem!.Id!, updatedProblem);
+        var actionResult = await problemsController.Put(problem.Id!, updatedProblem);
 
         // Assert
         Assert.NotNull(actionResult);
         Assert.IsType<NoContentResult>(actionResult);
 
         mockedProblemsService.Verify(
-            problemsService => problemsService.UpdateAsync(It.Is(updatedProblem.ToEntity(), new ProblemEqualityComparer()), default), Times.Once);
+            problemsService => problemsService.UpdateAsync(It.Is(expectedEntity, new ProblemEqualityComparer()), default), Times.Once);
     }
 
     [Fact]
@@ -914,8 +930,10 @@ public class ProblemsControllerTests
 
         var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
 
+        var updatedProblem = new ProblemRequest("This is the description", true, "This is the title");
+
         // Act
-        var actionResult = await problemsController.Put("64639f6fcdde06187b09ecae", new ProblemModel());
+        var actionResult = await problemsController.Put("64639f6fcdde06187b09ecae", updatedProblem);
 
         // Assert
         Assert.NotNull(actionResult);

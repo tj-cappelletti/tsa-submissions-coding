@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.Users;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers;
 
 [ExcludeFromCodeCoverage]
-internal class TeamModelEqualityComparer : IEqualityComparer<TeamModel?>, IEqualityComparer<IList<TeamModel>?>
+internal class TeamModelEqualityComparer : IEqualityComparer<TeamResponse?>, IEqualityComparer<IList<TeamResponse>?>
 {
-    public bool Equals(TeamModel? x, TeamModel? y)
+    public bool Equals(TeamResponse? x, TeamResponse? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
@@ -23,7 +23,7 @@ internal class TeamModelEqualityComparer : IEqualityComparer<TeamModel?>, IEqual
                teamNumbersMatch;
     }
 
-    public bool Equals(IList<TeamModel>? x, IList<TeamModel>? y)
+    public bool Equals(IList<TeamResponse>? x, IList<TeamResponse>? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
@@ -40,12 +40,12 @@ internal class TeamModelEqualityComparer : IEqualityComparer<TeamModel?>, IEqual
         return true;
     }
 
-    public int GetHashCode(TeamModel? obj)
+    public int GetHashCode(TeamResponse? obj)
     {
         return obj == null ? 0 : obj.GetHashCode();
     }
 
-    public int GetHashCode(IList<TeamModel>? obj)
+    public int GetHashCode(IList<TeamResponse>? obj)
     {
         return obj == null ? 0 : obj.GetHashCode();
     }

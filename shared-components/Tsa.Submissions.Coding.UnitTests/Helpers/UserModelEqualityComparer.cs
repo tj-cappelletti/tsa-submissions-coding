@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.Users;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers;
 
 //TODO: Turn into code generator
 [ExcludeFromCodeCoverage]
-public class UserModelEqualityComparer : IEqualityComparer<UserModel?>, IEqualityComparer<IList<UserModel>?>
+public class UserModelEqualityComparer : IEqualityComparer<UserResponse?>, IEqualityComparer<IList<UserResponse>?>
 {
     private readonly TeamModelEqualityComparer _teamModelEqualityComparer = new();
 
-    public bool Equals(UserModel? x, UserModel? y)
+    public bool Equals(UserResponse? x, UserResponse? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
@@ -25,7 +25,7 @@ public class UserModelEqualityComparer : IEqualityComparer<UserModel?>, IEqualit
         return idsMatch && rolesMatch && teamsMatch && userNamesMatch;
     }
 
-    public bool Equals(IList<UserModel>? x, IList<UserModel>? y)
+    public bool Equals(IList<UserResponse>? x, IList<UserResponse>? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (x is null) return false;
@@ -42,12 +42,12 @@ public class UserModelEqualityComparer : IEqualityComparer<UserModel?>, IEqualit
         return true;
     }
 
-    public int GetHashCode(UserModel? obj)
+    public int GetHashCode(UserResponse? obj)
     {
         return obj == null ? 0 : obj.GetHashCode();
     }
 
-    public int GetHashCode(IList<UserModel>? obj)
+    public int GetHashCode(IList<UserResponse>? obj)
     {
         return obj == null ? 0 : obj.GetHashCode();
     }
