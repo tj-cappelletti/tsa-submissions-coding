@@ -2,22 +2,23 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using Tsa.Submissions.Coding.CodeExecutor.Worker.Messages;
+using Tsa.Submissions.Coding.ApiClient;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Services;
 using Tsa.Submissions.Coding.Contracts.CodeExecutor;
+using Tsa.Submissions.Coding.Contracts.Messages;
 using Tsa.Submissions.Coding.Contracts.Submissions;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Worker.QueueConsumers;
 
 internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
 {
-    private readonly ApiClient _apiClient;
+    private readonly ICodingApiClient _codingApiClient;
     private readonly KubernetesJobManager _kubernetesJobManager;
     private readonly ILogger _logger;
 
-    public SubmissionsQueueConsumer(ApiClient apiClient, IChannel channel, KubernetesJobManager kubernetesJobManager, ILogger logger) : base(channel)
+    public SubmissionsQueueConsumer(ICodingApiClient codingApiClient, IChannel channel, KubernetesJobManager kubernetesJobManager, ILogger logger) : base(channel)
     {
-        _apiClient = apiClient;
+        _codingApiClient = codingApiClient;
         _kubernetesJobManager = kubernetesJobManager;
         _logger = logger;
     }
@@ -51,12 +52,10 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
                 return;
             }
 
-            submissionMessage.EnsureMessageIsValid();
-
             // Fetch and validate submission
             _logger.LogInformation("Fetching submission from API");
             // The null-forgiving operator is safe here due to prior validation
-            var submission = await _apiClient.GetSubmissionAsync(submissionMessage.SubmissionId!, cancellationToken);
+            var submission = await _codingApiClient.Submissions.GetAsync(submissionMessage.SubmissionId!, cancellationToken);
 
             _logger.LogInformation("Processing submission {SubmissionId}", submissionMessage.SubmissionId);
             var success = await ProcessSubmissionAsync(submission, cancellationToken);
@@ -86,7 +85,7 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
     private async Task<bool> ProcessSubmissionAsync(SubmissionResponse submission, CancellationToken cancellationToken)
     {
         await _kubernetesJobManager.ExecuteJobAsync(
-            new RunnerJobPayload(submission.Language.Name, submission.Language.Version, submission.ProblemId, submission.Id),
+            new RunnerJobPayload(submission.Language.Name, submission.Language.Version, submission.ProblemId, submission.Solution, submission.Id),
             cancellationToken);
 
         return true;
