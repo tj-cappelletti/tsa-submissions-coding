@@ -21,7 +21,9 @@ function Get-RabbitMQPasswordHash {
         $passwordPlain = ConvertFrom-SecureStringToPlainText -SecureString $Password
 
         # Use RabbitMQ Docker image to hash the password
-        $hash = docker run --rm rabbitmq:4-management rabbitmqctl hash_password $passwordPlain 2>&1
+        $lines = docker run --rm rabbitmq:4-management rabbitmqctl hash_password $passwordPlain 2>&1
+
+        $hash = $lines | Select-String -Pattern '^\S+$' | ForEach-Object { $_.Line }
         
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to generate password hash: $hash"
