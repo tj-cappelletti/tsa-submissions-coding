@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
+using Tsa.Submissions.Coding.ApiClient;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Configuration;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.QueueConsumers;
 
@@ -81,10 +82,10 @@ public class SubmissionJobDispatcher : BackgroundService
         _logger.LogInformation("Connected to RabbitMQ, listening on queue: {QueueName}", _rabbitMQConfig.QueueName);
 
         using var scope = _serviceProvider.CreateScope();
-        var apiClient = scope.ServiceProvider.GetRequiredService<ApiClient>();
+        var codingApiClient = scope.ServiceProvider.GetRequiredService<ICodingApiClient>();
         var jobManager = scope.ServiceProvider.GetRequiredService<KubernetesJobManager>();
 
-        var consumer = new SubmissionsQueueConsumer(apiClient, _channel, jobManager, _logger);
+        var consumer = new SubmissionsQueueConsumer(codingApiClient, _channel, jobManager, _logger);
 
         // Start consuming messages
         await _channel.BasicConsumeAsync(
