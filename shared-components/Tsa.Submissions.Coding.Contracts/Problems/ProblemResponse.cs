@@ -10,7 +10,7 @@ public record ProblemResponse
 
     public bool IsActive { get; init; }
 
-    public IList<TestSetResponse> TestSets { get; init; } = new List<TestSetResponse>();
+    public List<TestSetResponse> TestSets { get; init; } = [];
 
     public string Title { get; init; }
 
@@ -22,7 +22,7 @@ public record ProblemResponse
         IsActive = isActive;
     }
 
-    public ProblemResponse(string id, string title, string description, bool isActive, IList<TestSetResponse> testSets)
+    public ProblemResponse(string id, string title, string description, bool isActive, List<TestSetResponse> testSets)
     {
         Id = id;
         Title = title;

@@ -8,5 +8,5 @@ public record SubmissionResponse(
     string ProblemId,
     string Solution,
     DateTimeOffset SubmittedOn,
-    IList<TestSetResultResponse> TestSetResults,
+    List<TestSetResultResponse> TestSetResults,
     string UserId);

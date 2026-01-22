@@ -2,7 +2,7 @@
 
 public record TestSetResponse(
     string Id,
-    IList<TestSetValueResponse> Inputs,
+    List<TestSetValueResponse> Inputs,
     bool IsPublic,
     string? Name,
     string? ProblemId);
