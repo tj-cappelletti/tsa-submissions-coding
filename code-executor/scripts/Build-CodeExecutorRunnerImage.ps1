@@ -38,7 +38,7 @@ if ($BuildDotNet) {
         
         docker build `
             --tag "code-executor-runner:$semVer-dotnet$version" `
-            --file .\Tsa.Submissions.Coding.CodeExecutor.Runner\Dockerfiles\DotNet.Dockerfile `
+            --file .\code-executor\Tsa.Submissions.Coding.CodeExecutor.Runner\Dockerfiles\DotNet.Dockerfile `
             --build-arg "LANG_VERSION=$version" `
             --quiet .
 
@@ -53,7 +53,7 @@ if ($BuildJava) {
 
         docker build `
             --tag "code-executor-runner:$semVer-java$version" `
-            --file .\Tsa.Submissions.Coding.CodeExecutor.Runner\Dockerfiles\Java.Dockerfile `
+            --file .\code-executor\Tsa.Submissions.Coding.CodeExecutor.Runner\Dockerfiles\Java.Dockerfile `
             --build-arg "LANG_VERSION=$version" `
             --quiet .
 
