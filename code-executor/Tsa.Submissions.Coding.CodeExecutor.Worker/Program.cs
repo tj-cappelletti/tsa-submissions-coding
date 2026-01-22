@@ -3,9 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Polly;
+using Microsoft.Extensions.Options;
+using Tsa.Submissions.Coding.ApiClient;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Configuration;
-using Tsa.Submissions.Coding.CodeExecutor.Worker.Handlers;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Services;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Worker;
@@ -16,7 +16,7 @@ public class Program
     {
         var builder = Host.CreateApplicationBuilder(args);
 
-        using var loggerFactory = LoggerFactory.Create(configure: loggingBuilder =>
+        using var loggerFactory = LoggerFactory.Create(loggingBuilder =>
         {
             loggingBuilder.AddConfiguration(builder.Configuration.GetSection("Logging"));
             loggingBuilder.AddConsole();
@@ -31,46 +31,42 @@ public class Program
 
         builder.Services.AddOptions<SubmissionsApiConfig>()
             .Bind(builder.Configuration.GetSection(SubmissionsApiConfig.SectionName))
-            .Validate(validation: config =>
+            .Validate(config =>
             {
                 if (string.IsNullOrWhiteSpace(config.BaseUrl))
+                {
                     return false;
+                }
+
                 if (!Uri.TryCreate(config.BaseUrl, UriKind.Absolute, out _))
+                {
                     return false;
+                }
+
                 if (string.IsNullOrWhiteSpace(config.Authentication.Username))
+                {
                     return false;
+                }
+
                 if (string.IsNullOrWhiteSpace(config.Authentication.Password))
+                {
                     return false;
+                }
+
                 return true;
             }, "SubmissionsApiConfig is invalid. Check BaseUrl, Username, and Password.")
             .ValidateOnStart();
 
-        // Register the authentication handler
-        builder.Services.AddTransient<AuthenticationHandler>();
+        builder.Services.AddSingleton<ICodingApiClient>(serviceProvider =>
+        {
+            var config = serviceProvider.GetRequiredService<IOptions<SubmissionsApiConfig>>().Value;
 
-        builder.Services.AddHttpClient<ApiClient>(configureClient: client =>
-            {
-                var apiBaseUrl = builder.Configuration["SubmissionsApi:BaseUrl"];
+            var uri = new Uri(config.BaseUrl);
 
-                if (apiBaseUrl == null)
-                {
-                    logger.LogError("SubmissionsApi:BaseUrl configuration is missing");
-                    throw new InvalidOperationException("SubmissionsApi:BaseUrl configuration is missing");
-                }
+            return new CodingApiClient(uri, config.Authentication.Username, config.Authentication.Password);
+        });
 
-                client.BaseAddress = new Uri(apiBaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(30);
-            })
-            .AddHttpMessageHandler<AuthenticationHandler>() // Add authentication handler
-            .AddStandardResilienceHandler(configure: options =>
-            {
-                // Configure retry policy for transient failures
-                options.Retry.MaxRetryAttempts = 3;
-                options.Retry.Delay = TimeSpan.FromSeconds(2);
-                options.Retry.BackoffType = DelayBackoffType.Exponential;
-            });
-
-        builder.Services.AddSingleton<IKubernetes>(implementationFactory: serviceProvider =>
+        builder.Services.AddSingleton<IKubernetes>(serviceProvider =>
         {
             if (KubernetesClientConfiguration.IsInCluster())
             {
@@ -80,7 +76,13 @@ public class Program
 
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();
             var kubeConfigFile = configuration.GetValue<string>("Kubernetes:KubeConfigFile");
-            logger.LogInformation("Running outside Kubernetes cluster - using kubeconfig file: {KubeConfigFile}", kubeConfigFile);
+
+            logger.LogInformation("Running outside Kubernetes cluster - using kubeconfig file..");
+
+            if (kubeConfigFile == null)
+            {
+                logger.LogWarning("Using kubeconfig at default location");
+            }
 
             return new Kubernetes(KubernetesClientConfiguration.BuildConfigFromConfigFile(kubeConfigFile));
         });
