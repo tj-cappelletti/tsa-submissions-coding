@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
-using Tsa.Submissions.Coding.CodeExecutor.Shared.Models;
+using Tsa.Submissions.Coding.Contracts.Submissions;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Worker.Services;
 
@@ -15,7 +15,7 @@ public class ApiClient
         _logger = logger;
     }
 
-    public async Task<SubmissionModel> GetSubmissionAsync(string submissionId, CancellationToken cancellationToken = default)
+    public async Task<SubmissionResponse> GetSubmissionAsync(string submissionId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching submission {SubmissionId} from API", submissionId);
 
@@ -23,7 +23,7 @@ public class ApiClient
 
         response.EnsureSuccessStatusCode();
 
-        var submissionModel = await response.Content.ReadFromJsonAsync<SubmissionModel>(cancellationToken);
+        var submissionModel = await response.Content.ReadFromJsonAsync<SubmissionResponse>(cancellationToken);
 
         if (submissionModel is not null) return submissionModel;
 

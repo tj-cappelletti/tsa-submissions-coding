@@ -2,8 +2,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Tsa.Submissions.Coding.CodeExecutor.Shared.Models;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Configuration;
+using Tsa.Submissions.Coding.Contracts.Authentication;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Worker.Handlers;
 
@@ -12,7 +12,7 @@ public class AuthenticationHandler : DelegatingHandler
     private readonly SubmissionsApiConfig _config;
     private readonly ILogger<AuthenticationHandler> _logger;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private LoginResponseModel? _loginResponse;
+    private AuthenticationResponse? _authenticationResponse;
 
     public AuthenticationHandler(ILogger<AuthenticationHandler> logger, IOptions<SubmissionsApiConfig> config)
     {
@@ -35,15 +35,11 @@ public class AuthenticationHandler : DelegatingHandler
         try
         {
             // Check if token is still valid (with 5-minute buffer)
-            if (_loginResponse != null && _loginResponse.Expiration > DateTime.UtcNow.AddMinutes(5)) return; // Token still valid
+            if (_authenticationResponse != null && _authenticationResponse.Expiration > DateTime.UtcNow.AddMinutes(5)) return; // Token still valid
 
             _logger.LogInformation("Authenticating API client with username {Username}", _config.Authentication.Username);
 
-            var authModel = new AuthenticationModel
-            {
-                UserName = _config.Authentication.Username,
-                Password = _config.Authentication.Password
-            };
+            var authModel = new AuthenticationRequest(_config.Authentication.Password, _config.Authentication.Username);
 
             var loginUri = new Uri(new Uri(_config.BaseUrl), "/api/auth/login");
 
@@ -55,11 +51,11 @@ public class AuthenticationHandler : DelegatingHandler
             var response = await base.SendAsync(loginRequest, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            _loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseModel>(cancellationToken);
+            _authenticationResponse = await response.Content.ReadFromJsonAsync<AuthenticationResponse>(cancellationToken);
 
-            if (_loginResponse == null) throw new InvalidOperationException("Failed to deserialize login response");
+            if (_authenticationResponse == null) throw new InvalidOperationException("Failed to deserialize login response");
 
-            _logger.LogInformation("Successfully authenticated. Token expires at {Expiration}", _loginResponse.Expiration);
+            _logger.LogInformation("Successfully authenticated. Token expires at {Expiration}", _authenticationResponse.Expiration);
         }
         finally
         {
@@ -76,7 +72,7 @@ public class AuthenticationHandler : DelegatingHandler
         await EnsureTokenAsync(cancellationToken);
 
         // Add bearer token to request
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _loginResponse!.Token);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _authenticationResponse!.Token);
 
         return await base.SendAsync(request, cancellationToken);
     }

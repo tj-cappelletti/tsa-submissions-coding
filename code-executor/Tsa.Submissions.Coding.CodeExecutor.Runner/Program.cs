@@ -1,22 +1,26 @@
-﻿using Tsa.Submissions.Coding.CodeExecutor.Shared.Models;
+﻿using Tsa.Submissions.Coding.Contracts.Submissions;
 
-namespace Tsa.Submissions.Coding.CodeExecutor.Runner
+namespace Tsa.Submissions.Coding.CodeExecutor.Runner;
+
+internal class Program
 {
-    internal class Program
+    private static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Runner starting up...");
+        Console.WriteLine("Runner starting up...");
 
-            var submission = new SubmissionModel
-            {
-                Id = "test"
-            };
-            Console.WriteLine($"Mocking running process - Submission ID: {submission.Id}...");
-            var sleepTimeSpan = TimeSpan.FromMinutes(1);
-            Thread.Sleep(sleepTimeSpan);
+        var submission = new SubmissionResponse(
+            "test",
+            new ProgrammingLanguageResponse("C#", "9"),
+            "test",
+            "test",
+            DateTimeOffset.UtcNow,
+            [],
+            "test");
 
-            Console.WriteLine("Shutting down...");
-        }
+        Console.WriteLine($"Mocking running process - Submission ID: {submission.Id}...");
+        var sleepTimeSpan = TimeSpan.FromMinutes(1);
+        Thread.Sleep(sleepTimeSpan);
+
+        Console.WriteLine("Shutting down...");
     }
 }

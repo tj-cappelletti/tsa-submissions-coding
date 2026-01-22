@@ -4,8 +4,8 @@ using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Tsa.Submissions.Coding.CodeExecutor.Shared.Models;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Configuration;
+using Tsa.Submissions.Coding.Contracts.CodeExecutor;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Worker.Services;
 
@@ -113,8 +113,8 @@ public class KubernetesJobManager
         {
             _logger.LogInformation("Creating Kubernetes job {JobName} for submission {SubmissionId}", jobName, payload.SubmissionId);
 
-            var image = GetImageForLanguage(payload.Language);
-            _logger.LogDebug("Using image {Image} for language {Language} {Version}", image, payload.Language.Name, payload.Language.Version);
+            var image = GetImageForLanguage(payload.Language, payload.LanguageVersion);
+            _logger.LogDebug("Using image {Image} for language {Language} {Version}", image, payload.Language, payload.LanguageVersion);
 
             var payloadJson = JsonSerializer.Serialize(payload);
 
@@ -136,13 +136,13 @@ public class KubernetesJobManager
         }
     }
 
-    private string GetImageForLanguage(ProgrammingLanguage language)
+    private string GetImageForLanguage(string language, string version)
     {
         var baseUrl = _runnerImageRegistry.RegistryUrl;
         var imageName = _runnerImageRegistry.ImageName;
         var imageVersion = _runnerImageRegistry.ImageVersion;
 
-        var languageTag = language.Name.ToLower() switch
+        var languageTag = language.ToLower() switch
         {
             "c" => _runnerImageRegistry.LanguageTags?.C,
             "cpp" or "c++" => _runnerImageRegistry.LanguageTags?.Cpp,
@@ -154,10 +154,10 @@ public class KubernetesJobManager
             "python" => _runnerImageRegistry.LanguageTags?.Python,
             "ruby" => _runnerImageRegistry.LanguageTags?.Ruby,
             "visualbasic" or "vb" or "vb.net" => _runnerImageRegistry.LanguageTags?.VisualBasic,
-            _ => throw new NotSupportedException($"Programming language '{language.Name}' is not supported.")
+            _ => throw new NotSupportedException($"Programming language '{language}' is not supported.")
         };
 
-        var fullyQualifiedImageName = $"{imageName}:{imageVersion}-{languageTag}{language.Version}";
+        var fullyQualifiedImageName = $"{imageName}:{imageVersion}-{languageTag}{version}";
 
         return string.IsNullOrEmpty(baseUrl) ? fullyQualifiedImageName : $"{baseUrl}/{fullyQualifiedImageName}";
     }
