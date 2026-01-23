@@ -7,13 +7,16 @@ namespace Tsa.Submissions.Coding.ApiClient;
 
 public class CodingApiClient : ICodingApiClient
 {
-    private readonly AuthenticationInterceptor _authInterceptor;
     private readonly string _loginEndpoint;
     private readonly string _password;
     private readonly RestClient _restClient;
     private readonly string _username;
 
+    public IProblemsClient Problems { get; }
+
     public ISubmissionsClient Submissions { get; }
+
+    public ITestSetsClient TestSets { get; }
 
     public CodingApiClient(Uri baseUri, string username, string password, string loginEndpoint = "api/auth/login")
     {
@@ -21,16 +24,18 @@ public class CodingApiClient : ICodingApiClient
         _password = password;
         _username = username;
 
-        _authInterceptor = new AuthenticationInterceptor(PerformLoginAsync, _loginEndpoint);
+        var authInterceptor = new AuthenticationInterceptor(PerformLoginAsync, _loginEndpoint);
 
         var options = new RestClientOptions(baseUri)
         {
-            Interceptors = [_authInterceptor]
+            Interceptors = [authInterceptor]
         };
 
         _restClient = new RestClient(options);
 
+        Problems = new ProblemsClient(_restClient);
         Submissions = new SubmissionsClient(_restClient);
+        TestSets = new TestSetsClient(_restClient);
     }
 
     private async Task<AuthenticationResponse> PerformLoginAsync()
