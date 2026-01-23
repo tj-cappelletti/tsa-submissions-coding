@@ -47,11 +47,23 @@ public class Startup(IConfiguration configuration)
 
         app.UseAuthorization();
 
+        app.UseCors("AllowAll");
+
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }
 
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", builder =>
+            {
+                builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+        });
+
         var jwtSection = Configuration.GetSection("Jwt");
 
         var jwtSettings = jwtSection.Get<JwtSettings>() ??
