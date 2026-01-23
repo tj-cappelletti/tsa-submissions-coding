@@ -9,22 +9,22 @@ db.problems.insertMany([
         "testCases": [
             {
                 "expectedOutput": "1",
-                "input": "(( ",
+                "input": "((",
                 "isActive": true
             },
             {
                 "expectedOutput": "1",
-                "input": ")) ",
+                "input": "))",
                 "isActive": true
             },
             {
                 "expectedOutput": "0",
-                "input": "() ",
+                "input": "()",
                 "isActive": true,
             },
             {
                 "expectedOutput": "1",
-                "input": "((() ",
+                "input": "((()",
                 "isActive": true,
             },
         ]
