@@ -16,8 +16,6 @@ public class CodingApiClient : ICodingApiClient
 
     public ISubmissionsClient Submissions { get; }
 
-    public ITestSetsClient TestSets { get; }
-
     public CodingApiClient(Uri baseUri, string username, string password, string loginEndpoint = "api/auth/login")
     {
         _loginEndpoint = loginEndpoint;
@@ -35,7 +33,6 @@ public class CodingApiClient : ICodingApiClient
 
         Problems = new ProblemsClient(_restClient);
         Submissions = new SubmissionsClient(_restClient);
-        TestSets = new TestSetsClient(_restClient);
     }
 
     private async Task<AuthenticationResponse> PerformLoginAsync()

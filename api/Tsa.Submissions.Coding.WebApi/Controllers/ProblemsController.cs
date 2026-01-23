@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tsa.Submissions.Coding.Contracts.Problems;
-using Tsa.Submissions.Coding.Contracts.TestSets;
+using Tsa.Submissions.Coding.Contracts.TestCases;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.Services;
@@ -19,12 +19,10 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 public class ProblemsController : ControllerBase
 {
     private readonly IProblemsService _problemsService;
-    private readonly ITestSetsService _testSetsService;
 
-    public ProblemsController(IProblemsService problemsService, ITestSetsService testSetsService)
+    public ProblemsController(IProblemsService problemsService)
     {
         _problemsService = problemsService;
-        _testSetsService = testSetsService;
     }
 
     /// <summary>
@@ -54,31 +52,30 @@ public class ProblemsController : ControllerBase
     /// <summary>
     ///     Fetches all the problems from the database
     /// </summary>
-    /// <param name="expandTestSets">If true, the test sets are returned with the problems, otherwise null is returned</param>
+    /// <param name="expandTestCases">If true, the test sets are returned with the problems, otherwise null is returned</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="200">All available problems returned</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProblemResponse>))]
-    public async Task<ActionResult<IList<ProblemResponse>>> Get(bool expandTestSets = false, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IList<ProblemResponse>>> Get(bool expandTestCases = false, CancellationToken cancellationToken = default)
     {
         var problems = await _problemsService.GetAsync(cancellationToken);
 
         if (problems.Count == 0) return new List<ProblemResponse>(0);
 
-        if (!expandTestSets) return problems.ToResponses().ToList();
+        if (!expandTestCases) return problems.ToResponses().ToList();
 
         var problemResponses = new List<ProblemResponse>();
 
         foreach (var problem in problems)
         {
-            var testSets = await _testSetsService.GetAsync(problem, cancellationToken);
+            var testCases = User.IsInRole(SubmissionRoles.Participant)
+                ? problem.TestCases.Where(testCase => testCase.IsActive).ToList()
+                : problem.TestCases;
 
-            var testSetResponses = User.IsInRole(SubmissionRoles.Participant)
-                ? testSets.Where(testSet => testSet.IsPublic).ToResponses()
-                : testSets.ToResponses();
-
-            var problemResponse = problem.ToResponse(testSetResponses.ToList());
+            var problemResponse = problem.ToResponse(testCases);
+            
             problemResponses.Add(problemResponse);
         }
 
@@ -89,7 +86,7 @@ public class ProblemsController : ControllerBase
     ///     Fetches a problem from the database
     /// </summary>
     /// <param name="id">The ID of the problem to get</param>
-    /// <param name="expandTestSets">If true, the test sets are returned with the problem, otherwise null is returned</param>
+    /// <param name="expandTestCases">If true, the test sets are returned with the problem, otherwise null is returned</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="200">Returns the requested problem</response>
     /// <response code="404">The problem does not exist in the database</response>
@@ -98,21 +95,19 @@ public class ProblemsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProblemResponse))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProblemResponse>> Get(string id, bool expandTestSets = false, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<ProblemResponse>> Get(string id, bool expandTestCases = false, CancellationToken cancellationToken = default)
     {
         var problem = await _problemsService.GetAsync(id, cancellationToken);
 
         if (problem == null) return NotFound();
 
-        if (!expandTestSets) return problem.ToResponse();
+        if (!expandTestCases) return problem.ToResponse();
 
-        var testSets = await _testSetsService.GetAsync(problem, cancellationToken);
+        var testCases = User.IsInRole(SubmissionRoles.Participant)
+            ? problem.TestCases.Where(testCase => testCase.IsActive).ToList()
+            : problem.TestCases;
 
-        var testSetResponses = User.IsInRole(SubmissionRoles.Participant)
-            ? testSets.Where(testSet => testSet.IsPublic).ToResponses()
-            : testSets.ToResponses();
-
-        return problem.ToResponse(testSetResponses.ToList());
+        return problem.ToResponse(testCases);
     }
 
     /// <summary>
@@ -123,23 +118,21 @@ public class ProblemsController : ControllerBase
     /// <response code="200">Returns the requested problem</response>
     /// <response code="404">The problem does not exist in the database</response>
     [Authorize(Roles = SubmissionRoles.All)]
-    [HttpGet("{id:length(24)}/testsets")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TestSetResponse>))]
+    [HttpGet("{id:length(24)}/test-cases")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TestCase>))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IList<TestSetResponse>>> GetTestSets(string id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<TestCase>>> GetTestSets(string id, CancellationToken cancellationToken = default)
     {
         var problem = await _problemsService.GetAsync(id, cancellationToken);
 
         if (problem == null) return NotFound();
 
-        var testSets = await _testSetsService.GetAsync(problem, cancellationToken);
+        var testCases = User.IsInRole(SubmissionRoles.Participant)
+            ? problem.TestCases.Where(testCase => testCase.IsActive).ToList()
+            : problem.TestCases;
 
-        var testSetResponse = User.IsInRole(SubmissionRoles.Participant)
-            ? testSets.Where(testSet => testSet.IsPublic).ToResponses()
-            : testSets.ToResponses();
-
-        return testSetResponse.ToList();
+        return testCases;
     }
 
     /// <summary>

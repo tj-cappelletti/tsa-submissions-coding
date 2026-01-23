@@ -1,4 +1,4 @@
-﻿using Tsa.Submissions.Coding.Contracts.TestSets;
+﻿using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.Contracts.Problems;
 
@@ -10,7 +10,7 @@ public record ProblemResponse
 
     public bool IsActive { get; init; }
 
-    public List<TestSetResponse> TestSets { get; init; } = [];
+    public List<TestCase> TestCases { get; init; } = [];
 
     public string Title { get; init; }
 
@@ -22,12 +22,12 @@ public record ProblemResponse
         IsActive = isActive;
     }
 
-    public ProblemResponse(string id, string title, string description, bool isActive, List<TestSetResponse> testSets)
+    public ProblemResponse(string id, string title, string description, bool isActive, List<TestCase> TestCases)
     {
         Id = id;
         Title = title;
         Description = description;
         IsActive = isActive;
-        TestSets = testSets;
+        TestCases = TestCases;
     }
 }

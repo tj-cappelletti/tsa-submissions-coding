@@ -4,6 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Swashbuckle.AspNetCore.Annotations;
+using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
@@ -24,7 +25,7 @@ public class Submission : IMongoDbEntity
 
     public DateTimeOffset? SubmittedOn { get; set; }
 
-    public IList<TestSetResult>? TestSetResults { get; set; }
+    public List<TestCaseResult> TestCaseResults { get; set; } = [];
 
     public MongoDBRef? User { get; set; }
 }

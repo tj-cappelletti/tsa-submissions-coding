@@ -1,4 +1,4 @@
-﻿using Tsa.Submissions.Coding.Contracts.Users;
+﻿using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.Contracts.Submissions;
 
@@ -8,5 +8,5 @@ public record SubmissionResponse(
     string ProblemId,
     string Solution,
     DateTimeOffset SubmittedOn,
-    List<TestSetResultResponse> TestSetResults,
+    List<TestCaseResult> TestCaseResults,
     string UserId);

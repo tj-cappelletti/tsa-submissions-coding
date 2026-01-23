@@ -4,5 +4,5 @@ namespace Tsa.Submissions.Coding.ApiClient.Clients;
 
 public interface IProblemsClient
 {
-    Task<ProblemResponse> GetAsync(string problemId, CancellationToken cancellationToken);
+    Task<ProblemResponse> GetAsync(string problemId, bool includeTestCases, CancellationToken cancellationToken);
 }

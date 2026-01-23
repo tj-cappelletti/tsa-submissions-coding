@@ -216,23 +216,15 @@ public class SubmissionsController : WebApiBaseController
 
         if (submission == null) return NotFound();
 
-        submission.EvaluatedOn = submissionModifyRequest.EvaluatedOn;
-
-        if (submission.TestSetResults != null && submission.TestSetResults.Count != 0)
+        if (submission.TestCaseResults.Count != 0)
         {
             _logger.LogWarning("Submission {SubmissionId} already has been evaluated and cannot be modified.", id);
             return BadRequest(ApiErrorSubmissionAlreadyEvaluated());
         }
 
-        var testSetResults = submissionModifyRequest.TestSetResults
-            .Select(testSetResultRequest => new TestSetResult
-            {
-                Passed = testSetResultRequest.Passed,
-                RunDuration = testSetResultRequest.RunDuration,
-                TestSet = new MongoDBRef(TestSetsService.MongoDbCollectionName, testSetResultRequest.TestSetId)
-            }).ToList();
+        submission.EvaluatedOn = submissionModifyRequest.EvaluatedOn;
 
-        submission.TestSetResults = testSetResults;
+        submission.TestCaseResults.AddRange(submissionModifyRequest.TestCaseResults);
 
         await _submissionsService.UpdateAsync(submission, cancellationToken);
 

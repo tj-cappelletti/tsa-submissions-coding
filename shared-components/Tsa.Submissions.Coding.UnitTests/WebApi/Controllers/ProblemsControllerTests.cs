@@ -190,9 +190,7 @@ public class ProblemsControllerTests
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(It.IsAny<string>(), default))
             .ReturnsAsync(problem);
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
         // Act
         var actionResult = await problemsController.Delete("64639f6fcdde06187b09ecae");
@@ -209,9 +207,7 @@ public class ProblemsControllerTests
         // Arrange
         var mockedProblemsService = new Mock<IProblemsService>();
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
         // Act
         var actionResult = await problemsController.Delete("64639f6fcdde06187b09ecae");
@@ -228,9 +224,7 @@ public class ProblemsControllerTests
         // Arrange
         var mockedProblemsService = new Mock<IProblemsService>();
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
         // Act
         var actionResult = await problemsController.Get("64639f6fcdde06187b09ecae");
@@ -253,9 +247,7 @@ public class ProblemsControllerTests
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(It.IsAny<string>(), default))
             .ReturnsAsync(problem);
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
         // Act
         var actionResult = await problemsController.Get("64639f6fcdde06187b09ecae");
@@ -277,25 +269,12 @@ public class ProblemsControllerTests
 
         var problemId = problem!.Id;
 
-        var testSetsTestData = new TestSetsTestData();
-
-        var testSetList = testSetsTestData
-            .Where(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None &&
-                                      ((TestSet)testSetTestData[0]).Problem?.Id.AsString == problemId)
-            .Select(testSetData => testSetData[0])
-            .Cast<TestSet>()
-            .ToList();
-
-        var expectedProblemResponse = problem.ToResponse(testSetList.ToResponses().ToList());
+        var expectedProblemResponse = problem.ToResponse();
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
             .Setup(problemsService => problemsService.GetAsync(It.Is(problemId, new StringEqualityComparer())!, default))
             .ReturnsAsync(problem);
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.Is(problem, new ProblemEqualityComparer()), default))
-            .ReturnsAsync(testSetList);
 
         var identityMock = new Mock<IIdentity>();
         identityMock.Setup(i => i.Name).Returns("0000-000");
@@ -309,7 +288,7 @@ public class ProblemsControllerTests
             User = claimsPrincipalMock.Object
         };
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object)
+        var problemsController = new ProblemsController(mockedProblemsService.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -337,29 +316,12 @@ public class ProblemsControllerTests
 
         var problemId = problem!.Id;
 
-        var testSetsTestData = new TestSetsTestData();
-
-        var testSetList = testSetsTestData
-            .Where(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None &&
-                                      ((TestSet)testSetTestData[0]).Problem?.Id.AsString == problemId)
-            .Select(testSetTestData => testSetTestData[0])
-            .Cast<TestSet>()
-            .ToList();
-
-        var testSetResponses = testSetList
-            .Where(testSet => testSet.IsPublic)
-            .ToResponses();
-
-        var expectedProblemResponse = problem.ToResponse(testSetResponses);
+        var expectedProblemResponse = problem.ToResponse();
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
             .Setup(problemsService => problemsService.GetAsync(It.Is(problemId, new StringEqualityComparer())!, default))
             .ReturnsAsync(problem);
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.Is(problem, new ProblemEqualityComparer()), default))
-            .ReturnsAsync(testSetList);
 
         var identityMock = new Mock<IIdentity>();
         identityMock.Setup(i => i.Name).Returns("0000-000");
@@ -373,7 +335,7 @@ public class ProblemsControllerTests
             User = claimsPrincipalMock.Object
         };
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object)
+        var problemsController = new ProblemsController(mockedProblemsService.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -401,9 +363,7 @@ public class ProblemsControllerTests
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(default))
             .ReturnsAsync(emptyProblemsList);
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
         // Act
         var actionResult = await problemsController.Get();
@@ -431,9 +391,7 @@ public class ProblemsControllerTests
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(default))
             .ReturnsAsync(problemsList);
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
         // Act
         var actionResult = await problemsController.Get();
@@ -459,42 +417,12 @@ public class ProblemsControllerTests
             .Cast<Problem>()
             .ToList();
 
-        var testSetsTestData = new TestSetsTestData();
-
-        var testSetList = testSetsTestData
-            .Where(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None)
-            .Select(testSetTestData => testSetTestData[0])
-            .Cast<TestSet>()
-            .ToList();
-
         var expectedProblemResponses = new List<ProblemResponse>(problemsList.Count);
-
-        foreach (var problem in problemsList)
-        {
-            var testSetResponses = testSetList
-                .Where(testSet => testSet.Problem?.Id.AsString == problem.Id)
-                .ToResponses()
-                .ToList();
-
-            var problemResponse = problem.ToResponse(testSetResponses);
-
-            expectedProblemResponses.Add(problemResponse);
-        }
+        expectedProblemResponses.AddRange(problemsList.Select(problem => problem.ToResponse()));
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(default))
             .ReturnsAsync(problemsList);
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        foreach (var problem in problemsList)
-        {
-            var testSets = testSetList.Where(testSet => testSet.Problem?.Id == problem.Id).ToList();
-
-            mockedTestSetsService
-                .Setup(testSetsService => testSetsService.GetAsync(It.Is(problem, new ProblemEqualityComparer()), default))
-                .ReturnsAsync(testSets);
-        }
 
         var identityMock = new Mock<IIdentity>();
         identityMock.Setup(i => i.Name).Returns("0000-000");
@@ -508,7 +436,7 @@ public class ProblemsControllerTests
             User = claimsPrincipalMock.Object
         };
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object)
+        var problemsController = new ProblemsController(mockedProblemsService.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -540,39 +468,11 @@ public class ProblemsControllerTests
             .Cast<Problem>()
             .ToList();
 
-        var testSetsTestData = new TestSetsTestData();
-
-        var testSetList = testSetsTestData
-            .Where(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None)
-            .Select(testSetTestData => testSetTestData[0])
-            .Cast<TestSet>()
-            .ToList();
-
         var expectedProblemModels = problemsList.ToResponses().ToList();
-
-        foreach (var expectedProblemModel in expectedProblemModels)
-        {
-            var testSetResponses = testSetList
-                .Where(testSet => testSet.Problem?.Id == expectedProblemModel.Id && testSet.IsPublic)
-                .ToResponses();
-
-            expectedProblemModel.TestSets.AddRange(testSetResponses.ToList());
-        }
 
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(default))
             .ReturnsAsync(problemsList);
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        foreach (var problem in problemsList)
-        {
-            var testSets = testSetList.Where(testSet => testSet.Problem?.Id == problem.Id).ToList();
-
-            mockedTestSetsService
-                .Setup(testSetsService => testSetsService.GetAsync(It.Is(problem, new ProblemEqualityComparer()), default))
-                .ReturnsAsync(testSets);
-        }
 
         var identityMock = new Mock<IIdentity>();
         identityMock.Setup(i => i.Name).Returns("0000-000");
@@ -586,7 +486,7 @@ public class ProblemsControllerTests
             User = claimsPrincipalMock.Object
         };
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object)
+        var problemsController = new ProblemsController(mockedProblemsService.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -603,245 +503,6 @@ public class ProblemsControllerTests
         Assert.NotEmpty(actionResult.Value!);
         Assert.Equal(expectedProblemModels.Count, actionResult.Value!.Count);
         Assert.Equal(expectedProblemModels, actionResult.Value, new ProblemModelEqualityComparer());
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task GetTestSets_Should_Return_Not_Found()
-    {
-        // Arrange
-        var mockedProblemsService = new Mock<IProblemsService>();
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
-
-        // Act
-        var actionResult = await problemsController.GetTestSets("64639f6fcdde06187b09ecae");
-
-        // Assert
-        Assert.NotNull(actionResult);
-        Assert.IsType<NotFoundResult>(actionResult.Result);
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task GetTestSets_Should_Return_Ok_When_Empty_For_Judge()
-    {
-        // Arrange
-        var testSetsTestData = new TestSetsTestData();
-
-        var problemId = ((TestSet)testSetsTestData.First(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None)[0]).Problem
-            ?.Id.AsString;
-
-        var problem = new Problem { Id = problemId };
-
-        var testSetList = new List<TestSet>();
-
-        var mockedProblemsService = new Mock<IProblemsService>();
-        mockedProblemsService
-            .Setup(problemsService => problemsService.GetAsync(It.Is(problemId, new StringEqualityComparer())!, default))
-            .ReturnsAsync(problem);
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.Is(problem, new ProblemEqualityComparer()), default))
-            .ReturnsAsync(testSetList);
-
-        var identityMock = new Mock<IIdentity>();
-        identityMock.Setup(i => i.Name).Returns("0000-000");
-
-        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
-        claimsPrincipalMock.Setup(cp => cp.Identity).Returns(identityMock.Object);
-        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(false);
-
-        var httpContext = new DefaultHttpContext
-        {
-            User = claimsPrincipalMock.Object
-        };
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object)
-        {
-            ControllerContext = new ControllerContext
-            {
-                HttpContext = httpContext
-            }
-        };
-
-        // Act
-        var actionResult = await problemsController.GetTestSets(problemId!);
-
-        Assert.NotNull(actionResult);
-        Assert.NotNull(actionResult.Value);
-        Assert.Empty(actionResult.Value!);
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task GetTestSets_Should_Return_Ok_When_Empty_For_Participant()
-    {
-        // Arrange
-        var testSetsTestData = new TestSetsTestData();
-
-        var problemId = ((TestSet)testSetsTestData.First(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None)[0]).Problem
-            ?.Id.AsString;
-
-        var problem = new Problem { Id = problemId };
-
-        var testSetList = new List<TestSet>();
-
-        var mockedProblemsService = new Mock<IProblemsService>();
-        mockedProblemsService
-            .Setup(problemsService => problemsService.GetAsync(It.Is(problemId, new StringEqualityComparer())!, default))
-            .ReturnsAsync(problem);
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.Is(problem, new ProblemEqualityComparer()), default))
-            .ReturnsAsync(testSetList);
-
-        var identityMock = new Mock<IIdentity>();
-        identityMock.Setup(i => i.Name).Returns("0000-000");
-
-        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
-        claimsPrincipalMock.Setup(cp => cp.Identity).Returns(identityMock.Object);
-        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(true);
-
-        var httpContext = new DefaultHttpContext
-        {
-            User = claimsPrincipalMock.Object
-        };
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object)
-        {
-            ControllerContext = new ControllerContext
-            {
-                HttpContext = httpContext
-            }
-        };
-
-        // Act
-        var actionResult = await problemsController.GetTestSets(problemId!);
-
-        Assert.NotNull(actionResult);
-        Assert.NotNull(actionResult.Value);
-        Assert.Empty(actionResult.Value!);
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task GetTestSets_Should_Return_Ok_When_Not_Empty_For_Judge()
-    {
-        // Arrange
-        var testSetsTestData = new TestSetsTestData();
-
-        var problemId = ((TestSet)testSetsTestData.First(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None)[0]).Problem
-            ?.Id.AsString;
-
-        var problem = new Problem { Id = problemId };
-
-        var testSetList = testSetsTestData
-            .Where(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None &&
-                                      ((TestSet)testSetTestData[0]).Problem?.Id.AsString == problemId)
-            .Select(testSetTestData => testSetTestData[0])
-            .Cast<TestSet>()
-            .ToList();
-
-        var mockedProblemsService = new Mock<IProblemsService>();
-        mockedProblemsService
-            .Setup(problemsService => problemsService.GetAsync(It.Is(problemId, new StringEqualityComparer())!, default))
-            .ReturnsAsync(problem);
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.Is(problem, new ProblemEqualityComparer()), default))
-            .ReturnsAsync(testSetList);
-
-        var identityMock = new Mock<IIdentity>();
-        identityMock.Setup(i => i.Name).Returns("0000-000");
-
-        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
-        claimsPrincipalMock.Setup(cp => cp.Identity).Returns(identityMock.Object);
-        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(false);
-
-        var httpContext = new DefaultHttpContext
-        {
-            User = claimsPrincipalMock.Object
-        };
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object)
-        {
-            ControllerContext = new ControllerContext
-            {
-                HttpContext = httpContext
-            }
-        };
-
-        // Act
-        var actionResult = await problemsController.GetTestSets(problemId!);
-
-        Assert.NotNull(actionResult);
-        Assert.NotNull(actionResult.Value);
-        Assert.NotEmpty(actionResult.Value!);
-        Assert.Equal(testSetList.Count, actionResult.Value!.Count);
-        Assert.Equal(testSetList.ToResponses(), actionResult.Value, new TestSetModelEqualityComparer());
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task GetTestSets_Should_Return_Ok_When_Not_Empty_For_Participant()
-    {
-        // Arrange
-        var testSetsTestData = new TestSetsTestData();
-
-        var problemId = ((TestSet)testSetsTestData.First(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None)[0]).Problem
-            ?.Id.AsString;
-
-        var problem = new Problem { Id = problemId };
-
-        var testSetList = testSetsTestData
-            .Where(testSetTestData => (TestSetDataIssues)testSetTestData[1] == TestSetDataIssues.None &&
-                                      ((TestSet)testSetTestData[0]).Problem?.Id.AsString == problemId)
-            .Select(testSetTestData => testSetTestData[0])
-            .Cast<TestSet>()
-            .ToList();
-
-        var participantTestSetList = testSetList.Where(testSet => testSet.IsPublic).ToList();
-
-        var mockedProblemsService = new Mock<IProblemsService>();
-        mockedProblemsService
-            .Setup(problemsService => problemsService.GetAsync(It.Is(problemId, new StringEqualityComparer())!, default))
-            .ReturnsAsync(problem);
-
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-        mockedTestSetsService.Setup(testSetsService => testSetsService.GetAsync(It.Is(problem, new ProblemEqualityComparer()), default))
-            .ReturnsAsync(testSetList);
-
-        var identityMock = new Mock<IIdentity>();
-        identityMock.Setup(i => i.Name).Returns("0000-000");
-
-        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
-        claimsPrincipalMock.Setup(cp => cp.Identity).Returns(identityMock.Object);
-        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(true);
-
-        var httpContext = new DefaultHttpContext
-        {
-            User = claimsPrincipalMock.Object
-        };
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object)
-        {
-            ControllerContext = new ControllerContext
-            {
-                HttpContext = httpContext
-            }
-        };
-
-        // Act
-        var actionResult = await problemsController.GetTestSets(problemId!);
-
-        Assert.NotNull(actionResult);
-        Assert.NotNull(actionResult.Value);
-        Assert.NotEmpty(actionResult.Value!);
-        Assert.Equal(participantTestSetList.Count, actionResult.Value!.Count);
-        Assert.Equal(participantTestSetList.ToResponses(), actionResult.Value, new TestSetModelEqualityComparer());
     }
 
     [Fact]
@@ -867,9 +528,7 @@ public class ProblemsControllerTests
             })
             .Returns(Task.CompletedTask);
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
 
         // Act
@@ -904,9 +563,7 @@ public class ProblemsControllerTests
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(It.Is(problem.Id, new StringEqualityComparer())!, default))
             .ReturnsAsync(problem);
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
         // Act
         var actionResult = await problemsController.Put(problem.Id!, updatedProblem);
@@ -926,9 +583,7 @@ public class ProblemsControllerTests
         // Arrange
         var mockedProblemsService = new Mock<IProblemsService>();
 
-        var mockedTestSetsService = new Mock<ITestSetsService>();
-
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestSetsService.Object);
+        var problemsController = new ProblemsController(mockedProblemsService.Object);
 
         var updatedProblem = new ProblemRequest("This is the description", true, "This is the title");
 

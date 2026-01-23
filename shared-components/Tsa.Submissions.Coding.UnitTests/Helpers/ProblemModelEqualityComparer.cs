@@ -10,7 +10,7 @@ namespace Tsa.Submissions.Coding.UnitTests.Helpers;
 [ExcludeFromCodeCoverage]
 internal class ProblemModelEqualityComparer : IEqualityComparer<ProblemResponse?>, IEqualityComparer<IList<ProblemResponse>?>
 {
-    private readonly TestSetModelEqualityComparer _testSetModelEqualityComparer = new();
+    private readonly TestCaseEqualityComparer _testSetModelEqualityComparer = new();
 
     public bool Equals(ProblemResponse? x, ProblemResponse? y)
     {
@@ -23,7 +23,7 @@ internal class ProblemModelEqualityComparer : IEqualityComparer<ProblemResponse?
             x.Description == y.Description &&
             x.Id == y.Id &&
             x.IsActive == y.IsActive &&
-            _testSetModelEqualityComparer.Equals(x.TestSets, y.TestSets) &&
+            _testSetModelEqualityComparer.Equals(x.TestCases, y.TestCases) &&
             x.Title == y.Title;
     }
 
@@ -46,7 +46,7 @@ internal class ProblemModelEqualityComparer : IEqualityComparer<ProblemResponse?
 
     public int GetHashCode(ProblemResponse obj)
     {
-        return HashCode.Combine(obj.Description, obj.Id, obj.IsActive, obj.TestSets, obj.Title);
+        return HashCode.Combine(obj.Description, obj.Id, obj.IsActive, obj.TestCases, obj.Title);
     }
 
     public int GetHashCode(IList<ProblemResponse>? obj)

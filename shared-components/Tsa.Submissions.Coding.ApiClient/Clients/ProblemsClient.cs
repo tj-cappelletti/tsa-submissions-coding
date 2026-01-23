@@ -12,9 +12,14 @@ public class ProblemsClient : IProblemsClient
         _restClient = restClient;
     }
 
-    public async Task<ProblemResponse> GetAsync(string problemId, CancellationToken cancellationToken)
+    public async Task<ProblemResponse> GetAsync(string problemId, bool includeTestCases = false, CancellationToken cancellationToken = default)
     {
         var request = new RestRequest($"/api/problems/{problemId}");
+
+        if (includeTestCases)
+        {
+            request.AddParameter("expandTestCases", true);
+        }
 
         var response = await _restClient.GetAsync<ProblemResponse>(request, cancellationToken);
 

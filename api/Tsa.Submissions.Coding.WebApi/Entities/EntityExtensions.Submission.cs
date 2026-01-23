@@ -28,26 +28,14 @@ public static partial class EntityExtensions
 
         if (submission.User == null) throw new InvalidOperationException("Submission User is required.");
 
-        var testSetResultResponses = submission.TestSetResults?.Select(testSetResult => testSetResult.ToResponse()).ToList();
-
         return new SubmissionResponse(
             submission.Id,
             submission.Language.ToResponse(),
             submission.Problem.Id.AsString,
             submission.Solution,
             submission.SubmittedOn.Value,
-            testSetResultResponses ?? [],
+            submission.TestCaseResults,
             submission.User.Id.AsString);
-    }
-
-    public static TestSetResultResponse ToResponse(this TestSetResult testSetResult)
-    {
-        if (testSetResult.TestSet == null) throw new InvalidOperationException("Test Set Result Test Set is required.");
-
-        return new TestSetResultResponse(
-            testSetResult.Passed,
-            testSetResult.RunDuration,
-            testSetResult.TestSet.Id.AsString);
     }
 
     public static IEnumerable<SubmissionResponse> ToResponses(this IEnumerable<Submission> submissions)

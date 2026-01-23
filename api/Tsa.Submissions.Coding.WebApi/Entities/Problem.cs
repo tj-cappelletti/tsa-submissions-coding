@@ -1,6 +1,8 @@
-﻿using MongoDB.Bson;
+﻿using System.Collections.Generic;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Swashbuckle.AspNetCore.Annotations;
+using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
@@ -16,4 +18,6 @@ public class Problem : IMongoDbEntity
     public bool IsActive { get; set; }
 
     public string? Title { get; set; }
+
+    public List<TestCase> TestCases { get; set; } = [];
 }

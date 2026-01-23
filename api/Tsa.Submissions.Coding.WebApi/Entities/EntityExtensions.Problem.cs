@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Tsa.Submissions.Coding.Contracts.Problems;
-using Tsa.Submissions.Coding.Contracts.TestSets;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
-    public static ProblemResponse ToResponse(this Problem problem, IEnumerable<TestSetResponse>? testSetResponses = null)
+    public static ProblemResponse ToResponse(this Problem problem, IEnumerable<Contracts.TestCases.TestCase>? testSetResponses = null)
     {
         if (string.IsNullOrWhiteSpace(problem.Description)) throw new InvalidOperationException("Problem description is required.");
 

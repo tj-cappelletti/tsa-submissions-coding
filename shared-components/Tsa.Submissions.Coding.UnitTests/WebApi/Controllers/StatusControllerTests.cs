@@ -181,7 +181,6 @@ public class StatusControllerTests
     {
         yield return typeof(ProblemsService);
         yield return typeof(SubmissionsService);
-        yield return typeof(TestSetsService);
     }
 
     [Fact]
