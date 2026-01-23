@@ -62,24 +62,9 @@ public class ProblemsController : ControllerBase
     {
         var problems = await _problemsService.GetAsync(cancellationToken);
 
-        if (problems.Count == 0) return new List<ProblemResponse>(0);
-
-        if (!expandTestCases) return problems.ToResponses().ToList();
-
-        var problemResponses = new List<ProblemResponse>();
-
-        foreach (var problem in problems)
-        {
-            var testCases = User.IsInRole(SubmissionRoles.Participant)
-                ? problem.TestCases.Where(testCase => testCase.IsActive).ToList()
-                : problem.TestCases;
-
-            var problemResponse = problem.ToResponse(testCases);
-            
-            problemResponses.Add(problemResponse);
-        }
-
-        return problemResponses;
+        return problems.Count == 0
+            ? []
+            : problems.ToResponses(expandTestCases).ToList();
     }
 
     /// <summary>
@@ -101,13 +86,7 @@ public class ProblemsController : ControllerBase
 
         if (problem == null) return NotFound();
 
-        if (!expandTestCases) return problem.ToResponse();
-
-        var testCases = User.IsInRole(SubmissionRoles.Participant)
-            ? problem.TestCases.Where(testCase => testCase.IsActive).ToList()
-            : problem.TestCases;
-
-        return problem.ToResponse(testCases);
+        return problem.ToResponse(expandTestCases);
     }
 
     /// <summary>
