@@ -4,7 +4,7 @@ public record TestCase
 {
     public string ExpectedOutput { get; init; }
 
-    public string Id => $"{Input}=>{ExpectedOutput}";
+    public string Id => $"{Input}=>{ExpectedOutput}|{IsActive}";
 
     public string Input { get; init; }
 
@@ -12,7 +12,7 @@ public record TestCase
 
     public List<TestCaseLanguageFixture> LanguageFixtures { get; init; }
 
-    public TestCase(string id, string input, string expectedOutput, bool isActive) : this(input, expectedOutput, isActive, []) { }
+    public TestCase(string input, string expectedOutput, bool isActive) : this(input, expectedOutput, isActive, []) { }
 
     public TestCase(string input, string expectedOutput, bool isActive, List<TestCaseLanguageFixture> languageFixtures)
     {
