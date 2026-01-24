@@ -1,4 +1,5 @@
-﻿using RestSharp;
+﻿using System.Text.Json;
+using RestSharp;
 using Tsa.Submissions.Coding.Contracts.Problems;
 
 namespace Tsa.Submissions.Coding.ApiClient.Clients;
@@ -21,13 +22,22 @@ public class ProblemsClient : IProblemsClient
             request.AddParameter("expandTestCases", true);
         }
 
-        var response = await _restClient.GetAsync<ProblemResponse>(request, cancellationToken);
+        var response = await _restClient.GetAsync(request, cancellationToken);
 
         if (response == null)
+        {
+            throw new InvalidOperationException("Failed to fetch the problem.");
+        }
+
+        var problemResponse = response.Content != null
+            ? JsonSerializer.Deserialize<ProblemResponse>(response.Content)
+            : null;
+
+        if (problemResponse == null)
         {
             throw new InvalidOperationException("Failed to deserialize problem response.");
         }
 
-        return response;
+        return problemResponse;
     }
 }

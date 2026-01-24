@@ -1,4 +1,5 @@
-﻿using RestSharp;
+﻿using System.Text.Json;
+using RestSharp;
 using Tsa.Submissions.Coding.Contracts.Submissions;
 
 namespace Tsa.Submissions.Coding.ApiClient.Clients;
@@ -16,13 +17,22 @@ public class SubmissionsClient : ISubmissionsClient
     {
         var request = new RestRequest($"/api/submissions/{id}");
 
-        var response = await _restClient.GetAsync<SubmissionResponse>(request, cancellationToken);
+        var response = await _restClient.GetAsync(request, cancellationToken);
 
-        if (response == null)
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            throw new KeyNotFoundException($"Submission with ID {id} not found.");
+        }
+
+        var submissionResponse = response.Content != null
+            ? JsonSerializer.Deserialize<SubmissionResponse>(response.Content)
+            : null;
+
+        if (submissionResponse == null)
         {
             throw new InvalidOperationException("Failed to deserialize submission response");
         }
 
-        return response;
+        return submissionResponse;
     }
 }
