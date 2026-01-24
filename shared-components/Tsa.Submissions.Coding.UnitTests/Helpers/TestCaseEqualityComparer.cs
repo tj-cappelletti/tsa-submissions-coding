@@ -28,7 +28,7 @@ internal class TestCaseEqualityComparer : IEqualityComparer<TestCase?>, IEqualit
 
         foreach (var leftTestCase in x)
         {
-            var rightTestCase = y.SingleOrDefault(testCase => testCase.Id == leftTestCase.Id);
+            var rightTestCase = y.SingleOrDefault(testCase => testCase.GetUniqueId() == leftTestCase.GetUniqueId());
 
             if (!Equals(leftTestCase, rightTestCase)) return false;
         }
