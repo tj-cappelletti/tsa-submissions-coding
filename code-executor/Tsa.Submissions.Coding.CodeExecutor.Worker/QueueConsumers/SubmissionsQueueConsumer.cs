@@ -7,6 +7,7 @@ using Tsa.Submissions.Coding.CodeExecutor.Worker.Services;
 using Tsa.Submissions.Coding.Contracts.CodeExecutor;
 using Tsa.Submissions.Coding.Contracts.Messages;
 using Tsa.Submissions.Coding.Contracts.Submissions;
+using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Worker.QueueConsumers;
 
@@ -55,10 +56,11 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
             // Fetch and validate submission
             _logger.LogInformation("Fetching submission from API");
             // The null-forgiving operator is safe here due to prior validation
-            var submission = await _codingApiClient.Submissions.GetAsync(submissionMessage.SubmissionId!, cancellationToken);
+            var submission = await _codingApiClient.Submissions.GetAsync(submissionMessage.SubmissionId, cancellationToken);
+            var problem = await _codingApiClient.Problems.GetAsync(submission.ProblemId, true, cancellationToken);
 
             _logger.LogInformation("Processing submission {SubmissionId}", submissionMessage.SubmissionId);
-            var success = await ProcessSubmissionAsync(submission, cancellationToken);
+            var success = await ProcessSubmissionAsync(submission, problem.TestCases, cancellationToken);
 
             if (success)
             {
@@ -82,10 +84,16 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
         }
     }
 
-    private async Task<bool> ProcessSubmissionAsync(SubmissionResponse submission, CancellationToken cancellationToken)
+    private async Task<bool> ProcessSubmissionAsync(SubmissionResponse submission, List<TestCase> testCases, CancellationToken cancellationToken)
     {
         await _kubernetesJobManager.ExecuteJobAsync(
-            new RunnerJobPayload(submission.Language.Name, submission.Language.Version, submission.ProblemId, submission.Solution, submission.Id),
+            new RunnerJobPayload(
+                submission.Language.Name,
+                submission.Language.Version,
+                submission.ProblemId,
+                submission.Solution,
+                submission.Id,
+                testCases),
             cancellationToken);
 
         return true;

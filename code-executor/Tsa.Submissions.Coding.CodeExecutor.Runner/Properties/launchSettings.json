@@ -1,7 +1,10 @@
 {
   "profiles": {
     "Tsa.Submissions.Coding.CodeExecutor.Runner": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "environmentVariables": {
+        "EXECUTION_PAYLOAD": "{\"Language\":\"C#\",\"LanguageVersion\":\"9.0\",\"ProblemId\":\"000000000000000000000001\",\"Solution\":\"namespace TsaCoding;\\r\\n\\r\\npublic class Program\\r\\n{\\r\\n    public static int FlipForBalance(string s)\\r\\n    {\\r\\n        int balance = 0;\\r\\n        int flips = 0;\\r\\n\\r\\n        foreach (char c in s)\\r\\n        {\\r\\n            if (c == \\u0027(\\u0027)\\r\\n            {\\r\\n                balance\\u002B\\u002B;\\r\\n            }\\r\\n            else        if (c == \\u0027)\\u0027)\\r\\n            {\\r\\n                balance--;\\r\\n            }\\r\\n\\r\\n            if        (balance \\u003C 0)\\r\\n            {\\r\\n                flips\\u002B\\u002B;\\r\\n                balance        = 1; // Flip \\u0027)\\u0027 to \\u0027(\\u0027\\r\\n            }\\r\\n        }\\r\\n\\r\\n        flips        \\u002B= balance / 2; // Each pair of unmatched \\u0027(\\u0027 can be flipped\\r\\n\\r\\n        return        flips;\\r\\n    }\\r\\n}\",\"SubmissionId\":\"6973d7901c5558c32c4764df\",\"TestCases\":[{\"expectedOutput\":\"1\",\"input\":\"((\",\"isActive\":true,\"languageFixtures\":[{\"Language\":null,\"Fixture\":null}],\"name\":\"Test        Case 1\"},{\"expectedOutput\":\"1\",\"input\":\"))\",\"isActive\":true,\"languageFixtures\":[{\"Language\":null,\"Fixture\":null}],\"name\":\"Test        Case 2\"},{\"expectedOutput\":\"0\",\"input\":\"()\",\"isActive\":true,\"languageFixtures\":[{\"Language\":null,\"Fixture\":null}],\"name\":\"Test        Case 3\"},{\"expectedOutput\":\"1\",\"input\":\"((()\",\"isActive\":true,\"languageFixtures\":[{\"Language\":null,\"Fixture\":null}],\"name\":\"Test        Case 4\"}]}"
+      }
     },
     "Container (Dockerfile)": {
       "commandName": "Docker"
