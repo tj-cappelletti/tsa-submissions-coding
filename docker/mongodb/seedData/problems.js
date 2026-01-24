@@ -10,22 +10,50 @@ db.problems.insertMany([
             {
                 "expectedOutput": "1",
                 "input": "((",
-                "isActive": true
+                "isActive": true,
+                "languageFixtures": [
+                    {
+                        "language": "C#",
+                        "fixture": "    [Theory]\r\n    [InlineData(\"((\", 1)]\r\n    public void Test_Case_1(string s, int expected)\r\n    {\r\n        int result = Program.FlipForBalance(s);\r\n        Assert.Equal(expected, result);\r\n    }"
+                    }
+                ],
+                "name": "Test Case 1"
             },
             {
                 "expectedOutput": "1",
                 "input": "))",
-                "isActive": true
+                "isActive": true,
+                "languageFixtures": [
+                    {
+                        "language": "C#",
+                        "fixture": "    [Theory]\r\n    [InlineData(\"))\", 1)]\r\n    public void Test_Case_2(string s, int expected)\r\n    {\r\n        int result = Program.FlipForBalance(s);\r\n        Assert.Equal(expected, result);\r\n    }"
+                    }
+                ],
+                "name": "Test Case 2"
             },
             {
                 "expectedOutput": "0",
                 "input": "()",
                 "isActive": true,
+                "languageFixtures": [
+                    {
+                        "language": "C#",
+                        "fixture": "    [Theory]\r\n    [InlineData(\"()\", 0)]\r\n    public void Test_Case_3(string s, int expected)\r\n    {\r\n        int result = Program.FlipForBalance(s);\r\n        Assert.Equal(expected, result);\r\n    }"
+                    }
+                ],
+                "name": "Test Case 3"
             },
             {
                 "expectedOutput": "1",
                 "input": "((()",
                 "isActive": true,
+                "languageFixtures": [
+                    {
+                        "language": "C#",
+                        "fixture": "[Theory]\r\n    [InlineData(\"((()\", 1)]\r\n    public void Test_Case_4(string s, int expected)\r\n    {\r\n        int result = Program.FlipForBalance(s);\r\n        Assert.Equal(expected, result);\r\n    }"
+                    }
+                ],
+                "name": "Test Case 4"
             },
         ]
     },
