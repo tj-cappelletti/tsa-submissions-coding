@@ -4,7 +4,9 @@
       "name": "coding",
       "password_hash": "<generated-by-setup-script>",
       "hashing_algorithm": "rabbit_password_hashing_sha256",
-      "tags": ["administrator"]
+      "tags": [
+        "administrator"
+      ]
     }
   ],
   "vhosts": [
@@ -34,20 +36,63 @@
   ],
   "queues": [
     {
-      "name": "tsa_submissions_coding_dlq",
-      "vhost": "/",
-      "durable": true,
-      "auto_delete": false,
-      "arguments": {}
-    },
-    {
       "name": "tsa_submissions_coding",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
       "arguments": {
         "x-dead-letter-exchange": "tsa_submissions_dlx",
-        "x-dead-letter-routing-key": "tsa_submissions_coding_dlq"
+        "x-dead-letter-routing-key": "tsa_submissions_coding_dlq",
+        "x-queue-type": "quorum"
+      }
+    },
+    {
+      "name": "tsa_submissions_coding_dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum"
+      }
+    },
+    {
+      "name": "tsa_submissions_coding_results",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "tsa_submissions_dlx",
+        "x-dead-letter-routing-key": "tsa_submissions_coding_results_dlq",
+        "x-queue-type": "quorum"
+      }
+    },
+    {
+      "name": "tsa_submissions_coding_results_dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum"
+      }
+    },
+    {
+      "name": "tsa_submissions_coding_score",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "tsa_submissions_dlx",
+        "x-dead-letter-routing-key": "tsa_submissions_coding_score_dlq",
+        "x-queue-type": "quorum"
+      }
+    },
+    {
+      "name": "tsa_submissions_coding_score_dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum"
       }
     }
   ],
@@ -58,6 +103,22 @@
       "destination": "tsa_submissions_coding_dlq",
       "destination_type": "queue",
       "routing_key": "tsa_submissions_coding_dlq",
+      "arguments": {}
+    },
+    {
+      "source": "tsa_submissions_dlx",
+      "vhost": "/",
+      "destination": "tsa_submissions_coding_results_dlq",
+      "destination_type": "queue",
+      "routing_key": "tsa_submissions_coding_results_dlq",
+      "arguments": {}
+    },
+    {
+      "source": "tsa_submissions_dlx",
+      "vhost": "/",
+      "destination": "tsa_submissions_coding_score_dlq",
+      "destination_type": "queue",
+      "routing_key": "tsa_submissions_coding_score_dlq",
       "arguments": {}
     }
   ]
