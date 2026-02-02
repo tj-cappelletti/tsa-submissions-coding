@@ -8,14 +8,14 @@ namespace Tsa.Submissions.Coding.CodeExecutor.Runner.Executors;
 public class CodeExecutionContext
 {
     /// <summary>
-    ///     Gets or sets the path to the prepared executable/script
-    /// </summary>
-    public string? ExecutablePath { get; set; }
-
-    /// <summary>
     ///     Gets or sets the language being executed
     /// </summary>
     public required string Language { get; set; }
+
+    /// <summary>
+    ///     The language specific fixture to use to run the test cases against
+    /// </summary>
+    public required string LanguageFixture { get; set; }
 
     /// <summary>
     ///     The version of the language to use
