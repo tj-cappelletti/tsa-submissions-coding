@@ -1,107 +1,71 @@
-﻿using System.Diagnostics;
+﻿using System.Text;
 using Tsa.Submissions.Coding.CodeExecutor.Runner.Executors;
 using Tsa.Submissions.Coding.Contracts.CodeExecutor;
-using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Runner.Services;
 
 public class TestCaseRunner
 {
+    public const int DefaultOverheadTimeInSeconds = 2;
+    public const int DefaultTimeoutPerTestCaseInSeconds = 2;
+
     public CodeExecutionResult RunTestCases(RunnerJobPayload payload)
     {
-        var result = new CodeExecutionResult
-        {
-            SubmissionId = payload.SubmissionId,
-            Success = true
-        };
-
         try
         {
-            Console.WriteLine("Creating language specific executor");
-            // Create language specific executor
+            Console.WriteLine($"Creating language specific executor - {payload.Language}");
             var executor = LanguageExecutorFactory.CreateExecutor(payload.Language);
-             
-            Console.WriteLine("Creating working directory");
-            // Create working directory
+
             var workingDir = Path.Combine(Path.GetTempPath(), $"exec_{Guid.NewGuid():N}");
+            Console.WriteLine($"Creating working directory - {workingDir}");
             Directory.CreateDirectory(workingDir);
 
             var codeExecutionContext = new CodeExecutionContext
             {
                 Language = payload.Language,
+                LanguageFixture = payload.LanguageFixture,
                 LanguageVersion = payload.LanguageVersion,
                 SourceCode = payload.Solution,
                 TestCases = payload.TestCases,
                 WorkingDirectory = workingDir
             };
 
-            try
-            {
-                Console.WriteLine("Preparing code for execution");
-                executor.Prepare(codeExecutionContext);
-            }
-            catch (Exception ex)
-            {
-                // Compilation failed - all tests fail
-                result.Success = false;
-                result.ErrorMessage = $"Compilation failed: {ex.Message}";
+            var outputStringBuilder = new StringBuilder();
 
-                foreach (var testCase in payload.TestCases)
-                {
-                    result.TestCaseResults.Add(
-                        new TestCaseResult(
-                            testCase.Input,
-                            testCase.ExpectedOutput,
-                            string.Empty,
-                            false,
-                            false,
-                            TimeSpan.Zero
-                        )
-                    );
-                }
+            Console.WriteLine("Preparing code for execution");
+            var prepareExecutorResult = executor.Prepare(codeExecutionContext);
 
-                return result;
+            if (prepareExecutorResult.IsFailure)
+            {
+                return new CodeExecutionResult("Code preparation failed", prepareExecutorResult.StandardError, prepareExecutorResult.StandardOutput);
             }
 
-            var testCaseResults = ExecuteTestCases(
-                executor,
-                codeExecutionContext,
-                TimeSpan.FromSeconds(30));
+            outputStringBuilder.AppendLine("==== Prepare Code Step ====");
+            outputStringBuilder.AppendLine(prepareExecutorResult.StandardOutput);
+            outputStringBuilder.AppendLine();
+
+            //TODO: Make timeout configurable
+            var timeoutInSeconds = payload.TestCases.Count * DefaultTimeoutPerTestCaseInSeconds + DefaultOverheadTimeInSeconds;
+
+            Console.WriteLine("Executing test cases - Timeout(s): {0:D}", timeoutInSeconds);
+            var executeTestsExecutorResult = executor.ExecuteTests(codeExecutionContext, TimeSpan.FromSeconds(timeoutInSeconds));
+
+            outputStringBuilder.AppendLine("==== Execute Tests Step ====");
+            outputStringBuilder.AppendLine(executeTestsExecutorResult.StandardOutput);
+
+            if (executeTestsExecutorResult.IsFailure)
+            {
+                return new CodeExecutionResult("Code execution failed", executeTestsExecutorResult.StandardError, outputStringBuilder.ToString());
+            }
+
+            var testCaseResults = executor.GetTestCaseResults(codeExecutionContext);
+
+            return new CodeExecutionResult(outputStringBuilder.ToString(), testCaseResults);
         }
         catch (Exception exception)
         {
-            result.Success = false;
-            result.ErrorMessage = $"Execution error: {exception.Message}";
+            Console.WriteLine($"Exception occurred: {exception.Message}");
+            return CodeExecutionResult.FromException(exception);
         }
-
-        return result;
-    }
-
-    private static List<TestCaseResult> ExecuteTestCases(
-        ILanguageExecutor executor,
-        CodeExecutionContext context,
-        TimeSpan timeout)
-    {
-        var testCaseResults = new List<TestCaseResult>();
-        foreach (var testCase in context.TestCases)
-        {
-            Console.WriteLine($"Executing test case with input: {testCase.Input}");
-            var stopwatch = Stopwatch.StartNew();
-            var (stdout, stderr, exitCode) = executor.Execute(context, testCase.Input, timeout);
-            stopwatch.Stop();
-            var passed = stdout.Trim() == testCase.ExpectedOutput.Trim() && exitCode == 0;
-            testCaseResults.Add(
-                new TestCaseResult(
-                    testCase.Input,
-                    testCase.ExpectedOutput,
-                    stdout,
-                    passed,
-                    exitCode == 0,
-                    stopwatch.Elapsed
-                )
-            );
-            Console.WriteLine($"Test case result - Passed: {passed}, Execution Time: {stopwatch.ElapsedMilliseconds} ms");
-        }
-        return testCaseResults;
     }
 }
