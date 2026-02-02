@@ -11,6 +11,7 @@ internal class Program
         Console.WriteLine("Runner starting up...");
 
         var executionPayloadJson = Environment.GetEnvironmentVariable("EXECUTION_PAYLOAD");
+        var outputToken = Environment.GetEnvironmentVariable("OUTPUT_TOKEN") ?? "###CODE-EXECUTION-RESULT###";
 
         if (string.IsNullOrEmpty(executionPayloadJson))
         {
@@ -29,24 +30,14 @@ internal class Program
         Console.WriteLine($"Executing submission {runnerJobPayload.SubmissionId}...");
         var testCaseRunner = new TestCaseRunner();
 
-        var result = testCaseRunner.RunTestCases(runnerJobPayload);
+        var codeExecutionResult = testCaseRunner.RunTestCases(runnerJobPayload);
 
-        if (result.Success)
-        {
-            Console.WriteLine("Execution succeeded.");
-            Console.WriteLine("Test Case Results:");
-            foreach (var testCaseResult in result.TestCaseResults)
-            {
-                Console.WriteLine(
-                    $"- Test Set Inputs: {testCaseResult.Input}, Passed: {testCaseResult.Passed}, Execution Time: {testCaseResult.ExecutionTime.Milliseconds} ms");
-            }
-        }
-        else
-        {
-            Console.WriteLine($"Execution failed with error: {result.ErrorMessage}");
-        }
+        var codeExecutionResultJson = JsonSerializer.Serialize(codeExecutionResult);
 
-        Console.WriteLine($"Submission {runnerJobPayload.SubmissionId} execution completed.");
+        Console.WriteLine($"Runner job for submission {runnerJobPayload.SubmissionId} execution completed.");
+        Console.WriteLine(outputToken);
+        Console.WriteLine(codeExecutionResultJson);
+
         return 0;
     }
 }
