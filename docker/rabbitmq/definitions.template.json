@@ -56,26 +56,6 @@
       }
     },
     {
-      "name": "tsa_submissions_coding_results",
-      "vhost": "/",
-      "durable": true,
-      "auto_delete": false,
-      "arguments": {
-        "x-dead-letter-exchange": "tsa_submissions_dlx",
-        "x-dead-letter-routing-key": "tsa_submissions_coding_results_dlq",
-        "x-queue-type": "quorum"
-      }
-    },
-    {
-      "name": "tsa_submissions_coding_results_dlq",
-      "vhost": "/",
-      "durable": true,
-      "auto_delete": false,
-      "arguments": {
-        "x-queue-type": "quorum"
-      }
-    },
-    {
       "name": "tsa_submissions_coding_score",
       "vhost": "/",
       "durable": true,
@@ -103,14 +83,6 @@
       "destination": "tsa_submissions_coding_dlq",
       "destination_type": "queue",
       "routing_key": "tsa_submissions_coding_dlq",
-      "arguments": {}
-    },
-    {
-      "source": "tsa_submissions_dlx",
-      "vhost": "/",
-      "destination": "tsa_submissions_coding_results_dlq",
-      "destination_type": "queue",
-      "routing_key": "tsa_submissions_coding_results_dlq",
       "arguments": {}
     },
     {
