@@ -4,35 +4,56 @@ namespace Tsa.Submissions.Coding.Contracts.TestCases;
 
 public record TestCase
 {
-    [JsonPropertyName("expectedOutput")]
-    public string ExpectedOutput { get; init; }
+    [JsonPropertyName("expectedOutputDisplay")]
+    public string ExpectedOutputDisplay { get; init; }
 
-    [JsonPropertyName("input")]
-    public string Input { get; init; }
+    [JsonPropertyName("expectedOutputRaw")]
+    public string ExpectedOutputRaw { get; init; }
+
+    [JsonPropertyName("inputs")]
+    public List<TestCaseInput> Inputs { get; init; } = [];
 
     [JsonPropertyName("isActive")]
     public bool IsActive { get; init; }
 
-    [JsonPropertyName("languageFixtures")]
-    public List<TestCaseLanguageFixture> LanguageFixtures { get; init; }
-
     [JsonPropertyName("name")]
     public string Name { get; init; }
 
-    public TestCase(string name, string input, string expectedOutput, bool isActive) : this(name, input, expectedOutput, isActive, []) { }
+    [JsonPropertyName("outputDataType")]
+    public string OutputDataType { get; init; }
 
-    [JsonConstructor]
-    public TestCase(string name, string input, string expectedOutput, bool isActive, List<TestCaseLanguageFixture> languageFixtures)
+    [JsonPropertyName("outputIsArray")]
+    public bool OutputIsArray { get; init; }
+
+    public TestCase(
+        string name,
+        List<TestCaseInput> inputs,
+        string expectedOutputRaw,
+        string expectedOutputDisplay,
+        string outputDataType,
+        bool outputIsArray,
+        bool isActive)
     {
-        ExpectedOutput = expectedOutput;
-        Input = input;
-        IsActive = isActive;
-        LanguageFixtures = languageFixtures;
         Name = name;
+        Inputs = inputs;
+        ExpectedOutputRaw = expectedOutputRaw;
+        ExpectedOutputDisplay = expectedOutputDisplay;
+        OutputDataType = outputDataType;
+        OutputIsArray = outputIsArray;
+        IsActive = isActive;
     }
 
     public string GetUniqueId()
     {
-        return $"{Input}=>{ExpectedOutput}|{IsActive}";
+        var inputs = Inputs
+            .OrderBy(testCaseInput => testCaseInput.Index)
+            .Select(testCaseInput => testCaseInput.DisplayInput);
+
+        return $"{string.Join(",", inputs)}=>{ExpectedOutputDisplay}";
+    }
+
+    public override string ToString()
+    {
+        return $"{Name}|{GetUniqueId()}";
     }
 }
