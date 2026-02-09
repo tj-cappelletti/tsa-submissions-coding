@@ -1,5 +1,7 @@
 db = db.getSiblingDB('tsa_submissions_coding');
 
+db.users.createIndex({ userName: 1 }, { unique: true });
+
 db.users.insertMany([
     { "_id": ObjectId('000000000000000000000000'), "passwordHash": "$2a$11$Xe3ZSGK0MP9BPwjK4sqUK.nU2z0cdzzaykvpn3aYrlX9YzqajzT7q", "role": "system", "userName": "system" },
     { "_id": ObjectId('000000000000000000000001'), "passwordHash": "$2a$11$klfPt6XrXUjn5FOyQsSE9.d97DorSuCPYvhXZ4JX6isk4Msn8Zgs2", "role": "judge", "userName": "judge01" },
