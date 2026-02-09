@@ -1,8 +1,22 @@
-﻿namespace Tsa.Submissions.Coding.WebApi.Entities;
+﻿using System.Collections.Generic;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
-public class ProgrammingLanguage
+namespace Tsa.Submissions.Coding.WebApi.Entities;
+
+public class ProgrammingLanguage : IMongoDbEntity
 {
+    public string? FileExtension { get; set; }
+
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string? Id { get; set; }
+
+    public string? Identifier { get; set; }
+
+    public bool IsEnabled { get; set; } = true;
+
     public string Name { get; set; } = string.Empty;
 
-    public string Version { get; set; } = string.Empty;
+    public List<ProgrammingLanguageVersion> Versions { get; set; } = [];
 }
