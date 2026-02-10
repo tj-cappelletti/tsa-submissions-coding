@@ -7,7 +7,7 @@ namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
-    public static ProblemResponse ToResponse(this Problem problem, bool includeTestCases = false)
+    public static ProblemResponse ToResponse(this Problem problem, IEnumerable<TestCase>? testCases = null)
     {
         if (string.IsNullOrWhiteSpace(problem.Description)) throw new InvalidOperationException("Problem description is required.");
 
@@ -15,19 +15,13 @@ public static partial class EntityExtensions
 
         if (string.IsNullOrWhiteSpace(problem.Title)) throw new InvalidOperationException("Problem title is required.");
 
-        var testCases = includeTestCases ? problem.TestCases : [];
-
-        return new ProblemResponse(
-            problem.Id,
-            problem.Title,
-            problem.Description,
-            problem.IsActive,
-            testCases
-        );
+        return testCases == null
+            ? new ProblemResponse(problem.Id, problem.Title, problem.Description, problem.IsActive)
+            : new ProblemResponse(problem.Id, problem.Title, problem.Description, problem.IsActive, testCases.ToResponses());
     }
 
-    public static IEnumerable<ProblemResponse> ToResponses(this IEnumerable<Problem> problems, bool includeTestCases = false)
+    public static IEnumerable<ProblemResponse> ToResponses(this IEnumerable<Problem> problems)
     {
-        return problems.Select(p => p.ToResponse(includeTestCases));
+        return problems.Select(p => p.ToResponse());
     }
 }
