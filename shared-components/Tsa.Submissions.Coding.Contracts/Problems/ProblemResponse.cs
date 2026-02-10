@@ -14,22 +14,23 @@ public record ProblemResponse
     [JsonPropertyName("isActive")]
     public bool IsActive { get; init; }
 
-    [JsonPropertyName("testCases")]
-    public List<TestCase> TestCases { get; init; }
-
     [JsonPropertyName("title")]
     public string Title { get; init; }
 
-    public ProblemResponse(string id, string title, string description, bool isActive) :
-        this(id, title, description, isActive, []) { }
+    [JsonPropertyName("testCases")]
+    public List<TestCaseResponse>? TestCases { get; init; }
 
-    [JsonConstructor]
-    public ProblemResponse(string id, string title, string description, bool isActive, List<TestCase> testCases)
+    public ProblemResponse(
+        string id,
+        string title,
+        string description,
+        bool isActive,
+        IEnumerable<TestCaseResponse>? testCases = null)
     {
         Id = id;
         Title = title;
         Description = description;
         IsActive = isActive;
-        TestCases = testCases;
+        TestCases = testCases?.ToList();
     }
 }
