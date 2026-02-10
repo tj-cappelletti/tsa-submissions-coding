@@ -43,9 +43,23 @@ if($runningServices -and $runningServices.Count -gt 0) {
 
 if($CleanMongoData) {
     if (Test-Path $mongoDataDir) {
-        Write-Info "Removing MongoDB data directory: $mongoDataDir"
-        Remove-Item -Recurse -Force -Path $mongoDataDir
-        Write-Success "MongoDB data directory removed."
+        Write-Info "Removing MongoDB data in directory: $mongoDataDir"
+        $files = Get-ChildItem -Path $mongoDataDir -Recurse
+
+        foreach ($file in $files) {
+            if($file.Mode -match 'd----') {
+                # Keep directories intact, this is to avoid issues with MongoDB expecting certain directory structures
+                continue
+            }
+
+            try {
+                Remove-Item -Path $file.FullName -Force -Recurse
+            } catch {
+                Write-Warning "Failed to remove file: $($file.FullName). Error: $_"
+            }
+        }
+
+        Write-Success "MongoDB data directory cleaned."
     } else {
         Write-Warning "MongoDB data directory does not exist: $mongoDataDir"
     }
