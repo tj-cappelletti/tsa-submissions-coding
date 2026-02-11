@@ -2,7 +2,7 @@
 
 public interface IUserRequest
 {
-    List<ParticipantRequest>? Participants { get; }
+    List<string>? Participants { get; }
 
     string? Password { get; }
 

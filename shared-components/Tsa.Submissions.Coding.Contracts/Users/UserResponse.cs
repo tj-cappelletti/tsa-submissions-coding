@@ -8,7 +8,7 @@ public record UserResponse
     public string Id { get; init; }
 
     [JsonPropertyName("participants")]
-    public List<ParticipantResponse>? Participants { get; init; }
+    public List<string>? Participants { get; init; }
 
     [JsonPropertyName("role")]
     public string Role { get; init; }
@@ -24,7 +24,7 @@ public record UserResponse
         string userName,
         string role,
         TeamResponse? team,
-        List<ParticipantResponse>? participants)
+        List<string>? participants)
     {
         Id = id;
         Participants = participants;

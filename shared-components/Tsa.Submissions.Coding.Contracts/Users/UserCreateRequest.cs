@@ -5,7 +5,7 @@ namespace Tsa.Submissions.Coding.Contracts.Users;
 public record UserCreateRequest : IUserRequest
 {
     [JsonPropertyName("participants")]
-    public List<ParticipantRequest>? Participants { get; init; }
+    public List<string>? Participants { get; init; }
 
     [JsonPropertyName("password")]
     public string Password { get; init; }
@@ -24,7 +24,7 @@ public record UserCreateRequest : IUserRequest
         string password,
         string role,
         TeamRequest? team,
-        List<ParticipantRequest>? participants)
+        List<string>? participants)
     {
         Participants = participants;
         Password = password;
