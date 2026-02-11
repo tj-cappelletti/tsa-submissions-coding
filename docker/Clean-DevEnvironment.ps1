@@ -26,7 +26,7 @@ Write-Host ""
 
 $runningServices = docker compose ps --services --filter "status=running" 2>$null
 
-if($runningServices -and $runningServices.Count -gt 0) {
+if ($runningServices -and $runningServices.Count -gt 0) {
     Write-Warning "The following Docker services are currently running:"
     $runningServices | ForEach-Object { Write-Host "  - $_" }
     Write-Host ""
@@ -35,48 +35,49 @@ if($runningServices -and $runningServices.Count -gt 0) {
         Write-Info "Stopping running Docker services..."
         docker compose down
         Write-Success "Docker services stopped."
-    } else {
+    }
+    else {
         Write-Error "Please stop the running Docker services before cleaning the development environment."
         exit 1
     }
 }
 
-if($CleanMongoData) {
-    if (Test-Path $mongoDataDir) {
-        Write-Info "Removing MongoDB data in directory: $mongoDataDir"
-        $files = Get-ChildItem -Path $mongoDataDir -Recurse
+$dockerVolumes = docker volume ls --filter name=tsa-submissions-coding --quiet 2>$null
 
-        foreach ($file in $files) {
-            if($file.Mode -match 'd----') {
-                # Keep directories intact, this is to avoid issues with MongoDB expecting certain directory structures
-                continue
-            }
-
-            try {
-                Remove-Item -Path $file.FullName -Force -Recurse
-            } catch {
-                Write-Warning "Failed to remove file: $($file.FullName). Error: $_"
-            }
+if ($CleanMongoData) {
+    if ($dockerVolumes.Contains("tsa-submissions-coding_mongodb")) {
+        Write-Info "Removing MongoDB Docker volume: tsa-submissions-coding_mongodb"
+        try {
+            docker volume rm tsa-submissions-coding_mongodb
+            Write-Success "MongoDB Docker volume removed."
+        } catch {
+            Write-Warning "Failed to remove MongoDB Docker volume: tsa-submissions-coding_mongodb. Error: $_"
         }
-
-        Write-Success "MongoDB data directory cleaned."
-    } else {
-        Write-Warning "MongoDB data directory does not exist: $mongoDataDir"
     }
-} else {
-    Write-Info "Skipping MongoDB data directory cleanup."
+    else {
+        Write-Warning "MongoDB Docker volume does not exist: tsa-submissions-coding_mongodb"
+    }
+}
+else {
+    Write-Info "Skipping MongoDB Docker volume cleanup."
 }
 
-if($CleanRabbitMQData) {
-    if (Test-Path $rabbitMQDataDir) {
-        Write-Info "Removing RabbitMQ data directory: $rabbitMQDataDir"
-        Remove-Item -Recurse -Force -Path $rabbitMQDataDir
-        Write-Success "RabbitMQ data directory removed."
-    } else {
-        Write-Warning "RabbitMQ data directory does not exist: $rabbitMQDataDir"
+if ($CleanRabbitMQData) {
+    if ($dockerVolumes.Contains("tsa-submissions-coding_rabbitmq")) {
+        Write-Info "Removing RabbitMQ Docker volume: tsa-submissions-coding_rabbitmq"
+        try {
+            docker volume rm tsa-submissions-coding_rabbitmq
+            Write-Success "RabbitMQ Docker volume removed."
+        } catch {
+            Write-Warning "Failed to remove RabbitMQ Docker volume: tsa-submissions-coding_rabbitmq. Error: $_"
+        }
     }
-} else {
-    Write-Info "Skipping RabbitMQ data directory cleanup."
+    else {
+        Write-Warning "RabbitMQ Docker volume does not exist: tsa-submissions-coding_rabbitmq"
+    }
+}
+else {
+    Write-Info "Skipping RabbitMQ Docker volume cleanup."
 }
 
 Write-Host ""
