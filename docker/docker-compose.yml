@@ -5,6 +5,10 @@
 #   docker-compose up --build    # Docker
 #   podman compose up --build    # Podman
 
+volumes:
+  mongodb:
+  rabbitmq:
+
 services:
   mongodb:
     image: mongodb/mongodb-community-server:latest
@@ -16,7 +20,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - ./mongodb/data:/data/db:rw
+      - mongodb:/data/db:rw
       - ./mongodb/seedData:/docker-entrypoint-initdb.d:ro
     networks:
       - backend
@@ -30,7 +34,7 @@ services:
       - 5672:5672
       - 15672:15672
     volumes:
-      - ./rabbitmq/data:/var/lib/rabbitmq
+      - rabbitmq:/var/lib/rabbitmq
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
       - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
