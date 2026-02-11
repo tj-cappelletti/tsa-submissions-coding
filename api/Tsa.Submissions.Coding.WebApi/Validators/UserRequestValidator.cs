@@ -7,7 +7,7 @@ namespace Tsa.Submissions.Coding.WebApi.Validators;
 
 public class UserRequestValidator<T> : AbstractValidator<T> where T : IUserRequest
 {
-    private const string ValidIndividualParticipantNumberRegEx = @"(?:[0-8])[\d]{2}";
+    private const string ValidIndividualParticipantNumberRegEx = @"^(?:[0-8])\d{2}$";
 
     public UserRequestValidator()
     {
