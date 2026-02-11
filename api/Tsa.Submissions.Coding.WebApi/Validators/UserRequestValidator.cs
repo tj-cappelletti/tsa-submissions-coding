@@ -41,10 +41,5 @@ public class UserRequestValidator<T> : AbstractValidator<T> where T : IUserReque
                 // Null forgiveness is needed here because the validator is only applied when the role is Participant, which requires a team, so it will never be null in that context.
                 .SetValidator(new TeamRequestValidator()!);
         });
-
-
-        RuleFor(user => user.UserName)
-            .NotEmpty()
-            .WithMessage("A user must have a username.");
     }
 }

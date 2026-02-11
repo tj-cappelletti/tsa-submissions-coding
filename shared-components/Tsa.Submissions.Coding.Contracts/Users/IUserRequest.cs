@@ -9,6 +9,4 @@ public interface IUserRequest
     string Role { get; }
 
     TeamRequest? Team { get; }
-
-    string UserName { get; }
 }

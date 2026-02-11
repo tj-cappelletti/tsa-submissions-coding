@@ -16,11 +16,7 @@ public record UserModifyRequest : IUserRequest
     [JsonPropertyName("team")]
     public TeamRequest? Team { get; init; }
 
-    [JsonPropertyName("userName")]
-    public string UserName { get; init; }
-
     public UserModifyRequest(
-        string userName,
         string? password,
         string role,
         TeamRequest? team,
@@ -30,6 +26,5 @@ public record UserModifyRequest : IUserRequest
         Password = password;
         Role = role;
         Team = team;
-        UserName = userName;
     }
 }
