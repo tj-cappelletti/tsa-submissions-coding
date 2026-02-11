@@ -24,6 +24,7 @@ using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.Contracts.Validators;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Services;
+using Tsa.Submissions.Coding.WebApi.Validators;
 
 namespace Tsa.Submissions.Coding.WebApi;
 
