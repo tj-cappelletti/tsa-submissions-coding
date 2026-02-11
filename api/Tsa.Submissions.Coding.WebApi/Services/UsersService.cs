@@ -34,12 +34,13 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
         ICacheService cacheService,
         IMongoClient mongoClient,
         IOptions<SubmissionsDatabase> options,
-        ILogger<UsersService> logger) : base(
-        cacheService,
-        mongoClient,
-        options.Value.Name!,
-        MongoDbCollectionName,
-        logger) { }
+        ILogger<UsersService> logger)
+        : base(
+            cacheService,
+            mongoClient,
+            options.Value.Name!,
+            MongoDbCollectionName,
+            logger) { }
 
     /// <summary>
     ///     Creates a new user in the database and populates the cache.

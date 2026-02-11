@@ -14,10 +14,15 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
 
     public string ServiceName => "Problems";
 
-    public ProblemsService(IMongoClient mongoClient, IOptions<SubmissionsDatabase> options, ILogger<ProblemsService> logger) : base(
-        mongoClient,
-        options.Value.Name!,
-        MongoDbCollectionName,
-        logger)
-    { }
+    public ProblemsService(
+        ICacheService cacheService,
+        IMongoClient mongoClient,
+        IOptions<SubmissionsDatabase> options,
+        ILogger<ProblemsService> logger)
+        : base(
+            cacheService,
+            mongoClient,
+            options.Value.Name!,
+            MongoDbCollectionName,
+            logger) { }
 }

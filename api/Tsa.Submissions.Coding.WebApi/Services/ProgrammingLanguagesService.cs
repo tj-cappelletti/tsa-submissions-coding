@@ -14,8 +14,13 @@ public class ProgrammingLanguagesService : MongoDbService<ProgrammingLanguage>, 
 
     public string ServiceName => "ProgrammingLanguages";
 
-    public ProgrammingLanguagesService(IMongoClient mongoClient, IOptions<SubmissionsDatabase> options, ILogger<ProgrammingLanguagesService> logger) :
-        base(
+    public ProgrammingLanguagesService(
+        ICacheService cacheService,
+        IMongoClient mongoClient,
+        IOptions<SubmissionsDatabase> options,
+        ILogger<ProgrammingLanguagesService> logger)
+        : base(
+            cacheService,
             mongoClient,
             options.Value.Name!,
             MongoDbCollectionName,

@@ -23,11 +23,17 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
 
     public string ServiceName => "TestCases";
 
-    public TestCasesService(IMongoClient mongoClient, IOptions<SubmissionsDatabase> options, ILogger<TestCasesService> logger) : base(
-        mongoClient,
-        options.Value.Name!,
-        MongoDbCollectionName,
-        logger) { }
+    public TestCasesService(
+        ICacheService cacheService,
+        IMongoClient mongoClient,
+        IOptions<SubmissionsDatabase> options,
+        ILogger<TestCasesService> logger)
+        : base(
+            cacheService,
+            mongoClient,
+            options.Value.Name!,
+            MongoDbCollectionName,
+            logger) { }
 
     public string ComputeSignature(TestCase testCase)
     {
