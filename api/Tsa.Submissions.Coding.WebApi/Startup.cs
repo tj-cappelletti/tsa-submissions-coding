@@ -21,7 +21,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Tsa.Submissions.Coding.Contracts.Authentication;
 using Tsa.Submissions.Coding.Contracts.Users;
-using Tsa.Submissions.Coding.Contracts.Validators;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Services;
 using Tsa.Submissions.Coding.WebApi.Validators;
