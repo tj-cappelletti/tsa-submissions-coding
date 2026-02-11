@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Tsa.Submissions.Coding.Contracts.Users;
 
-namespace Tsa.Submissions.Coding.Contracts.Validators;
+namespace Tsa.Submissions.Coding.WebApi.Validators;
 
 public class UserCreateRequestValidator : UserRequestValidator<UserCreateRequest>
 {
