@@ -2,7 +2,7 @@
 
 public class Participant
 {
-    public string? ParticipantNumber { get; set; }
+    public string? IndividualNumber { get; set; }
 
     public string? SchoolNumber { get; set; }
 }

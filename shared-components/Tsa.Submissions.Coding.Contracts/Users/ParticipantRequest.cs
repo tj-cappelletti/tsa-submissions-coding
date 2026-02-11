@@ -4,15 +4,15 @@ namespace Tsa.Submissions.Coding.Contracts.Users;
 
 public record ParticipantRequest
 {
-    [JsonPropertyName("participantNumber")]
-    public string ParticipantNumber { get; init; }
+    [JsonPropertyName("individualNumber")]
+    public string IndividualNumber { get; init; }
 
     [JsonPropertyName("schoolNumber")]
     public string SchoolNumber { get; init; }
 
-    public ParticipantRequest(string schoolNumber, string participantNumber)
+    public ParticipantRequest(string schoolNumber, string individualNumber)
     {
-        ParticipantNumber = participantNumber;
+        IndividualNumber = individualNumber;
         SchoolNumber = schoolNumber;
     }
 }
