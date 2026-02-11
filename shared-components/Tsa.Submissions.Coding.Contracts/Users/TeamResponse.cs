@@ -1,11 +1,22 @@
-﻿namespace Tsa.Submissions.Coding.Contracts.Users;
+﻿using System.Text.Json.Serialization;
 
-public record TeamResponse(
-    string CompetitionLevel,
-    string SchoolNumber,
-    string TeamNumber)
+namespace Tsa.Submissions.Coding.Contracts.Users;
+
+public record TeamResponse
 {
-    public string? TeamId => string.IsNullOrWhiteSpace(SchoolNumber) || string.IsNullOrWhiteSpace(TeamNumber)
-        ? null
-        : $"{SchoolNumber}-{TeamNumber}";
+    [JsonPropertyName("competitionLevel")]
+    public string CompetitionLevel { get; init; }
+
+    [JsonPropertyName("schoolNumber")]
+    public string SchoolNumber { get; init; }
+
+    [JsonPropertyName("teamNumber")]
+    public string TeamNumber { get; init; }
+
+    public TeamResponse(string competitionLevel, string schoolNumber, string teamNumber)
+    {
+        CompetitionLevel = competitionLevel;
+        SchoolNumber = schoolNumber;
+        TeamNumber = teamNumber;
+    }
 }
