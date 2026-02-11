@@ -152,7 +152,14 @@ public class UsersController : WebApiBaseController
 
         if (existingUser != null) return Conflict(ApiErrorEntityAlreadyExists(nameof(User), userCreateRequest.UserName));
 
-        var user = ToEntity(userCreateRequest);
+        var user = new User
+        {
+            Participants = userCreateRequest.Participants,
+            PasswordHash = BC.HashPassword(userCreateRequest.Password),
+            Role = userCreateRequest.Role,
+            Team = userCreateRequest.Team == null ? null : ToEntity(userCreateRequest.Team),
+            UserName = userCreateRequest.UserName
+        };
 
         await _usersService.CreateAsync(user, cancellationToken);
 
@@ -247,15 +254,12 @@ public class UsersController : WebApiBaseController
 
         if (user == null) return CreateUserNotFoundError(id);
 
-        var updatedUser = ToEntity(updatedUserModel);
-        updatedUser.Id = user.Id;
+        user.Participants = updatedUserModel.Participants;
+        user.PasswordHash = string.IsNullOrWhiteSpace(updatedUserModel.Password) ? user.PasswordHash : BC.HashPassword(updatedUserModel.Password);
+        user.Role = updatedUserModel.Role;
+        user.Team = updatedUserModel.Team == null ? null : ToEntity(updatedUserModel.Team);
 
-        if (string.IsNullOrWhiteSpace(updatedUser.PasswordHash))
-        {
-            updatedUser.PasswordHash = user.PasswordHash;
-        }
-
-        await _usersService.UpdateAsync(updatedUser, cancellationToken);
+        await _usersService.UpdateAsync(user, cancellationToken);
 
         return NoContent();
     }
@@ -266,26 +270,5 @@ public class UsersController : WebApiBaseController
             Enum.Parse<CompetitionLevel>(teamRequest.CompetitionLevel),
             teamRequest.SchoolNumber,
             teamRequest.TeamNumber);
-    }
-
-    private static User ToEntity(IUserRequest userRequest)
-    {
-        var user = new User
-        {
-            Role = userRequest.Role,
-            Team = userRequest.Team == null ? null : ToEntity(userRequest.Team),
-            UserName = userRequest.UserName
-        };
-
-        if (userRequest.Password != null)
-        {
-            user.PasswordHash = BC.HashPassword(userRequest.Password);
-        }
-        else if (userRequest is UserCreateRequest)
-        {
-            throw new InvalidOperationException("Password is required for user creation.");
-        }
-
-        return user;
     }
 }
