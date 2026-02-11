@@ -2,6 +2,8 @@
 
 public interface IUserRequest
 {
+    List<ParticipantRequest>? Participants { get; }
+
     string? Password { get; }
 
     string Role { get; }
