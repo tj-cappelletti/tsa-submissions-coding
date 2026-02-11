@@ -1,5 +1,7 @@
 db = db.getSiblingDB('tsa_submissions_coding');
 
+db.problems.createIndex({ title: 1 }, { unique: true });
+
 db.problems.insertMany([
     {
         "description": "# Flip for Balance\r\nGiven a string s containing only open and close parenthesis. What is the minimum number of parenthesis that needs to be flipped for the string to become a set of balanced parentheses.\r\n\r\n## Example\r\n\r\n`For s = \"((\"` - the output should be `flipForBalance(s) = 1`.\r\n\r\n## Parameters\r\n|Input|Summary|Constraints|\r\n|-----|-------|-----------|\r\n|`string s`|A string of even non-empty length containing only '(' and ')'.|2 \u2264 `s.length` < 50.\r\n\r\n## Output\r\n`integer` - The minimum number of parenthesis that needs to be flipped.\r\n\r\n## Test Sets\r\n| `s` | Output |\r\n|:-----:|:------:|\r\n|((|1|\r\n|))|1|\r\n|()|0|\r\n|((()|1|\r\n|)))(|3|",
