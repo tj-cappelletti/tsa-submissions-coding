@@ -1,40 +1,82 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Tsa.Submissions.Coding.WebApi.Models;
+using Tsa.Submissions.Coding.Contracts.Languages;
+using Tsa.Submissions.Coding.Contracts.Submissions;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
-    private static List<SubmissionModel> SubmissionsToSubmissionModels(IEnumerable<Submission> submissions)
+    public static ProgrammingLanguageResponse ToResponse(this ProgrammingLanguage programmingLanguage)
     {
-        return submissions.Select(submission => submission.ToModel()).ToList();
-    }
+        var versions = new List<ProgrammingLanguageVersionResponse>();
 
-    public static SubmissionModel ToModel(this Submission submission)
-    {
-        return new SubmissionModel
+        foreach (var programmingLanguageVersion in programmingLanguage.Versions)
         {
-            Id = submission.Id,
-            IsFinalSubmission = submission.IsFinalSubmission,
-            Language = submission.Language,
-            // Problem is required, if null, we are in a bad state
-            ProblemId = submission.Problem!.Id.AsString,
-            Solution = submission.Solution,
-            SubmittedOn = submission.SubmittedOn,
-            TestSetResults = submission.TestSetResults?.ToModels(),
-            // User is required, if null, we are in a bad state
-            User = new UserModel { Id = submission.User!.Id.AsString }
-        };
+            if (string.IsNullOrWhiteSpace(programmingLanguageVersion.DisplayName))
+            {
+                throw new InvalidOperationException("Programming Language Version Display Name is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(programmingLanguageVersion.VersionTag))
+            {
+                throw new InvalidOperationException("Programming Language Version Tag is required.");
+            }
+
+            versions.Add(new ProgrammingLanguageVersionResponse(
+                programmingLanguageVersion.DisplayName,
+                programmingLanguageVersion.IsDefault,
+                programmingLanguageVersion.VersionTag
+            ));
+        }
+
+        if (string.IsNullOrWhiteSpace(programmingLanguage.Id)) throw new InvalidOperationException("Programming Language ID is required.");
+
+        if (string.IsNullOrWhiteSpace(programmingLanguage.Identifier))
+            throw new InvalidOperationException("Programming Language Identifier is required.");
+
+        if (string.IsNullOrWhiteSpace(programmingLanguage.Name)) throw new InvalidOperationException("Programming Language Name is required.");
+
+        if (string.IsNullOrWhiteSpace(programmingLanguage.FileExtension))
+            throw new InvalidOperationException("Programming Language File Extension is required.");
+
+        return new ProgrammingLanguageResponse(
+            programmingLanguage.Id,
+            programmingLanguage.Identifier,
+            programmingLanguage.Name,
+            programmingLanguage.FileExtension,
+            programmingLanguage.IsEnabled,
+            versions);
     }
 
-    public static List<SubmissionModel> ToModels(this IList<Submission> submissions)
+    public static SubmissionResponse ToResponse(this Submission submission)
     {
-        return SubmissionsToSubmissionModels(submissions);
+        throw new NotImplementedException("Submission to SubmissionResponse mapping is not implemented yet.");
+        //if (string.IsNullOrWhiteSpace(submission.Id)) throw new InvalidOperationException("Submission ID is required.");
+
+        //if (submission.Language == null) throw new InvalidOperationException("Submission Programming Language is required.");
+
+        //if (submission.Problem == null) throw new InvalidOperationException("Submission Problem is required.");
+
+        //if (string.IsNullOrWhiteSpace(submission.Solution)) throw new InvalidOperationException("Submission Solution is required.");
+
+        //if (submission.SubmittedOn == null) throw new InvalidOperationException("Submission Submitted On is required.");
+
+        //if (string.IsNullOrWhiteSpace(submission.UserId)) throw new InvalidOperationException("Submission User ID is required.");
+
+        //return new SubmissionResponse(
+        //    submission.Id,
+        //    submission.Language.ToResponse(),
+        //    submission.Problem.Id.AsString,
+        //    submission.Solution,
+        //    submission.SubmittedOn.Value,
+        //    submission.TestCaseResults,
+        //    submission.UserId);
     }
 
-    public static List<SubmissionModel> ToModels(this IEnumerable<Submission> submissions)
+    public static IEnumerable<SubmissionResponse> ToResponses(this IEnumerable<Submission> submissions)
     {
-        return SubmissionsToSubmissionModels(submissions);
+        return submissions.Select(submission => submission.ToResponse());
     }
 }

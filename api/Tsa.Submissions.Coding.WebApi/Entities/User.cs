@@ -1,6 +1,6 @@
-﻿using MongoDB.Bson;
+﻿using System.Collections.Generic;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
@@ -8,8 +8,9 @@ public class User : IMongoDbEntity
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    [SwaggerSchema(ReadOnly = true)]
     public string? Id { get; set; }
+
+    public List<Participant>? Participants { get; set; }
 
     public string? PasswordHash { get; set; }
 

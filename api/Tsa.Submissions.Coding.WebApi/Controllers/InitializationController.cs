@@ -1,11 +1,10 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Tsa.Submissions.Coding.WebApi.Authorization;
-using Tsa.Submissions.Coding.WebApi.Entities;
-using Tsa.Submissions.Coding.WebApi.ExtensionMethods;
+using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 
@@ -30,7 +29,10 @@ public class InitializationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetInitializationStatus(CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Checking initialization status");
         var isInitialized = await IsInitialized(cancellationToken);
+
+        _logger.LogInformation("Is Initialized: {isInitialized}", isInitialized);
 
         var statusModel = new InitializationStatusModel
         {
@@ -41,33 +43,36 @@ public class InitializationController : ControllerBase
     }
 
     [HttpPost("initialize")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserModel))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserCreateRequest))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Initialize([FromBody] UserModel userModel, CancellationToken cancellationToken = default)
+    public Task<IActionResult> Initialize([FromBody]UserCreateRequest userCreateRequest, CancellationToken cancellationToken = default)
     {
-        var isInitialized = await IsInitialized(cancellationToken);
+        //var isInitialized = await IsInitialized(cancellationToken);
 
-        if (isInitialized)
-        {
-            _logger.LogWarning("Initialization failed: The application is already initialized");
+        //if (isInitialized)
+        //{
+        //    _logger.LogWarning("Initialization failed: The application is already initialized");
 
-            return StatusCode(StatusCodes.Status400BadRequest, "The application is already initialized");
-        }
+        //    return StatusCode(StatusCodes.Status400BadRequest, "The application is already initialized");
+        //}
 
-        var passwordHash = BC.HashPassword(userModel.Password);
+        //var passwordHash = BC.HashPassword(userModel.Password);
 
-        var user = new User
-        {
-            UserName = userModel.UserName,
-            PasswordHash = passwordHash,
-            Role = SubmissionRoles.Judge.ToString()
-        };
+        //var user = new User
+        //{
+        //    UserName = userModel.UserName,
+        //    PasswordHash = passwordHash,
+        //    Role = SubmissionRoles.Judge.ToString()
+        //};
 
-        _logger.LogInformation("Initializing the application with user {UserName}", user.UserName.SanitizeForLogging());
+        //_logger.LogInformation("Initializing the application with user {UserName}", user.UserName.SanitizeForLogging());
 
-        await _usersService.CreateAsync(user, cancellationToken);
+        //await _usersService.CreateAsync(user, cancellationToken);
 
-        return Ok(user.ToModel());
+        //return Ok(user.ToModel());
+
+        // TODO: Need to implement initialization logic
+        throw new NotImplementedException("Initialization endpoint is not implemented.");
     }
 
     private async Task<bool> IsInitialized(CancellationToken cancellationToken)

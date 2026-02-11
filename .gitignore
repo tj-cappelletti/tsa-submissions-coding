@@ -38,3 +38,12 @@ publish/
 *.dll
 *.exe
 *.pdb
+
+# Exclude data directories for Docker containers
+docker/*/data/
+
+# Exlude environment files for Docker
+docker/.env
+
+# Exclude RabbitMQ generated definitions file
+docker/rabbitmq/definitions.json

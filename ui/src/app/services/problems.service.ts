@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class ProblemsService {
-    readonly apiUrl: string = '/api/problems';
+    readonly apiUrl: string = 'http://api.tsa.localdev.me:5000/api/problems';
 
     constructor(private http: HttpClient, private authService: AuthService) { }
 

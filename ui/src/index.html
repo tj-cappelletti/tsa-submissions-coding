@@ -6,6 +6,19 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Set API URL from environment variable or default -->
+  <script>
+    window.__API_URL__ = (function() {
+      const currentLocation = window.location.href;
+      // If accessing from proxy (localhost:4200), use relative path
+      if (currentLocation.includes('localhost:4200') || currentLocation.includes('127.0.0.1:4200')) {
+        return '/api';
+      }
+      // Otherwise use the API_URL from environment or construct from location
+      return window.__API_URL_CONFIG__ || '/api';
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

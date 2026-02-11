@@ -6,7 +6,7 @@ import { Authentication, JwtPayload, LoginResponse } from '../models/auth.models
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  readonly apiUrl: string = '/api/auth';
+  readonly apiUrl: string = 'http://api.tsa.localdev.me:5000/api/auth';
   readonly jwtKeyName = 'jwt';
 
   constructor(private http: HttpClient) { }

@@ -1,9 +1,12 @@
 using System;
 using System.Net;
+using Tsa.Submissions.Coding.Contracts;
 using Tsa.Submissions.Coding.WebApi.Models;
 
 namespace Tsa.Submissions.Coding.WebApi.Exceptions;
 
+//TODO: Evaluate if this exception is the right approach for handling missing required entities.
+//Exceptions are generally used for unexpected situations, and missing entities might be better handled through validation or specific error responses.
 public class RequiredEntityNotFoundException : Exception, IWebApiException
 {
     public string EntityName { get; }
@@ -16,12 +19,8 @@ public class RequiredEntityNotFoundException : Exception, IWebApiException
         HttpStatusCode = HttpStatusCode.NotFound;
     }
 
-    public ApiErrorResponseModel ToApiErrorResponseModel()
+    public ApiErrorResponse ToApiErrorResponse()
     {
-        return new ApiErrorResponseModel
-        {
-            ErrorCode = (int)ErrorCodes.RequiredEntityNotFound,
-            Message = Message
-        };
+        return new ApiErrorResponse((int)ErrorCodes.RequiredEntityNotFound, Message);
     }
 }

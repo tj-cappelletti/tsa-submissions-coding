@@ -21,12 +21,11 @@ public class SubmissionsService : MongoDbService<Submission>, ISubmissionsServic
         mongoClient,
         options.Value.Name!,
         MongoDbCollectionName,
-        logger)
-    { }
+        logger) { }
 
     public async Task<List<Submission>> GetByProblemIdAsync(string problemId, CancellationToken cancellationToken = default)
     {
-        var filterDefinition = Builders<Submission>.Filter.Eq(submission => submission.Problem!.Id, problemId);
+        var filterDefinition = Builders<Submission>.Filter.Eq(submission => submission.ProblemId, problemId);
 
         var cursor = await EntityCollection.FindAsync(filterDefinition, null, cancellationToken);
 

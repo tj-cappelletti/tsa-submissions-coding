@@ -7,7 +7,7 @@ import { TestSetModel } from '../models/test-set.models';
 
 @Injectable({ providedIn: 'root' })
 export class TestSetsService {
-    readonly apiUrl: string = '/api/testsets';
+    readonly apiUrl: string = 'http://api.tsa.localdev.me:5000/api/testsets';
 
     constructor(private http: HttpClient, private authService: AuthService) { }
 

@@ -2,4 +2,4 @@
 
 namespace Tsa.Submissions.Coding.WebApi.Services;
 
-public interface IProblemsService : IMongoEntityService<Problem>, IPingableService { }
+public interface IProblemsService : IMongoEntityService<Problem>, IPingableService;
