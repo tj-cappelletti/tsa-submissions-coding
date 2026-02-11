@@ -24,7 +24,6 @@ public class TestCase : IMongoDbEntity
 
     public bool OutputIsArray { get; set; }
 
-    [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string? ProblemId { get; set; }
 

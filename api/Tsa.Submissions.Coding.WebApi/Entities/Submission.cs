@@ -14,11 +14,9 @@ public class Submission : IMongoDbEntity
     [BsonRepresentation(BsonType.ObjectId)]
     public string? Id { get; set; }
 
-    [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string? ProblemId { get; set; }
 
-    [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string? ProgrammingLanguageId { get; set; }
 
@@ -30,7 +28,6 @@ public class Submission : IMongoDbEntity
 
     public List<TestCaseResult> TestCaseResults { get; set; } = [];
 
-    [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     public string? UserId { get; set; }
 
