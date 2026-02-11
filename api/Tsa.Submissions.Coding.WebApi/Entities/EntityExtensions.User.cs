@@ -17,9 +17,10 @@ public static partial class EntityExtensions
 
         return new UserResponse(
             user.Id,
+            user.UserName,
             user.Role,
             user.Team?.ToResponse(),
-            user.UserName);
+            user.Participants?.ToResponses().ToList());
     }
 
     public static IEnumerable<UserResponse> ToResponses(this IEnumerable<User> users)
