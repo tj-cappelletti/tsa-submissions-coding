@@ -12,15 +12,12 @@ public class UserRequestValidator<T> : AbstractValidator<T> where T : IUserReque
     public UserRequestValidator()
     {
         RuleFor(user => user.Participants)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .When(user => string.Equals(user.Role, SubmissionRoles.Participant, StringComparison.InvariantCultureIgnoreCase))
-            .WithMessage("A participant user must have at least one participant associated with them.");
-
-        RuleFor(user => user.Participants)
-            .NotEmpty()
+                .WithMessage("A participant user must have at least one participant associated with them.")
             .Must(participants => participants!.Count <= 2)
-            .When(user => string.Equals(user.Role, SubmissionRoles.Participant, StringComparison.InvariantCultureIgnoreCase))
-            .WithMessage("A participant user can have at most two participants associated with them.");
+                .WithMessage("A participant user can have at most two participants associated with them.")
+            .When(user => string.Equals(user.Role, SubmissionRoles.Participant, StringComparison.InvariantCultureIgnoreCase));
 
         RuleForEach(user => user.Participants)
             .Matches(ValidIndividualParticipantNumberRegEx)
