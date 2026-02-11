@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -35,39 +29,6 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
             MongoDbCollectionName,
             logger) { }
 
-    public string ComputeSignature(TestCase testCase)
-    {
-        var orderedTestCaseInputs = testCase.Inputs
-            .OrderBy(testCaseInput => testCaseInput.Index)
-            .Select(i => new Dictionary<string, object?>
-            {
-                ["index"] = i.Index,
-                ["dataType"] = i.DataType,
-                ["isArray"] = i.IsArray,
-                ["value"] = i.Value
-            })
-            .ToList();
-
-        var hashPayload = new Dictionary<string, object?>
-        {
-            ["inputs"] = orderedTestCaseInputs,
-            ["expectedOutput"] = testCase.ExpectedOutput,
-            ["outputDataType"] = testCase.OutputDataType,
-            ["outputIsArray"] = testCase.OutputIsArray
-        };
-
-        var jsonSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
-
-        var serializedHashPayload = JsonSerializer.Serialize(hashPayload, jsonSerializerOptions);
-
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(serializedHashPayload));
-        return "sha256:" + Convert.ToHexString(hash).ToLowerInvariant();
-    }
-
     public async Task<List<TestCase>> GetByProblemAsync(Problem problem, CancellationToken cancellationToken = default)
     {
         var filterDefinition = Builders<TestCase>.Filter.Eq(testCase => testCase.ProblemId, problem.Id);
@@ -77,5 +38,25 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
         var results = await cursor.ToListAsync(cancellationToken);
 
         return results;
+    }
+
+    public async Task<TestCase?> GetBySignatureAsync(string signature, CancellationToken cancellationToken = default)
+    {
+        var filterDefinition = Builders<TestCase>.Filter.Eq(testCase => testCase.Signature, signature);
+
+        var cursor = await EntityCollection.FindAsync(filterDefinition, cancellationToken: cancellationToken);
+
+        var result = await cursor.SingleOrDefaultAsync(cancellationToken);
+
+        return result;
+    }
+
+    public async Task<bool> SignatureExistsAsync(string signature, CancellationToken cancellationToken = default)
+    {
+        var filterDefinition = Builders<TestCase>.Filter.Eq(testCase => testCase.Signature, signature);
+
+        var cursor = await EntityCollection.FindAsync(filterDefinition, cancellationToken: cancellationToken);
+
+        return await cursor.AnyAsync(cancellationToken);
     }
 }
