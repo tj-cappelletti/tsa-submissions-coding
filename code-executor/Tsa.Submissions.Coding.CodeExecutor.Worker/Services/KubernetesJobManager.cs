@@ -108,11 +108,10 @@ public class KubernetesJobManager
     public async Task ExecuteJobAsync(RunnerJobPayload payload, CancellationToken cancellationToken = default)
     {
         var jobName = $"code-executor-runner-job-{payload.SubmissionId}";
+        _logger.LogInformation("Creating Kubernetes job {JobName} for submission {SubmissionId}", jobName, payload.SubmissionId);
 
         try
         {
-            _logger.LogInformation("Creating Kubernetes job {JobName} for submission {SubmissionId}", jobName, payload.SubmissionId);
-
             var image = GetImageForLanguage(payload.Language, payload.LanguageVersion);
             _logger.LogDebug("Using image {Image} for language {Language} {Version}", image, payload.Language, payload.LanguageVersion);
 
@@ -120,19 +119,18 @@ public class KubernetesJobManager
 
             var kubernetesJob = CreateJobDefinition(payload, jobName, image, payloadJson);
 
-            await _kubernetesClient.BatchV1.CreateNamespacedJobAsync(kubernetesJob, _namespace, cancellationToken: cancellationToken);
+            var job = await _kubernetesClient.BatchV1.CreateNamespacedJobAsync(kubernetesJob, _namespace, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Job {JobName} created successfully", jobName);
 
             var result = await WaitForJobCompletionAsync(jobName, payload.SubmissionId, cancellationToken);
 
-            if (result.IsFailure)
+            if (result.JobFailed)
                 _logger.LogError("Job {JobName} for submission {SubmissionId} did not complete successfully", jobName, payload.SubmissionId);
         }
         catch (Exception exception)
         {
-            Console.WriteLine(exception);
-            throw;
+            _logger.LogError(exception, "There was an unexpected error while trying to run the Kubernetes job");
         }
     }
 
@@ -173,31 +171,66 @@ public class KubernetesJobManager
 
             var job = await _kubernetesClient.BatchV1.ReadNamespacedJobStatusAsync(jobName, _namespace, cancellationToken: cancellationToken);
 
+            var logs = string.Empty;
+
+            if (job.Status.Active == 0)
+            {
+                logs = await GetPodLogsAsync(jobName, cancellationToken);
+            }
+
             if (job.Status.Succeeded > 0)
             {
                 _logger.LogInformation("Job {JobName} for submission {SubmissionId} completed successfully", jobName, submissionId);
-                return new RunnerJobResult
-                {
-                    IsSuccessful = true
-                };
             }
 
             if (job.Status.Failed > 0)
             {
                 _logger.LogError("Job {JobName} for submission {SubmissionId} failed", jobName, submissionId);
-                return new RunnerJobResult
-                {
-                    IsSuccessful = false
-                };
+
+                return new RunnerJobResult(job.Uid(), jobName, string.Empty, true, false, TimeSpan.Zero, logs);
             }
 
             await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
         }
 
-        _logger.LogError("Job {JobName} for submission {SubmissionId} timed out after {Timeout} minutes", jobName, submissionId, _jobTimeoutMinutes);
-        return new RunnerJobResult
+        throw new NotImplementedException("Timeout logic needs to be figured out.");
+        //_logger.LogError("Job {JobName} for submission {SubmissionId} timed out after {Timeout} minutes", jobName, submissionId, _jobTimeoutMinutes);
+        //return new RunnerJobResult(job.Uid(), jobName, string.Empty, true, false, TimeSpan.Zero, logs);
+    }
+
+    private async Task<string> GetPodLogsAsync(string jobName, CancellationToken cancellationToken)
+    {
+        try
         {
-            IsSuccessful = false
-        };
+            var pods = await _kubernetesClient.CoreV1.ListNamespacedPodAsync(
+                _namespace,
+                labelSelector: $"job-name={jobName}",
+                cancellationToken: cancellationToken);
+
+            if (pods.Items.Count == 0)
+            {
+                _logger.LogWarning("No pods found for job {JobName}", jobName);
+                return string.Empty;
+            }
+
+            var pod = pods.Items[0];
+
+            var logsStream = await _kubernetesClient.CoreV1.ReadNamespacedPodLogAsync(
+                pod.Metadata.Name,
+                _namespace,
+                cancellationToken: cancellationToken);
+
+            using var reader = new StreamReader(logsStream);
+            
+            var logs = await reader.ReadToEndAsync(cancellationToken);
+            
+            return logs;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Error getting pod logs for job {JobName}", jobName);
+
+            return string.Empty;
+        }
     }
 }

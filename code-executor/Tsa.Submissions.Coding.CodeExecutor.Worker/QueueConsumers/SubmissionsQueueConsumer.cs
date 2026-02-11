@@ -53,14 +53,14 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
                 return;
             }
 
-            // Fetch and validate submission
-            _logger.LogInformation("Fetching submission from API");
-            // The null-forgiving operator is safe here due to prior validation
+            // Fetch problem and submission to create the job payload
+            _logger.LogInformation("Fetching problem and submission from API");
             var submission = await _codingApiClient.Submissions.GetAsync(submissionMessage.SubmissionId, cancellationToken);
             var problem = await _codingApiClient.Problems.GetAsync(submission.ProblemId, true, cancellationToken);
 
             _logger.LogInformation("Processing submission {SubmissionId}", submissionMessage.SubmissionId);
-            var success = await ProcessSubmissionAsync(submission, problem.TestCases, cancellationToken);
+            // Null-forgiving operator is used here because we expect test cases to be present for a valid problem
+            var success = await ProcessSubmissionAsync(submission, problem.TestCases!, cancellationToken);
 
             if (success)
             {
@@ -84,18 +84,19 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
         }
     }
 
-    private async Task<bool> ProcessSubmissionAsync(SubmissionResponse submission, List<TestCase> testCases, CancellationToken cancellationToken)
+    private Task<bool> ProcessSubmissionAsync(SubmissionResponse submission, List<TestCaseResponse> testCases, CancellationToken cancellationToken)
     {
-        await _kubernetesJobManager.ExecuteJobAsync(
-            new RunnerJobPayload(
-                submission.Language.Name,
-                submission.Language.Version,
-                submission.ProblemId,
-                submission.Solution,
-                submission.Id,
-                testCases),
-            cancellationToken);
+        throw new NotImplementedException();
+        //await _kubernetesJobManager.ExecuteJobAsync(
+        //    new RunnerJobPayload(
+        //        submission.Language.Name,
+        //        submission.Language.Version,
+        //        submission.ProblemId,
+        //        submission.Solution,
+        //        submission.Id,
+        //        testCases),
+        //    cancellationToken);
 
-        return true;
+        //return true;
     }
 }

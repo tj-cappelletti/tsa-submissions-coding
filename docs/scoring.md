@@ -48,7 +48,7 @@ Efficiency Score = (Baseline Time / Participant Time) × 100
 For example:
 
 | Submission             | Baseline Time | Participant Time | Efficiency Score |
-|------------------------|-------------|------------------|------------------|
+|------------------------|---------------|------------------|------------------|
 | Team 9001-901 (Java)   | 120ms         | 190ms            | 63.157           |
 | Team 9001-901 (Python) | 200ms         | 220ms            | 90.909           |
 

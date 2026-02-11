@@ -1,5 +1,7 @@
 ﻿using System.Text.Json.Serialization;
+using Tsa.Submissions.Coding.Contracts.Languages;
 using Tsa.Submissions.Coding.Contracts.TestCases;
+using Tsa.Submissions.Coding.Contracts.Users;
 
 namespace Tsa.Submissions.Coding.Contracts.Submissions;
 
@@ -7,7 +9,7 @@ public record SubmissionResponse
 {
     [JsonPropertyName("id")]
     public string Id { get; init; }
-    
+
     [JsonPropertyName("language")]
     public ProgrammingLanguageResponse Language { get; init; }
 
@@ -21,29 +23,20 @@ public record SubmissionResponse
     public DateTimeOffset SubmittedOn { get; init; }
 
     [JsonPropertyName("testCaseResults")]
-    public List<TestCaseResult> TestCaseResults { get; init; }
+    public List<TestCaseResult>? TestCaseResults { get; init; }
 
-    [JsonPropertyName("userId")]
-    public string UserId { get; set; }
+    [JsonPropertyName("user")]
+    public UserResponse User { get; set; }
 
     public SubmissionResponse(
         string id,
+        UserResponse user,
         ProgrammingLanguageResponse language,
         string problemId,
         string solution,
         DateTimeOffset submittedOn,
-        string userId
-    ) : this(id, language, problemId, solution, submittedOn, [], userId) { }
-
-    [JsonConstructor]
-    public SubmissionResponse(
-        string id,
-        ProgrammingLanguageResponse language,
-        string problemId,
-        string solution,
-        DateTimeOffset submittedOn,
-        List<TestCaseResult> testCaseResults,
-        string userId)
+        List<TestCaseResult>? testCaseResults = null
+    )
     {
         Id = id;
         Language = language;
@@ -51,6 +44,6 @@ public record SubmissionResponse
         Solution = solution;
         SubmittedOn = submittedOn;
         TestCaseResults = testCaseResults;
-        UserId = userId;
+        User = user;
     }
 }

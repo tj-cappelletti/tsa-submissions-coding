@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 using Tsa.Submissions.Coding.Contracts;
 using Tsa.Submissions.Coding.Contracts.Messages;
 using Tsa.Submissions.Coding.Contracts.Submissions;
@@ -25,6 +24,7 @@ public class SubmissionsController : WebApiBaseController
 {
     private readonly ILogger<SubmissionsController> _logger;
     private readonly IProblemsService _problemsService;
+    private readonly IProgrammingLanguagesService _programmingLanguagesService;
     private readonly ISubmissionsQueueService _submissionsQueueService;
     private readonly ISubmissionsService _submissionsService;
     private readonly IUsersService _usersService;
@@ -32,12 +32,14 @@ public class SubmissionsController : WebApiBaseController
     public SubmissionsController(
         ILogger<SubmissionsController> logger,
         IProblemsService problemsService,
+        IProgrammingLanguagesService programmingLanguagesService,
         ISubmissionsService submissionsService,
         ISubmissionsQueueService submissionsQueueService,
         IUsersService usersService)
     {
         _logger = logger;
         _problemsService = problemsService;
+        _programmingLanguagesService = programmingLanguagesService;
         _submissionsService = submissionsService;
         _submissionsQueueService = submissionsQueueService;
         _usersService = usersService;
@@ -86,7 +88,7 @@ public class SubmissionsController : WebApiBaseController
 
         var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
 
-        if (submission.User!.Id.AsString == user!.Id)
+        if (submission.UserId == user!.Id)
         {
             _logger.LogInformation("The user {UserId} is the owner of the submission with ID {SubmissionId}", user.Id, submission.Id);
             return submission.ToResponse();
@@ -120,7 +122,7 @@ public class SubmissionsController : WebApiBaseController
         var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
 
         return submissions
-            .Where(submission => submission.User!.Id.AsString == user!.Id)
+            .Where(submission => submission.UserId == user!.Id)
             .ToResponses()
             .ToList();
     }
@@ -169,27 +171,38 @@ public class SubmissionsController : WebApiBaseController
             return BadRequest(ApiErrorEntityNotFound("Problem", submissionCreateRequest.ProblemId.SanitizeForLogging()));
         }
 
+        var programmingLanguage = await _programmingLanguagesService.GetAsync(submissionCreateRequest.ProgrammingLanguageId, cancellationToken);
+
+        if (programmingLanguage == null)
+        {
+            _logger.LogWarning(
+                "Programming language with ID {ProgrammingLanguageId} not found",
+                submissionCreateRequest.ProgrammingLanguageId.SanitizeForLogging());
+            return BadRequest(ApiErrorEntityNotFound("Programming Language", submissionCreateRequest.ProgrammingLanguageId.SanitizeForLogging()));
+        }
+
         var submission = new Submission
         {
-            Language = new ProgrammingLanguage
-            {
-                Name = submissionCreateRequest.Language.Name,
-                Version = submissionCreateRequest.Language.Version
-            },
-            Problem = new MongoDBRef(ProblemsService.MongoDbCollectionName, problem.Id),
+            ProgrammingLanguageId = programmingLanguage.Id,
+            ProblemId = problem.Id,
             Solution = submissionCreateRequest.Solution,
             SubmittedOn = submittedOn,
-            User = new MongoDBRef(UsersService.MongoDbCollectionName, user.Id)
+            UserId = user.Id
         };
 
+        _logger.LogInformation("Creating the submission for problem ID {ProblemId} by user {UserName}",
+            submission.ProblemId.SanitizeForLogging(),
+            User.Identity?.Name.SanitizeForLogging() ?? "Unknown");
         await _submissionsService.CreateAsync(submission, cancellationToken);
 
+        // Null-forgiving operator is used here because the ID, ProblemId, and UserId are set when the submission is created
         var submissionMessage = new SubmissionMessage(
-            submission.Problem.Id.AsString,
+            submission.ProblemId!,
             submission.Id!,
             submittedOn,
-            submission.User.Id.AsString);
+            submission.UserId!);
 
+        _logger.LogInformation("Enqueuing submission message for submission ID {SubmissionId}", submission.Id.SanitizeForLogging());
         await _submissionsQueueService.EnqueueSubmissionAsync(submissionMessage, cancellationToken);
 
         return CreatedAtAction(nameof(Get), new { id = submission.Id }, submission.ToResponse());

@@ -1,6 +1,6 @@
 db = db.getSiblingDB('tsa_submissions_coding');
 
-db.problem_test_cases.createIndex({ problemId: 1, name: 1 }, { unique: true });
+db.problem_test_cases.createIndex({ problemId: 1, signature: 1 }, { unique: true });
 
 db.problem_test_cases.insertMany([
     {

@@ -199,10 +199,10 @@ public class DotNetExecutor : ILanguageExecutor
 
             //TODO: Capture actual results
             var actualOutput = unitTestResult.ErrorMessage == null
-                ? testCase.ExpectedOutputDisplay
+                ? testCase.ExpectedOutput
                 : Regex.Match(unitTestResult.ErrorMessage, "Actual:[\\s]+(.+)$").Groups[1].Value;
 
-            testCaseResults.Add(new TestCaseResult(testCase.GetUniqueId(), actualOutput, unitTestResult.ErrorMessage, passed, false,
+            testCaseResults.Add(new TestCaseResult(testCase.Signature, actualOutput, unitTestResult.ErrorMessage, passed, false,
                 unitTestResult.DurationValue));
         }
 
@@ -298,10 +298,10 @@ public class DotNetExecutor : ILanguageExecutor
                     throw new NotImplementedException("Array inputs are not supported yet.");
                 }
 
-                inputs.Add(FormatDataType(testCaseInput.DataType, testCaseInput.RawInput));
+                inputs.Add(FormatDataType(testCaseInput.DataType, testCaseInput.Value));
             }
 
-            var output = FormatDataType(testCase.OutputDataType, testCase.ExpectedOutputRaw);
+            var output = FormatDataType(testCase.OutputDataType, testCase.ExpectedOutput);
 
             testCaseMethods.AppendLine("    [Theory]");
             testCaseMethods.AppendLine($"    [InlineData({string.Join(", ", inputs)}, {output})]");

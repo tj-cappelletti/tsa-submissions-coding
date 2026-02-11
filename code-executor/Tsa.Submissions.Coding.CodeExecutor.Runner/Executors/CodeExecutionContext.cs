@@ -30,7 +30,7 @@ public class CodeExecutionContext
     /// <summary>
     ///     Gets or sets the test cases to execute
     /// </summary>
-    public required List<TestCase> TestCases { get; set; } = [];
+    public required List<TestCaseResponse> TestCases { get; set; } = [];
 
     /// <summary>
     ///     Gets or sets the working directory for execution

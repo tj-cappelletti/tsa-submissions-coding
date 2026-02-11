@@ -1,10 +1,40 @@
-﻿namespace Tsa.Submissions.Coding.Contracts.TestCases;
+﻿using System.Text.Json.Serialization;
 
-public record TestCaseResult(
-    string TestCaseId,
-    string ActualOutput,
-    string? Message,
-    bool Passed,
-    bool TimedOut,
-    TimeSpan ExecutionTime
-);
+namespace Tsa.Submissions.Coding.Contracts.TestCases;
+
+public record TestCaseResult
+{
+    [JsonPropertyName("actualOutput")]
+    public string ActualOutput { get; init; }
+
+    [JsonPropertyName("executionTime")]
+    public TimeSpan ExecutionTime { get; init; } = TimeSpan.Zero;
+
+    [JsonPropertyName("message")]
+    public string? Message { get; init; }
+
+    [JsonPropertyName("passed")]
+    public bool Passed { get; init; }
+
+    [JsonPropertyName("testCaseId")]
+    public string TestCaseId { get; init; }
+
+    [JsonPropertyName("timedOut")]
+    public bool TimedOut { get; init; }
+
+    public TestCaseResult(
+        string testCaseId,
+        string actualOutput,
+        string? message,
+        bool passed,
+        bool timedOut,
+        TimeSpan executionTime)
+    {
+        ActualOutput = actualOutput;
+        ExecutionTime = executionTime;
+        Message = message;
+        Passed = passed;
+        TestCaseId = testCaseId;
+        TimedOut = timedOut;
+    }
+}

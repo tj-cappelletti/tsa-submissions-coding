@@ -24,7 +24,7 @@ public record RunnerJobPayload
     public string SubmissionId { get; init; }
 
     [JsonPropertyName("testCases")]
-    public List<TestCase> TestCases { get; init; }
+    public List<TestCaseResponse> TestCases { get; init; }
 
     public RunnerJobPayload(
         string language,
@@ -33,7 +33,7 @@ public record RunnerJobPayload
         string problemId,
         string solution,
         string submissionId,
-        List<TestCase> testCases)
+        List<TestCaseResponse> testCases)
     {
         Language = language;
         LanguageFixture = languageFixture;
