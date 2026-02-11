@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Tsa.Submissions.Coding.Contracts.Users;
 
-namespace Tsa.Submissions.Coding.Contracts.Validators;
+namespace Tsa.Submissions.Coding.WebApi.Validators;
 
 public class UserCreateRequestValidator : UserRequestValidator<UserCreateRequest>
 {
@@ -10,5 +10,9 @@ public class UserCreateRequestValidator : UserRequestValidator<UserCreateRequest
         RuleFor(user => user.Password)
             .NotEmpty()
             .WithMessage("A user must have a password.");
+
+        RuleFor(user => user.UserName)
+            .NotEmpty()
+            .WithMessage("A user must have a username.");
     }
 }

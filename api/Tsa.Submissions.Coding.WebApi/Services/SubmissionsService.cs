@@ -17,11 +17,17 @@ public class SubmissionsService : MongoDbService<Submission>, ISubmissionsServic
 
     public string ServiceName => "Submissions";
 
-    public SubmissionsService(IMongoClient mongoClient, IOptions<SubmissionsDatabase> options, ILogger<SubmissionsService> logger) : base(
-        mongoClient,
-        options.Value.Name!,
-        MongoDbCollectionName,
-        logger) { }
+    public SubmissionsService(
+        ICacheService cacheService,
+        IMongoClient mongoClient,
+        IOptions<SubmissionsDatabase> options,
+        ILogger<SubmissionsService> logger)
+        : base(
+            cacheService,
+            mongoClient,
+            options.Value.Name!,
+            MongoDbCollectionName,
+            logger) { }
 
     public async Task<List<Submission>> GetByProblemIdAsync(string problemId, CancellationToken cancellationToken = default)
     {

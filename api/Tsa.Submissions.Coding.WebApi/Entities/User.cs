@@ -10,7 +10,7 @@ public class User : IMongoDbEntity
     [BsonRepresentation(BsonType.ObjectId)]
     public string? Id { get; set; }
 
-    public List<Participant>? Participants { get; set; }
+    public List<string>? Participants { get; set; }
 
     public string? PasswordHash { get; set; }
 

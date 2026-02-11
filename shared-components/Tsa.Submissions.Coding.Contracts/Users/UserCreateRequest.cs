@@ -1,16 +1,35 @@
-﻿namespace Tsa.Submissions.Coding.Contracts.Users;
+﻿using System.Text.Json.Serialization;
 
-public record UserCreateRequest(
-    string Password,
-    string Role,
-    TeamRequest? Team,
-    string UserName) : IUserRequest
+namespace Tsa.Submissions.Coding.Contracts.Users;
+
+public record UserCreateRequest : IUserRequest
 {
-    public string Password { get; } = Password;
+    [JsonPropertyName("participants")]
+    public List<string>? Participants { get; init; }
 
-    public string Role { get; } = Role;
+    [JsonPropertyName("password")]
+    public string Password { get; init; }
 
-    public TeamRequest? Team { get; } = Team;
+    [JsonPropertyName("role")]
+    public string Role { get; init; }
 
-    public string UserName { get; } = UserName;
+    [JsonPropertyName("team")]
+    public TeamRequest? Team { get; init; }
+
+    [JsonPropertyName("userName")]
+    public string UserName { get; init; }
+
+    public UserCreateRequest(
+        string userName,
+        string password,
+        string role,
+        TeamRequest? team,
+        List<string>? participants)
+    {
+        Participants = participants;
+        Password = password;
+        Role = role;
+        Team = team;
+        UserName = userName;
+    }
 }

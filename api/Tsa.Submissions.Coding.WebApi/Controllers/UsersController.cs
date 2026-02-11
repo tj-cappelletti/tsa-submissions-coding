@@ -10,7 +10,6 @@ using Tsa.Submissions.Coding.Contracts;
 using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
-using Tsa.Submissions.Coding.WebApi.Models;
 using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
@@ -20,22 +19,15 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 [Produces("application/json")]
 public class UsersController : WebApiBaseController
 {
-    private const string UserIdCacheKey = "user_id";
-    private const string UsersCacheKey = "users";
-    private readonly TimeSpan _cacheExpiration = TimeSpan.FromHours(2);
-
-    private readonly ICacheService _cacheService;
     private readonly IValidator<UserCreateRequest> _userCreateRequestValidator;
     private readonly IValidator<UserModifyRequest> _userModifyRequestValidator;
     private readonly IUsersService _usersService;
 
     public UsersController(
-        ICacheService cacheService,
         IValidator<UserCreateRequest> userCreateRequestValidator,
         IValidator<UserModifyRequest> userModifyRequestValidator,
         IUsersService usersService)
     {
-        _cacheService = cacheService;
         _userCreateRequestValidator = userCreateRequestValidator;
         _userModifyRequestValidator = userModifyRequestValidator;
         _usersService = usersService;
@@ -69,9 +61,6 @@ public class UsersController : WebApiBaseController
 
         await _usersService.RemoveAsync(user, cancellationToken);
 
-        await _cacheService.RemoveAsync($"{UserIdCacheKey}:{id}", cancellationToken);
-        await _cacheService.RemoveAsync(UsersCacheKey, cancellationToken);
-
         return NoContent();
     }
 
@@ -101,7 +90,7 @@ public class UsersController : WebApiBaseController
     [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponse))]
     public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
     {
-        var users = await GetUsersFromCache(cancellationToken);
+        var users = await _usersService.GetAsync(cancellationToken);
 
         return Ok(users.ToResponses());
     }
@@ -123,7 +112,7 @@ public class UsersController : WebApiBaseController
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponse))]
     public async Task<IActionResult> Get(string id, CancellationToken cancellationToken = default)
     {
-        var user = await GetUserFromCache(id, cancellationToken);
+        var user = await _usersService.GetAsync(id, cancellationToken);
 
         if (user == null) return CreateUserNotFoundError(id);
 
@@ -135,42 +124,6 @@ public class UsersController : WebApiBaseController
         return Ok(user.ToResponse());
     }
 
-    // TODO: Move to UsersService
-    private async Task<T?> GetOrSetCacheAsync<T>(string cacheKey, Func<CancellationToken, Task<T?>> fetchFromService, CancellationToken cancellationToken)
-    {
-        var cachedData = await _cacheService.GetAsync<T>(cacheKey, cancellationToken);
-
-        if (cachedData != null) return cachedData;
-
-        var data = await fetchFromService(cancellationToken);
-
-        if (data != null)
-        {
-            await _cacheService.SetAsync(cacheKey, data, _cacheExpiration, cancellationToken);
-        }
-
-        return data;
-    }
-
-    // TODO: Move to UsersService
-    private async Task<User?> GetUserFromCache(string id, CancellationToken cancellationToken)
-    {
-        return await GetOrSetCacheAsync(
-            $"{UserIdCacheKey}:{id}",
-            async ct => await _usersService.GetAsync(id, ct),
-            cancellationToken
-        );
-    }
-
-    // TODO: Move to UsersService
-    private async Task<List<User>> GetUsersFromCache(CancellationToken cancellationToken)
-    {
-        return await GetOrSetCacheAsync(
-            UsersCacheKey,
-            async ct => await _usersService.GetAsync(ct),
-            cancellationToken
-        ) ?? [];
-    }
 
     /// <summary>
     ///     Creates a new user
@@ -199,11 +152,16 @@ public class UsersController : WebApiBaseController
 
         if (existingUser != null) return Conflict(ApiErrorEntityAlreadyExists(nameof(User), userCreateRequest.UserName));
 
-        var user = ToEntity(userCreateRequest);
+        var user = new User
+        {
+            Participants = userCreateRequest.Participants,
+            PasswordHash = BC.HashPassword(userCreateRequest.Password),
+            Role = userCreateRequest.Role,
+            Team = userCreateRequest.Team == null ? null : ToEntity(userCreateRequest.Team),
+            UserName = userCreateRequest.UserName
+        };
 
         await _usersService.CreateAsync(user, cancellationToken);
-
-        await SetUserCache(user, cancellationToken);
 
         return CreatedAtAction(nameof(Get), new { id = user.Id }, user.ToResponse());
     }
@@ -296,27 +254,14 @@ public class UsersController : WebApiBaseController
 
         if (user == null) return CreateUserNotFoundError(id);
 
-        var updatedUser = ToEntity(updatedUserModel);
-        updatedUser.Id = user.Id;
+        user.Participants = updatedUserModel.Participants;
+        user.PasswordHash = string.IsNullOrWhiteSpace(updatedUserModel.Password) ? user.PasswordHash : BC.HashPassword(updatedUserModel.Password);
+        user.Role = updatedUserModel.Role;
+        user.Team = updatedUserModel.Team == null ? null : ToEntity(updatedUserModel.Team);
 
-        if (string.IsNullOrWhiteSpace(updatedUser.PasswordHash))
-        {
-            updatedUser.PasswordHash = user.PasswordHash;
-        }
-
-        await _usersService.UpdateAsync(updatedUser, cancellationToken);
-
-        await SetUserCache(updatedUser, cancellationToken);
+        await _usersService.UpdateAsync(user, cancellationToken);
 
         return NoContent();
-    }
-
-    private async Task SetUserCache(User user, CancellationToken cancellationToken)
-    {
-        if (user.Id == null) throw new InvalidOperationException("The user's ID cannot be null when adding it to the cache.");
-
-        await _cacheService.SetAsync($"{UserIdCacheKey}:{user.Id}", user, _cacheExpiration, cancellationToken);
-        await _cacheService.RemoveAsync(UsersCacheKey, cancellationToken);
     }
 
     private static Team ToEntity(TeamRequest teamRequest)
@@ -325,26 +270,5 @@ public class UsersController : WebApiBaseController
             Enum.Parse<CompetitionLevel>(teamRequest.CompetitionLevel),
             teamRequest.SchoolNumber,
             teamRequest.TeamNumber);
-    }
-
-    private static User ToEntity(IUserRequest userRequest)
-    {
-        var user = new User
-        {
-            Role = userRequest.Role,
-            Team = userRequest.Team == null ? null : ToEntity(userRequest.Team),
-            UserName = userRequest.UserName
-        };
-
-        if (userRequest.Password != null)
-        {
-            user.PasswordHash = BC.HashPassword(userRequest.Password);
-        }
-        else if (userRequest is UserCreateRequest)
-        {
-            throw new InvalidOperationException("Password is required for user creation.");
-        }
-
-        return user;
     }
 }
