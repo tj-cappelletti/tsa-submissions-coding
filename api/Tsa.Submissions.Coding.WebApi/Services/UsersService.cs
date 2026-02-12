@@ -65,7 +65,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     public override async Task<List<User>> GetAsync(CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            $"{UsersCacheKey}",
+            UsersCacheKey,
             async ct => await base.GetAsync(ct),
             cancellationToken
         );
@@ -138,7 +138,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     }
 
     /// <summary>
-    ///     Updates a user in the database and invalidates all related cache entries.
+    ///     Updates a user in the database and refreshes all related cache entries.
     /// </summary>
     /// <param name="entity">The user entity with updated values</param>
     /// <param name="cancellationToken">The cancellation token</param>
@@ -146,6 +146,9 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     {
         await base.UpdateAsync(entity, cancellationToken);
 
-        await InvalidateUserCacheAsync(entity, cancellationToken);
+        await SetCacheAsync($"{UserIdCacheKey}:{entity.Id}", entity, cancellationToken);
+        await SetCacheAsync($"{UserNameCacheKey}:{entity.UserName}", entity, cancellationToken);
+
+        await InvalidateUsersCacheAsync(cancellationToken);
     }
 }
