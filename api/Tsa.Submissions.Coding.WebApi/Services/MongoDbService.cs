@@ -17,7 +17,7 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 /// <typeparam name="T">The entity type that implements <see cref="IMongoDbEntity" /></typeparam>
 public abstract class MongoDbService<T> where T : IMongoDbEntity
 {
-    private readonly TimeSpan _cacheExpiration = TimeSpan.FromHours(2);
+    private readonly TimeSpan _cacheExpiration = TimeSpan.FromHours(4);
     private readonly string _collectionName;
     private readonly string _databaseName;
     protected readonly ICacheService CacheService;
