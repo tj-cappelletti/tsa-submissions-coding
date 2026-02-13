@@ -57,8 +57,8 @@ public class ProblemsController : ControllerBase
     /// <response code="200">All available problems returned</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProblemResponse>))]
-    public async Task<ActionResult<IList<ProblemResponse>>> Get(CancellationToken cancellationToken = default)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProblemListResponse>))]
+    public async Task<ActionResult<IList<ProblemListResponse>>> Get(CancellationToken cancellationToken = default)
     {
         var problems = await _problemsService.GetAsync(cancellationToken);
 
