@@ -6,7 +6,7 @@ namespace Tsa.Submissions.Coding.Contracts.Problems;
 public record ProblemResponse
 {
     [JsonPropertyName("description")]
-    public string? Description { get; init; }
+    public string Description { get; init; }
 
     [JsonPropertyName("id")]
     public string Id { get; init; }
@@ -23,7 +23,7 @@ public record ProblemResponse
     public ProblemResponse(
         string id,
         string title,
-        string? description,
+        string description,
         bool isActive,
         IEnumerable<TestCaseResponse>? testCases = null)
     {
