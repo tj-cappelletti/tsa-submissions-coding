@@ -2,33 +2,43 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Tsa.Submissions.Coding.Contracts.TestCases;
+using Tsa.Submissions.Coding.WebApi.Entities;
 
-namespace Tsa.Submissions.Coding.UnitTests.Helpers;
+namespace Tsa.Submissions.Coding.UnitTests.Helpers.TestCases;
 
 [ExcludeFromCodeCoverage]
-internal class TestCaseEqualityComparer : IEqualityComparer<TestCase?>, IEqualityComparer<IList<TestCase>?>
+internal class TestCaseEqualityComparer : EqualityComparerBase<TestCase>
 {
-    public bool Equals(TestCase? x, TestCase? y)
+    protected override bool EqualsCore(TestCase x, TestCase y)
     {
-        if (ReferenceEquals(x, y)) return true;
-        if (x is null) return false;
-        if (y is null) return false;
-        if (x.GetType() != y.GetType()) return false;
+        var expectedOutputsMatch = x.ExpectedOutput == y.ExpectedOutput;
+        var idsMatch = x.Id == y.Id;
+        var inputsMatch = new TestCaseInputEqualityComparer().Equals(x.Inputs, y.Inputs);
+        var isActiveMatch = x.IsActive == y.IsActive;
+        var isPublicMatch = x.IsPublic == y.IsPublic;
+        var namesMatch = x.Name == y.Name;
+        var outputDataTypesMatch = x.OutputDataType == y.OutputDataType;
+        var outputIsArraysMatch = x.OutputIsArray == y.OutputIsArray;
+        var problemIdsMatch = x.ProblemId == y.ProblemId;
+        var signaturesMatch = x.Signature == y.Signature;
 
-        return x.Input == y.Input && x.ExpectedOutput == y.ExpectedOutput && x.IsActive == y.IsActive;
+        return expectedOutputsMatch &&
+               idsMatch &&
+               inputsMatch &&
+               isActiveMatch &&
+               isPublicMatch &&
+               namesMatch &&
+               outputDataTypesMatch &&
+               outputIsArraysMatch &&
+               problemIdsMatch &&
+               signaturesMatch;
     }
 
-    public bool Equals(IList<TestCase>? x, IList<TestCase>? y)
+    protected override bool EqualsCore(IList<TestCase> x, IList<TestCase> y)
     {
-        if (ReferenceEquals(x, y)) return true;
-        if (x is null) return false;
-        if (y is null) return false;
-        if (x.Count != y.Count) return false;
-
         foreach (var leftTestCase in x)
         {
-            var rightTestCase = y.SingleOrDefault(testCase => testCase.GetUniqueId() == leftTestCase.GetUniqueId());
+            var rightTestCase = y.SingleOrDefault(testCase => testCase.Signature == leftTestCase.Signature);
 
             if (!Equals(leftTestCase, rightTestCase)) return false;
         }
@@ -36,13 +46,36 @@ internal class TestCaseEqualityComparer : IEqualityComparer<TestCase?>, IEqualit
         return true;
     }
 
-    public int GetHashCode(TestCase? obj)
+    public override int GetHashCode(TestCase? obj)
     {
-        return HashCode.Combine(obj?.Input, obj?.ExpectedOutput, obj?.IsActive);
+        if (obj == null) return 0;
+
+        var hash = new HashCode();
+        hash.Add(obj.ExpectedOutput);
+        hash.Add(obj.Id);
+        hash.Add(new TestCaseInputEqualityComparer().GetHashCode(obj.Inputs));
+        hash.Add(obj.IsActive);
+        hash.Add(obj.IsPublic);
+        hash.Add(obj.Name);
+        hash.Add(obj.OutputDataType);
+        hash.Add(obj.OutputIsArray);
+        hash.Add(obj.ProblemId);
+        hash.Add(obj.Signature);
+
+        return hash.ToHashCode();
     }
 
-    public int GetHashCode(IList<TestCase>? obj)
+    public override int GetHashCode(IList<TestCase>? obj)
     {
-        return obj == null ? 0 : obj.GetHashCode();
+        if (obj == null) return 0;
+
+        var hash = new HashCode();
+
+        foreach (var item in obj.OrderBy(i => i.Signature))
+        {
+            hash.Add(GetHashCode(item));
+        }
+
+        return hash.ToHashCode();
     }
 }
