@@ -265,7 +265,7 @@ public class TestCasesController : WebApiBaseController
 
         // Check if the update will result in a duplicate signature that belongs to a different test case for a given problem
         // Test cases must be unique (via their signature) for a given problem
-        if (existingTestCaseWithSignature?.Id != id)
+        if (existingTestCaseWithSignature != null && existingTestCaseWithSignature.Id != id)
         {
             return Conflict(ApiErrorEntityAlreadyExists(nameof(TestCase), updatedTestCase.Signature!));
         }
