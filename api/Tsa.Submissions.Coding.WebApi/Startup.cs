@@ -20,6 +20,7 @@ using MongoDB.Driver.Core.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Tsa.Submissions.Coding.Contracts.Authentication;
+using Tsa.Submissions.Coding.Contracts.Problems;
 using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Services;
@@ -258,6 +259,7 @@ public class Startup(IConfiguration configuration)
 
         // Add Validators
         services.AddScoped<IValidator<AuthenticationRequest>, AuthenticationRequestValidator>();
+        services.AddScoped<IValidator<ProblemRequest>, ProblemRequestValidator>();
         services.AddScoped<IValidator<UserCreateRequest>, UserCreateRequestValidator>();
         services.AddScoped<IValidator<UserModifyRequest>, UserModifyRequestValidator>();
 

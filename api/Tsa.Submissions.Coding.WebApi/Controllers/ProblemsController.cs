@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,13 +16,15 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Produces("application/json")]
-public class ProblemsController : ControllerBase
+public class ProblemsController : WebApiBaseController
 {
+    private readonly IValidator<ProblemRequest> _problemRequestValidator;
     private readonly IProblemsService _problemsService;
     private readonly ITestCasesService _testCasesService;
 
-    public ProblemsController(IProblemsService problemsService, ITestCasesService testCasesService)
+    public ProblemsController(IValidator<ProblemRequest> problemRequestValidator, IProblemsService problemsService, ITestCasesService testCasesService)
     {
+        _problemRequestValidator = problemRequestValidator;
         _problemsService = problemsService;
         _testCasesService = testCasesService;
     }
@@ -111,8 +114,15 @@ public class ProblemsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<CreatedAtActionResult> Post(ProblemRequest problemRequest, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Post(ProblemRequest problemRequest, CancellationToken cancellationToken = default)
     {
+        var validationResult = await ValidateAsync(problemRequest, _problemRequestValidator, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            return validationResult.GetError();
+        }
+
         var problem = ToEntity(problemRequest);
 
         await _problemsService.CreateAsync(problem, cancellationToken);
@@ -139,6 +149,13 @@ public class ProblemsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Put(string id, ProblemRequest updatedProblemRequest, CancellationToken cancellationToken = default)
     {
+        var validationResult = await ValidateAsync(updatedProblemRequest, _problemRequestValidator, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            return validationResult.GetError();
+        }
+
         var problem = await _problemsService.GetAsync(id, cancellationToken);
 
         if (problem == null) return NotFound();
