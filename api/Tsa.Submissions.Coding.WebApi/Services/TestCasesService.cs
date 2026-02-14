@@ -266,6 +266,8 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     {
         await base.UpdateAsync(entity, cancellationToken);
 
+        await InvalidateTestCaseCacheAsync(entity, cancellationToken);
+
         await SetCacheAsync($"{TestCaseIdCacheKey}:{entity.Id}", entity, cancellationToken);
         await SetCacheAsync($"{TestCaseBySignatureCacheKey}:{entity.Signature}", entity, cancellationToken);
 
