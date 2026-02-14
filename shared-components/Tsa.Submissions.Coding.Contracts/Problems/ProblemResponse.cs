@@ -14,11 +14,11 @@ public record ProblemResponse
     [JsonPropertyName("isActive")]
     public bool IsActive { get; init; }
 
-    [JsonPropertyName("title")]
-    public string Title { get; init; }
-
     [JsonPropertyName("testCases")]
     public List<TestCaseResponse>? TestCases { get; init; }
+
+    [JsonPropertyName("title")]
+    public string Title { get; init; }
 
     public ProblemResponse(
         string id,
@@ -27,10 +27,10 @@ public record ProblemResponse
         bool isActive,
         IEnumerable<TestCaseResponse>? testCases = null)
     {
-        Id = id;
-        Title = title;
         Description = description;
+        Id = id;
         IsActive = isActive;
         TestCases = testCases?.ToList();
+        Title = title;
     }
 }
