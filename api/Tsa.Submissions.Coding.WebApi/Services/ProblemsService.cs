@@ -146,7 +146,7 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     {
         await base.UpdateAsync(entity, cancellationToken);
 
-        // Invalidate old cache entries before updating to ensure consistency
+        // Invalidate old cache entries and refresh cache after updating to ensure consistency
         await InvalidateProblemCacheAsync(entity, cancellationToken);
         await InvalidateProblemsCacheAsync(cancellationToken);
 
