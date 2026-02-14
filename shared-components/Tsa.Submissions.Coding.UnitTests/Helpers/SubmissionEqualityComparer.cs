@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Tsa.Submissions.Coding.WebApi.Entities;
@@ -23,38 +24,40 @@ internal class SubmissionEqualityComparer : IEqualityComparer<Submission?>, IEqu
 
     public bool Equals(Submission? x, Submission? y)
     {
-        if (ReferenceEquals(x, y)) return true;
-        if (x is null) return false;
-        if (y is null) return false;
+        //if (ReferenceEquals(x, y)) return true;
+        //if (x is null) return false;
+        //if (y is null) return false;
 
-        var evaluatedOnsMatch = x.EvaluatedOn == y.EvaluatedOn;
-        var idsMatch = x.Id == y.Id;
-        var languagesMatch = x.Language == y.Language;
-        var problemsMatch = x.Problem?.Id.AsString == y.Problem?.Id.AsString;
-        var solutionsMatch = x.Solution == y.Solution;
-        var submittedOnsMatch = x.SubmittedOn == y.SubmittedOn;
-        //var testSetResultsMatch = _testSetResultEqualityComparer.Equals(x.TestSetResults, y.TestSetResults);
-        var usersMatch = x.User?.Id.AsString == y.User?.Id.AsString;
+        //var evaluatedOnsMatch = x.EvaluatedOn == y.EvaluatedOn;
+        //var idsMatch = x.Id == y.Id;
+        //var languagesMatch = x.Language == y.Language;
+        //var problemsMatch = x.Problem?.Id.AsString == y.Problem?.Id.AsString;
+        //var solutionsMatch = x.Solution == y.Solution;
+        //var submittedOnsMatch = x.SubmittedOn == y.SubmittedOn;
+        ////var testSetResultsMatch = _testSetResultEqualityComparer.Equals(x.TestSetResults, y.TestSetResults);
+        //var usersMatch = x.User?.Id.AsString == y.User?.Id.AsString;
 
 
-        if (_ignoreDateTimes)
-        {
-            return idsMatch &&
-                   languagesMatch &&
-                   problemsMatch &&
-                   solutionsMatch &&
-                   //testSetResultsMatch &&
-                   usersMatch;
-        }
+        //if (_ignoreDateTimes)
+        //{
+        //    return idsMatch &&
+        //           languagesMatch &&
+        //           problemsMatch &&
+        //           solutionsMatch &&
+        //           //testSetResultsMatch &&
+        //           usersMatch;
+        //}
 
-        return evaluatedOnsMatch &&
-               idsMatch &&
-               languagesMatch &&
-               problemsMatch &&
-               solutionsMatch &&
-               submittedOnsMatch &&
-               //testSetResultsMatch &&
-               usersMatch;
+        //return evaluatedOnsMatch &&
+        //       idsMatch &&
+        //       languagesMatch &&
+        //       problemsMatch &&
+        //       solutionsMatch &&
+        //       submittedOnsMatch &&
+        //       //testSetResultsMatch &&
+        //       usersMatch;
+
+        throw new NotImplementedException();
     }
 
     public bool Equals(IList<Submission>? x, IList<Submission>? y)

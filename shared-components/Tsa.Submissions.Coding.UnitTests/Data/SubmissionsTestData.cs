@@ -18,38 +18,39 @@ internal class SubmissionsTestData : IEnumerable<object[]>
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return
-        [
-            new Submission
-            {
-                Id = "000000000000000000000001",
-                Language = new ProgrammingLanguage
-                {
-                    Name = "C#",
-                    Version = "10.0"
-                },
-                Problem = new MongoDBRef(ProblemsService.MongoDbCollectionName, "000000000000000000000001"),
-                Solution = "The solution",
-                SubmittedOn = DateTime.Now,
-                //TestSetResults =
-                //[
-                //    new TestSetResult
-                //    {
-                //        Passed = true,
-                //        RunDuration = new TimeSpan(0, 0, 5, 30),
-                //        TestSet = new MongoDBRef(TestSetsService.MongoDbCollectionName, "000000000000000000000001")
-                //    },
-                //    new TestSetResult
-                //    {
-                //        Passed = false,
-                //        RunDuration = new TimeSpan(0, 0, 1, 30),
-                //        TestSet = new MongoDBRef(TestSetsService.MongoDbCollectionName, "000000000000000000000002")
-                //    }
-                //],
-                User = new MongoDBRef(UsersService.MongoDbCollectionName, "000000000000000000000001")
-            },
-            SubmissionDataIssues.None
-        ];
+        throw new NotImplementedException();
+        //yield return
+        //[
+        //    new Submission
+        //    {
+        //        Id = "000000000000000000000001",
+        //        Language = new ProgrammingLanguage
+        //        {
+        //            Name = "C#",
+        //            Version = "10.0"
+        //        },
+        //        Problem = new MongoDBRef(ProblemsService.MongoDbCollectionName, "000000000000000000000001"),
+        //        Solution = "The solution",
+        //        SubmittedOn = DateTime.Now,
+        //        //TestSetResults =
+        //        //[
+        //        //    new TestSetResult
+        //        //    {
+        //        //        Passed = true,
+        //        //        RunDuration = new TimeSpan(0, 0, 5, 30),
+        //        //        TestSet = new MongoDBRef(TestSetsService.MongoDbCollectionName, "000000000000000000000001")
+        //        //    },
+        //        //    new TestSetResult
+        //        //    {
+        //        //        Passed = false,
+        //        //        RunDuration = new TimeSpan(0, 0, 1, 30),
+        //        //        TestSet = new MongoDBRef(TestSetsService.MongoDbCollectionName, "000000000000000000000002")
+        //        //    }
+        //        //],
+        //        User = new MongoDBRef(UsersService.MongoDbCollectionName, "000000000000000000000001")
+        //    },
+        //    SubmissionDataIssues.None
+        //];
     }
 }
 

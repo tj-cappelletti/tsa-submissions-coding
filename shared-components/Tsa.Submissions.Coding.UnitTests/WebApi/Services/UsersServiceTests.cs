@@ -30,12 +30,13 @@ public class UsersServiceTest
     public void Collection_Name_Should_Be_Users()
     {
         // Arrange
+        var mockedCacheService = new Mock<ICacheService>();
         var (_, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<User>(DatabaseName, CollectionName);
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
         // Act
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Assert
         Assert.Equal("users", usersService.CollectionName);
@@ -46,12 +47,13 @@ public class UsersServiceTest
     public void Constructor_Should_Instantiate_Base_Class()
     {
         // Arrange
+        var mockedCacheService = new Mock<ICacheService>();
         var (_, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<User>(DatabaseName, CollectionName);
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
         // Act
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Assert
         Assert.NotNull(usersService);
@@ -66,11 +68,13 @@ public class UsersServiceTest
 
         var user = usersTestData.First(userTestData => (UserDataIssues)userTestData[1] == UserDataIssues.None)[0] as User;
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<User>(DatabaseName, CollectionName);
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         await usersService.CreateAsync(user!);
@@ -103,6 +107,8 @@ public class UsersServiceTest
 
         var filterDefinitionJson = Builders<User>.Filter.Eq(user => user.Id, expectedUser.Id).RenderToJson();
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         // If you get this error:
         // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
         // The predicate for FindAsync changed and is causing an error
@@ -112,7 +118,7 @@ public class UsersServiceTest
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         var result = await usersService.ExistsAsync(expectedUser.Id!);
@@ -136,6 +142,8 @@ public class UsersServiceTest
 
         var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(users);
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         // If you get this error:
         // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
         // The predicate for FindAsync changed and is causing an error
@@ -145,7 +153,7 @@ public class UsersServiceTest
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         var result = await usersService.GetAsync();
@@ -179,6 +187,8 @@ public class UsersServiceTest
 
         var filterDefinitionJson = Builders<User>.Filter.Eq(user => user.Id, expectedUser.Id).RenderToJson();
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         // If you get this error:
         // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
         // The predicate for FindAsync changed and is causing an error
@@ -188,7 +198,7 @@ public class UsersServiceTest
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         var result = await usersService.GetAsync(expectedUser.Id!);
@@ -220,6 +230,8 @@ public class UsersServiceTest
 
         var filterDefinitionJson = Builders<User>.Filter.Eq(user => user.UserName, expectedUser.UserName).RenderToJson();
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         // If you get this error:
         // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
         // The predicate for FindAsync changed and is causing an error
@@ -229,7 +241,7 @@ public class UsersServiceTest
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         var result = await usersService.GetByUserNameAsync(expectedUser.UserName!);
@@ -258,6 +270,8 @@ public class UsersServiceTest
 
         var filterDefinitionJson = Builders<User>.Filter.In(user => user.Id, ids).RenderToJson();
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         // If you get this error:
         // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
         // The predicate for FindAsync changed and is causing an error
@@ -267,7 +281,7 @@ public class UsersServiceTest
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         var result = await usersService.GetAsync(ids);
@@ -287,11 +301,13 @@ public class UsersServiceTest
 
         var expectedPingCommand = (Command<BsonDocument>)"{ping:1}";
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         MockHelpers.SetupMockedMongoCollectionRunCommandAsyncThrowsException(mockedMongoCollection, expectedPingCommand);
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         var result = await usersService.PingAsync();
@@ -309,11 +325,13 @@ public class UsersServiceTest
 
         var expectedPingCommand = (Command<BsonDocument>)"{ping:1}";
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         MockHelpers.SetupMockedMongoCollectionRunCommandAsync(mockedMongoCollection, expectedPingCommand);
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         var result = await usersService.PingAsync();
@@ -344,6 +362,8 @@ public class UsersServiceTest
             return expectedFilterDefinitionJson == filterDefinitionJson;
         };
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         // If you get this error:
         // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
         // The predicate for FindAsync changed and is causing an error
@@ -351,7 +371,7 @@ public class UsersServiceTest
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
         await usersService.RemoveAsync(expectedUser);
@@ -370,12 +390,13 @@ public class UsersServiceTest
     public void ServiceName_Name_Should_Be_Users()
     {
         // Arrange
+        var mockedCacheService = new Mock<ICacheService>();
         var (_, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<User>(DatabaseName, CollectionName);
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
         // Act
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Assert
         Assert.Equal("Users", usersService.ServiceName);
@@ -403,14 +424,16 @@ public class UsersServiceTest
             return expectedFilterDefinitionJson == filterDefinitionJson;
         };
 
+        var mockedCacheService = new Mock<ICacheService>();
+
         var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<User>(DatabaseName, CollectionName);
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var usersService = new UsersService(mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+        var usersService = new UsersService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
         // Act
-        await usersService.UpdateAsync(expectedUser, default);
+        await usersService.UpdateAsync(expectedUser);
 
         // Assert
         mockedMongoCollection
