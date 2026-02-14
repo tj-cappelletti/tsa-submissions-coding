@@ -159,7 +159,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     {
         await base.UpdateAsync(entity, cancellationToken);
 
-        // Invalidate old cache entries before updating to ensure consistency
+        // Invalidate related cache entries after updating to ensure consistency
         await InvalidateUserCacheAsync(entity, cancellationToken);
         await InvalidateUsersCacheAsync(cancellationToken);
 
