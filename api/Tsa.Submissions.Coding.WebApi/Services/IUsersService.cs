@@ -6,7 +6,7 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 
 /// <summary>
 ///     Defines the contract for user data access operations with caching.
-///     All read operations are automatically cached for 2 hours to optimize performance during competitions.
+///     All read operations are automatically cached for 4 hours to optimize performance during competitions.
 ///     Cache entries are automatically invalidated when users are created, updated, or deleted.
 /// </summary>
 /// <remarks>
@@ -16,7 +16,7 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 public interface IUsersService : IMongoEntityService<User>, IPingableService
 {
     /// <summary>
-    ///     Gets a user by their username. Results are cached for 2 hours.
+    ///     Gets a user by their username. Results are cached for 4 hours.
     /// </summary>
     /// <param name="userName">The username to search for</param>
     /// <param name="cancellationToken">The cancellation token</param>

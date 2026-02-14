@@ -12,7 +12,7 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 
 /// <summary>
 ///     Provides data access and caching operations for test case entities.
-///     All read operations are cached for 2 hours to optimize performance during competitions.
+///     All read operations are cached for 4 hours to optimize performance during competitions.
 /// </summary>
 /// <remarks>
 ///     This service implements multi-dimensional caching:
@@ -82,7 +82,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     }
 
     /// <summary>
-    ///     Gets all test cases from the database. Results are cached for 2 hours.
+    ///     Gets all test cases from the database. Results are cached for 4 hours.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A list of all test cases</returns>
@@ -96,7 +96,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     }
 
     /// <summary>
-    ///     Gets a test case by its unique identifier. Results are cached for 2 hours.
+    ///     Gets a test case by its unique identifier. Results are cached for 4 hours.
     /// </summary>
     /// <param name="id">The test case's unique identifier</param>
     /// <param name="cancellationToken">The cancellation token</param>
@@ -111,7 +111,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     }
 
     /// <summary>
-    ///     Gets all test cases for a specific problem. Results are cached for 2 hours.
+    ///     Gets all test cases for a specific problem. Results are cached for 4 hours.
     /// </summary>
     /// <param name="problem">The problem whose test cases should be retrieved</param>
     /// <param name="cancellationToken">The cancellation token</param>
@@ -140,7 +140,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     }
 
     /// <summary>
-    ///     Gets a test case by its signature hash. Results are cached for 2 hours.
+    ///     Gets a test case by its signature hash. Results are cached for 4 hours.
     /// </summary>
     /// <param name="problem">The problem whose test case should be retrieved</param>
     /// <param name="signature">The signature hash to search for</param>

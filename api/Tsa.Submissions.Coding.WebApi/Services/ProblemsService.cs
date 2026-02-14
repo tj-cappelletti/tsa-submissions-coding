@@ -12,7 +12,7 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 
 /// <summary>
 ///     Provides data access and caching operations for problem entities.
-///     All read operations are cached for 2 hours to optimize performance during competitions.
+///     All read operations are cached for 4 hours to optimize performance during competitions.
 /// </summary>
 /// <remarks>
 ///     This service overrides base <see cref="MongoDbService{T}" /> methods to implement caching.
@@ -68,7 +68,7 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     }
 
     /// <summary>
-    ///     Gets all problems from the database. Results are cached for 2 hours.
+    ///     Gets all problems from the database. Results are cached for 4 hours.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A list of all problems</returns>
@@ -82,7 +82,7 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     }
 
     /// <summary>
-    ///     Gets a problem by its unique identifier. Results are cached for 2 hours.
+    ///     Gets a problem by its unique identifier. Results are cached for 4 hours.
     /// </summary>
     /// <param name="id">The problem's unique identifier</param>
     /// <param name="cancellationToken">The cancellation token</param>

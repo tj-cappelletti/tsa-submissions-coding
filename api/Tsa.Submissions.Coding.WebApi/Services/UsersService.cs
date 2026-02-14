@@ -12,7 +12,7 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 
 /// <summary>
 ///     Provides data access and caching operations for user entities.
-///     All read operations are cached for 2 hours to optimize performance during competitions.
+///     All read operations are cached for 4 hours to optimize performance during competitions.
 /// </summary>
 /// <remarks>
 ///     This service overrides base <see cref="MongoDbService{T}" /> methods to implement caching.
@@ -71,7 +71,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     }
 
     /// <summary>
-    ///     Gets all users from the database. Results are cached for 2 hours.
+    ///     Gets all users from the database. Results are cached for 4 hours.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A list of all users</returns>
@@ -85,7 +85,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     }
 
     /// <summary>
-    ///     Gets a user by their unique identifier. Results are cached for 2 hours.
+    ///     Gets a user by their unique identifier. Results are cached for 4 hours.
     /// </summary>
     /// <param name="id">The user's unique identifier</param>
     /// <param name="cancellationToken">The cancellation token</param>
@@ -100,7 +100,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     }
 
     /// <summary>
-    ///     Gets a user by their username. Results are cached for 2 hours.
+    ///     Gets a user by their username. Results are cached for 4 hours.
     /// </summary>
     /// <param name="userName">The username to search for</param>
     /// <param name="cancellationToken">The cancellation token</param>
