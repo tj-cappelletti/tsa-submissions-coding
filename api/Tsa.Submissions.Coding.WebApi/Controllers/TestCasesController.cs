@@ -212,7 +212,7 @@ public class TestCasesController : WebApiBaseController
 
         // Null forgiveness operator is used here because the signature is computed from the test case properties and should never be null.
         // If it is null, that indicates an in issue in the ToEntity and ComputeSignature methods.
-        if (await _testCasesService.SignatureExistsAsync(testCase.Signature!, cancellationToken))
+        if (await _testCasesService.SignatureExistsAsync(problem, testCase.Signature!, cancellationToken))
         {
             return Conflict(ApiErrorEntityAlreadyExists(nameof(TestCase), testCase.Signature!));
         }
@@ -261,9 +261,10 @@ public class TestCasesController : WebApiBaseController
 
         var updatedTestCase = ToEntity(testCaseRequest, problemId, id);
 
-        var existingTestCaseWithSignature = await _testCasesService.GetBySignatureAsync(updatedTestCase.Signature!, cancellationToken);
+        var existingTestCaseWithSignature = await _testCasesService.GetBySignatureAsync(problem, updatedTestCase.Signature!, cancellationToken);
 
-        // Check if the update will result in a duplicate signature that belongs to a different test case, which is not allowed.
+        // Check if the update will result in a duplicate signature that belongs to a different test case for a given problem
+        // Test cases must be unique (via their signature) for a given problem
         if (existingTestCaseWithSignature?.Id != id)
         {
             return Conflict(ApiErrorEntityAlreadyExists(nameof(TestCase), updatedTestCase.Signature!));

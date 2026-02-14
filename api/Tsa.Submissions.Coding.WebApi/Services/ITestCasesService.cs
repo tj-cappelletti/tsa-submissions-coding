@@ -9,7 +9,7 @@ public interface ITestCasesService : IMongoEntityService<TestCase>, IPingableSer
 {
     Task<List<TestCase>> GetByProblemAsync(Problem problem, CancellationToken cancellationToken = default);
     
-    Task<TestCase?> GetBySignatureAsync(string signature, CancellationToken cancellationToken = default);
+    Task<TestCase?> GetBySignatureAsync(Problem problem, string signature, CancellationToken cancellationToken = default);
 
-    Task<bool> SignatureExistsAsync(string signature, CancellationToken cancellationToken = default);
+    Task<bool> SignatureExistsAsync(Problem problem, string signature, CancellationToken cancellationToken = default);
 }

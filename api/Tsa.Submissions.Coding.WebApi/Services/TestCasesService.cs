@@ -143,6 +143,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     /// <summary>
     ///     Gets a test case by its signature hash. Results are cached for 2 hours.
     /// </summary>
+    /// <param name="problem">The problem whose test case should be retrieved</param>
     /// <param name="signature">The signature hash to search for</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>The test case with the matching signature, or null if not found</returns>
@@ -150,23 +151,27 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     ///     This method is used for duplicate detection during test case creation and updates.
     ///     It leverages caching to provide fast lookups for recently created or accessed test cases.
     /// </remarks>
-    public async Task<TestCase?> GetBySignatureAsync(string signature, CancellationToken cancellationToken = default)
+    public async Task<TestCase?> GetBySignatureAsync(Problem problem, string signature, CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            $"{TestCaseBySignatureCacheKey}:{signature}",
-            async ct => await GetBySignatureFromDbAsync(signature, ct),
+            $"{TestCaseBySignatureCacheKey}:{problem.Id}:{signature}",
+            async ct => await GetBySignatureFromDbAsync(problem, signature, ct),
             cancellationToken);
     }
 
     /// <summary>
     ///     Retrieves a test case by signature directly from the database, bypassing the cache.
     /// </summary>
+    /// <param name="problem">The problem whose test case should be retrieved</param>
     /// <param name="signature">The signature hash to search for</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>The test case with the matching signature, or null if not found</returns>
-    private async Task<TestCase?> GetBySignatureFromDbAsync(string signature, CancellationToken cancellationToken = default)
+    private async Task<TestCase?> GetBySignatureFromDbAsync(Problem problem, string signature, CancellationToken cancellationToken = default)
     {
-        var filterDefinition = Builders<TestCase>.Filter.Eq(testCase => testCase.Signature, signature);
+        var filterDefinition = Builders<TestCase>.Filter.And(
+            Builders<TestCase>.Filter.Eq(testCase => testCase.ProblemId, problem.Id),
+            Builders<TestCase>.Filter.Eq(testCase => testCase.Signature, signature)
+        );
 
         var cursor = await EntityCollection.FindAsync(filterDefinition, cancellationToken: cancellationToken);
 
@@ -174,7 +179,8 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     }
 
     /// <summary>
-    ///     Invalidates all cache entries for a specific test case, including ID, signature, problem scope, and collection caches.
+    ///     Invalidates all cache entries for a specific test case, including ID, signature, problem scope, and collection
+    ///     caches.
     /// </summary>
     /// <param name="testCase">The test case whose cache entries should be invalidated</param>
     /// <param name="cancellationToken">The cancellation token</param>
@@ -227,24 +233,23 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     /// <summary>
     ///     Checks whether a test case with the specified signature exists.
     /// </summary>
-    /// <param name="signature">The signature hash to check</param>
+    /// <param name="problem">The problem whose test case should be retrieved</param>
+    /// <param name="signature">The signature hash to search for</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>True if a test case with the signature exists; otherwise, false</returns>
     /// <remarks>
     ///     This method checks the cache first for performance, then falls back to the database if needed.
     ///     Used for duplicate detection during test case creation and updates.
     /// </remarks>
-    public async Task<bool> SignatureExistsAsync(string signature, CancellationToken cancellationToken = default)
+    public async Task<bool> SignatureExistsAsync(Problem problem, string signature, CancellationToken cancellationToken = default)
     {
-        var cachedTestCase = await CacheService.GetAsync<TestCase>($"{TestCaseBySignatureCacheKey}:{signature}", cancellationToken);
+        var cachedTestCase = await CacheService.GetAsync<TestCase>($"{TestCaseBySignatureCacheKey}:{problem.Id}:{signature}", cancellationToken);
 
         if (cachedTestCase != null) return true;
 
-        var filterDefinition = Builders<TestCase>.Filter.Eq(testCase => testCase.Signature, signature);
+        var testCase = await GetBySignatureAsync(problem, signature, cancellationToken);
 
-        var cursor = await EntityCollection.FindAsync(filterDefinition, cancellationToken: cancellationToken);
-
-        return await cursor.AnyAsync(cancellationToken);
+        return testCase != null;
     }
 
     /// <summary>
