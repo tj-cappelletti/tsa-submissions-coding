@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Tsa.Submissions.Coding.Contracts.Submissions;
@@ -13,25 +14,27 @@ internal class SubmissionModelEqualityComparer : IEqualityComparer<SubmissionRes
 
     public bool Equals(SubmissionResponse? x, SubmissionResponse? y)
     {
-        if (ReferenceEquals(x, y)) return true;
-        if (x is null) return false;
-        if (y is null) return false;
+        //if (ReferenceEquals(x, y)) return true;
+        //if (x is null) return false;
+        //if (y is null) return false;
 
-        var idsMatch = x.Id == y.Id;
-        var languagesMatch = x.Language == y.Language;
-        var problemsMatch = x.ProblemId == y.ProblemId;
-        var solutionsMatch = x.Solution == y.Solution;
-        var submittedOnsMatch = x.SubmittedOn == y.SubmittedOn;
-        //var testSetResultsMatch = _testSetResultModelEqualityComparer.Equals(x.TestSetResults, y.TestSetResults);
-        var usersMatch = x.UserId == y.UserId;
+        //var idsMatch = x.Id == y.Id;
+        //var languagesMatch = x.Language == y.Language;
+        //var problemsMatch = x.ProblemId == y.ProblemId;
+        //var solutionsMatch = x.Solution == y.Solution;
+        //var submittedOnsMatch = x.SubmittedOn == y.SubmittedOn;
+        ////var testSetResultsMatch = _testSetResultModelEqualityComparer.Equals(x.TestSetResults, y.TestSetResults);
+        //var usersMatch = x.UserId == y.UserId;
 
-        return idsMatch &&
-               languagesMatch &&
-               problemsMatch &&
-               solutionsMatch &&
-               submittedOnsMatch &&
-               //testSetResultsMatch &&
-               usersMatch;
+        //return idsMatch &&
+        //       languagesMatch &&
+        //       problemsMatch &&
+        //       solutionsMatch &&
+        //       submittedOnsMatch &&
+        //       //testSetResultsMatch &&
+        //       usersMatch;
+
+        throw new NotImplementedException();
     }
 
     public bool Equals(IList<SubmissionResponse>? x, IList<SubmissionResponse>? y)

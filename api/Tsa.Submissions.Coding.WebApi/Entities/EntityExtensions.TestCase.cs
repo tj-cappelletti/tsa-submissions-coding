@@ -38,6 +38,6 @@ public static partial class EntityExtensions
 
     public static IEnumerable<TestCaseResponse> ToResponses(this IEnumerable<TestCase> testCases)
     {
-        return testCases.Select(tc => tc.ToResponse());
+        return testCases.Select(testCase => testCase.ToResponse());
     }
 }

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tsa.Submissions.Coding.Contracts.Problems;
-using Tsa.Submissions.Coding.Contracts.TestCases;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.Services;
@@ -58,8 +57,8 @@ public class ProblemsController : ControllerBase
     /// <response code="200">All available problems returned</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProblemResponse>))]
-    public async Task<ActionResult<IList<ProblemResponse>>> Get(CancellationToken cancellationToken = default)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProblemListResponse>))]
+    public async Task<ActionResult<IList<ProblemListResponse>>> Get(CancellationToken cancellationToken = default)
     {
         var problems = await _problemsService.GetAsync(cancellationToken);
 
@@ -97,31 +96,6 @@ public class ProblemsController : ControllerBase
         return expandTestCases
             ? problem.ToResponse(testCases)
             : problem.ToResponse();
-    }
-
-    /// <summary>
-    ///     Fetches a problem from the database
-    /// </summary>
-    /// <param name="id">The ID of the problem to get</param>
-    /// <param name="cancellationToken">The .NET cancellation token</param>
-    /// <response code="200">Returns the requested problem</response>
-    /// <response code="404">The problem does not exist in the database</response>
-    [Authorize(Roles = SubmissionRoles.All)]
-    [HttpGet("{id:length(24)}/test-cases")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TestCaseResponse>))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<TestCaseResponse>>> GetTestCases(string id, CancellationToken cancellationToken = default)
-    {
-        var problem = await _problemsService.GetAsync(id, cancellationToken);
-
-        if (problem == null) return NotFound();
-
-        var testCases = await _testCasesService.GetByProblemAsync(problem, cancellationToken);
-
-        return User.IsInRole(SubmissionRoles.Participant)
-            ? testCases.Where(testCase => testCase.IsPublic).ToResponses().ToList()
-            : testCases.ToResponses().ToList();
     }
 
     /// <summary>

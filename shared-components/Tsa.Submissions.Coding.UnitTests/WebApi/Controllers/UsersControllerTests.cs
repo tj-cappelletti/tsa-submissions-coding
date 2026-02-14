@@ -178,7 +178,6 @@ public class UsersControllerTests
 
         var user = (User)usersTestData.First(userTestData => (UserDataIssues)userTestData[1] == UserDataIssues.None)[0];
 
-        var mockedCacheService = new Mock<ICacheService>();
         var mockedUserCreateRequestValidator = new Mock<IValidator<UserCreateRequest>>();
         var mockedUserModifyRequestValidator = new Mock<IValidator<UserModifyRequest>>();
         var mockedUsersService = new Mock<IUsersService>();
@@ -186,7 +185,6 @@ public class UsersControllerTests
             .ReturnsAsync(user);
 
         var usersController = new UsersController(
-            mockedCacheService.Object,
             mockedUserCreateRequestValidator.Object,
             mockedUserModifyRequestValidator.Object,
             mockedUsersService.Object);
@@ -204,13 +202,11 @@ public class UsersControllerTests
     public async Task Delete_Should_Return_Not_Found()
     {
         // Arrange
-        var mockedCacheService = new Mock<ICacheService>();
         var mockedUserCreateRequestValidator = new Mock<IValidator<UserCreateRequest>>();
         var mockedUserModifyRequestValidator = new Mock<IValidator<UserModifyRequest>>();
         var mockedUsersService = new Mock<IUsersService>();
 
         var usersController = new UsersController(
-            mockedCacheService.Object,
             mockedUserCreateRequestValidator.Object,
             mockedUserModifyRequestValidator.Object,
             mockedUsersService.Object);
@@ -228,13 +224,11 @@ public class UsersControllerTests
     public async Task Get_By_Id_Should_Return_Not_Found()
     {
         // Arrange
-        var mockedCacheService = new Mock<ICacheService>();
         var mockedUserCreateRequestValidator = new Mock<IValidator<UserCreateRequest>>();
         var mockedUserModifyRequestValidator = new Mock<IValidator<UserModifyRequest>>();
         var mockedUsersService = new Mock<IUsersService>();
 
         var usersController = new UsersController(
-            mockedCacheService.Object,
             mockedUserCreateRequestValidator.Object,
             mockedUserModifyRequestValidator.Object,
             mockedUsersService.Object);
@@ -256,7 +250,6 @@ public class UsersControllerTests
 
         var user = usersTestData.First(userTestData => (UserDataIssues)userTestData[1] == UserDataIssues.None)[0] as User;
 
-        var mockedCacheService = new Mock<ICacheService>();
         var mockedUserCreateRequestValidator = new Mock<IValidator<UserCreateRequest>>();
         var mockedUserModifyRequestValidator = new Mock<IValidator<UserModifyRequest>>();
         var mockedUsersService = new Mock<IUsersService>();
@@ -276,7 +269,6 @@ public class UsersControllerTests
         };
 
         var usersController = new UsersController(
-            mockedCacheService.Object,
             mockedUserCreateRequestValidator.Object,
             mockedUserModifyRequestValidator.Object,
             mockedUsersService.Object)
