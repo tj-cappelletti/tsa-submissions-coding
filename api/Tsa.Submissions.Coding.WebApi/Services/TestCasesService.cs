@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Entities;
+using Tsa.Submissions.Coding.WebApi.Services.Cache;
 
 namespace Tsa.Submissions.Coding.WebApi.Services;
 
@@ -19,20 +20,18 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 ///     - By signature for duplicate detection
 ///     - By problem ID for problem-scoped queries
 ///     Cache invalidation occurs automatically on create, update, and delete operations.
-///     The 2-hour cache duration aligns with the typical competition time window.
+///     The 4-hour cache duration aligns with the typical competition time window.
 /// </remarks>
 public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
 {
     public const string MongoDbCollectionName = "problem_test_cases";
 
-    private const string TestCaseBySignatureCacheKey = "test_case_signature";
-    private const string TestCaseIdCacheKey = "test_case_id";
-    private const string TestCasesByProblemIdCacheKey = "test_cases_problem_id";
-    private const string TestCasesCacheKey = "test_cases";
-
     /// <summary>
     ///     Gets the name of the MongoDB collection for test cases.
     /// </summary>
+    /// <remarks>
+    ///     This is used by the base service to perform database operations on the correct collection.
+    /// </remarks>
     public string CollectionName => MongoDbCollectionName;
 
     /// <summary>
@@ -73,8 +72,8 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     {
         await base.CreateAsync(entity, cancellationToken);
 
-        await SetCacheAsync($"{TestCaseIdCacheKey}:{entity.Id}", entity, cancellationToken);
-        await SetCacheAsync($"{TestCaseBySignatureCacheKey}:{entity.Signature}", entity, cancellationToken);
+        await SetCacheAsync(TestCaseCacheKeys.ForEntity(entity), entity, cancellationToken);
+        await SetCacheAsync(TestCaseCacheKeys.ForEntitySignature(entity), entity, cancellationToken);
 
         // Null forgiveness is safe here because a test case must have a problem ID to be valid, and the database enforces this constraint.
         await InvalidateTestCasesCacheAsync(entity.ProblemId!, cancellationToken);
@@ -90,7 +89,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     public override async Task<List<TestCase>> GetAsync(CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            TestCasesCacheKey,
+            TestCaseCacheKeys.AllTestCases(),
             async ct => await base.GetAsync(ct),
             cancellationToken
         );
@@ -105,7 +104,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     public override async Task<TestCase?> GetAsync(string id, CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            $"{TestCaseIdCacheKey}:{id}",
+            TestCaseCacheKeys.ById(id),
             async ct => await base.GetAsync(id, ct),
             cancellationToken
         );
@@ -120,7 +119,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     public async Task<List<TestCase>> GetByProblemAsync(Problem problem, CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            $"{TestCasesByProblemIdCacheKey}:{problem.Id}",
+            TestCaseCacheKeys.ByProblemId(problem.Id!),
             async ct => await GetByProblemFromDbAsync(problem, ct),
             cancellationToken);
     }
@@ -154,7 +153,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     public async Task<TestCase?> GetBySignatureAsync(Problem problem, string signature, CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            $"{TestCaseBySignatureCacheKey}:{problem.Id}:{signature}",
+            TestCaseCacheKeys.BySignature(problem.Id!, signature),
             async ct => await GetBySignatureFromDbAsync(problem, signature, ct),
             cancellationToken);
     }
@@ -187,8 +186,8 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     /// <returns>A task representing the asynchronous operation</returns>
     private async Task InvalidateTestCaseCacheAsync(TestCase testCase, CancellationToken cancellationToken)
     {
-        await CacheService.RemoveAsync($"{TestCaseIdCacheKey}:{testCase.Id}", cancellationToken);
-        await CacheService.RemoveAsync($"{TestCaseBySignatureCacheKey}:{testCase.Signature}", cancellationToken);
+        await CacheService.RemoveAsync(TestCaseCacheKeys.ForEntity(testCase), cancellationToken);
+        await CacheService.RemoveAsync(TestCaseCacheKeys.ForEntitySignature(testCase), cancellationToken);
 
         // Null forgiveness is safe here because a test case must have a problem ID to be valid, and the database enforces this constraint.
         await InvalidateTestCasesCacheAsync(testCase.ProblemId!, cancellationToken);
@@ -204,7 +203,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     /// <returns>A task representing the asynchronous operation</returns>
     private async Task InvalidateTestCasesCacheAsync(string problemId, CancellationToken cancellationToken)
     {
-        await CacheService.RemoveAsync($"{TestCasesByProblemIdCacheKey}:{problemId}", cancellationToken);
+        await CacheService.RemoveAsync(TestCaseCacheKeys.ByProblemId(problemId), cancellationToken);
     }
 
     /// <summary>
@@ -214,7 +213,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     /// <returns>A task representing the asynchronous operation</returns>
     private async Task InvalidateTestCasesCacheAsync(CancellationToken cancellationToken)
     {
-        await CacheService.RemoveAsync(TestCasesCacheKey, cancellationToken);
+        await CacheService.RemoveAsync(TestCaseCacheKeys.AllTestCases(), cancellationToken);
     }
 
     /// <summary>
@@ -243,7 +242,7 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     /// </remarks>
     public async Task<bool> SignatureExistsAsync(Problem problem, string signature, CancellationToken cancellationToken = default)
     {
-        var cachedTestCase = await CacheService.GetAsync<TestCase>($"{TestCaseBySignatureCacheKey}:{problem.Id}:{signature}", cancellationToken);
+        var cachedTestCase = await CacheService.GetAsync<TestCase>(TestCaseCacheKeys.BySignature(problem.Id!, signature), cancellationToken);
 
         if (cachedTestCase != null) return true;
 
@@ -266,14 +265,13 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     {
         await base.UpdateAsync(entity, cancellationToken);
 
+        // Invalidate old cache entries before updating to ensure consistency
         await InvalidateTestCaseCacheAsync(entity, cancellationToken);
-
-        await SetCacheAsync($"{TestCaseIdCacheKey}:{entity.Id}", entity, cancellationToken);
-        await SetCacheAsync($"{TestCaseBySignatureCacheKey}:{entity.Signature}", entity, cancellationToken);
-
         // Null forgiveness is safe here because a test case must have a problem ID to be valid, and the database enforces this constraint.
         await InvalidateTestCasesCacheAsync(entity.ProblemId!, cancellationToken);
-
         await InvalidateTestCasesCacheAsync(cancellationToken);
+
+        await SetCacheAsync(TestCaseCacheKeys.ForEntity(entity), entity, cancellationToken);
+        await SetCacheAsync(TestCaseCacheKeys.ForEntitySignature(entity), entity, cancellationToken);
     }
 }

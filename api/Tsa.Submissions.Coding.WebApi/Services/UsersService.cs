@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Entities;
+using Tsa.Submissions.Coding.WebApi.Services.Cache;
 
 namespace Tsa.Submissions.Coding.WebApi.Services;
 
@@ -16,20 +17,32 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 /// <remarks>
 ///     This service overrides base <see cref="MongoDbService{T}" /> methods to implement caching.
 ///     Cache invalidation occurs automatically on create, update, and delete operations.
-///     The 2-hour cache duration aligns with the typical competition time window.
+///     The 4-hour cache duration aligns with the typical competition time window.
 /// </remarks>
 public sealed class UsersService : MongoDbService<User>, IUsersService
 {
     public const string MongoDbCollectionName = "users";
 
-    private const string UserIdCacheKey = "user_id";
-    private const string UserNameCacheKey = "user_name";
-    private const string UsersCacheKey = "users";
-
+    /// <summary>
+    ///     Gets the name of the MongoDB collection used for user entities
+    /// </summary>
+    /// <remarks>
+    ///     This is used by the base service to perform database operations on the correct collection.
+    /// </remarks>
     public string CollectionName => MongoDbCollectionName;
 
+    /// <summary>
+    ///     Gets the service name for diagnostic and logging purposes.
+    /// </summary>
     public string ServiceName => "Users";
-
+    
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="UsersService" /> class.
+    /// </summary>
+    /// <param name="cacheService">The cache service for storing and retrieving cached data</param>
+    /// <param name="mongoClient">The MongoDB client instance</param>
+    /// <param name="options">The database configuration options</param>
+    /// <param name="logger">The logger instance</param>
     public UsersService(
         ICacheService cacheService,
         IMongoClient mongoClient,
@@ -51,8 +64,8 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     {
         await base.CreateAsync(entity, cancellationToken);
 
-        await SetCacheAsync($"{UserIdCacheKey}:{entity.Id}", entity, cancellationToken);
-        await SetCacheAsync($"{UserNameCacheKey}:{entity.UserName}", entity, cancellationToken);
+        await SetCacheAsync(UserCacheKeys.ForEntity(entity), entity, cancellationToken);
+        await SetCacheAsync(UserCacheKeys.ForEntityUserName(entity), entity, cancellationToken);
 
         await InvalidateUsersCacheAsync(cancellationToken);
     }
@@ -65,7 +78,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     public override async Task<List<User>> GetAsync(CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            UsersCacheKey,
+            UserCacheKeys.AllUsers(),
             async ct => await base.GetAsync(ct),
             cancellationToken
         );
@@ -80,7 +93,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     public override async Task<User?> GetAsync(string id, CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            $"{UserIdCacheKey}:{id}",
+            UserCacheKeys.ById(id),
             async ct => await base.GetAsync(id, ct),
             cancellationToken
         );
@@ -92,10 +105,10 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     /// <param name="userName">The username to search for</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>The user if found; otherwise, null</returns>
-    public async Task<User?> GetByUserNameAsync(string? userName, CancellationToken cancellationToken = default)
+    public async Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            $"{UserNameCacheKey}:{userName}",
+            UserCacheKeys.ByUserName(userName),
             async ct => await GetByUserNameFromDatabaseAsync(userName, ct),
             cancellationToken
         );
@@ -114,15 +127,15 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
 
     private async Task InvalidateUserCacheAsync(User entity, CancellationToken cancellationToken)
     {
-        await CacheService.RemoveAsync($"{UserIdCacheKey}:{entity.Id}", cancellationToken);
-        await CacheService.RemoveAsync($"{UserNameCacheKey}:{entity.UserName}", cancellationToken);
+        await CacheService.RemoveAsync(UserCacheKeys.ForEntity(entity), cancellationToken);
+        await CacheService.RemoveAsync(UserCacheKeys.ForEntityUserName(entity), cancellationToken);
 
         await InvalidateUsersCacheAsync(cancellationToken);
     }
 
     private async Task InvalidateUsersCacheAsync(CancellationToken cancellationToken)
     {
-        await CacheService.RemoveAsync(UsersCacheKey, cancellationToken);
+        await CacheService.RemoveAsync(UserCacheKeys.AllUsers(), cancellationToken);
     }
 
     /// <summary>
@@ -146,9 +159,11 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     {
         await base.UpdateAsync(entity, cancellationToken);
 
-        await SetCacheAsync($"{UserIdCacheKey}:{entity.Id}", entity, cancellationToken);
-        await SetCacheAsync($"{UserNameCacheKey}:{entity.UserName}", entity, cancellationToken);
-
+        // Invalidate old cache entries before updating to ensure consistency
+        await InvalidateUserCacheAsync(entity, cancellationToken);
         await InvalidateUsersCacheAsync(cancellationToken);
+
+        await SetCacheAsync(UserCacheKeys.ForEntity(entity), entity, cancellationToken);
+        await SetCacheAsync(UserCacheKeys.ForEntityUserName(entity), entity, cancellationToken);
     }
 }

@@ -21,5 +21,5 @@ public interface IUsersService : IMongoEntityService<User>, IPingableService
     /// <param name="userName">The username to search for</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>The user if found; otherwise, null</returns>
-    Task<User?> GetByUserNameAsync(string? userName, CancellationToken cancellationToken = default);
+    Task<User?> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default);
 }

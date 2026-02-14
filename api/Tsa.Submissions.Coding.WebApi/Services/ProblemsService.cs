@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Entities;
+using Tsa.Submissions.Coding.WebApi.Services.Cache;
 
 namespace Tsa.Submissions.Coding.WebApi.Services;
 
@@ -16,14 +17,11 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 /// <remarks>
 ///     This service overrides base <see cref="MongoDbService{T}" /> methods to implement caching.
 ///     Cache invalidation occurs automatically on create, update, and delete operations.
-///     The 2-hour cache duration aligns with the typical competition time window.
+///     The 4-hour cache duration aligns with the typical competition time window.
 /// </remarks>
 public class ProblemsService : MongoDbService<Problem>, IProblemsService
 {
     public const string MongoDbCollectionName = "problems";
-
-    private const string ProblemIdCacheKey = "problem_id";
-    private const string ProblemsCacheKey = "problems";
 
     /// <summary>
     ///     Gets the name of the MongoDB collection for problems.
@@ -64,7 +62,7 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     {
         await base.CreateAsync(entity, cancellationToken);
 
-        await SetCacheAsync($"{ProblemIdCacheKey}:{entity.Id}", entity, cancellationToken);
+        await SetCacheAsync(ProblemCacheKeys.ForEntity(entity), entity, cancellationToken);
 
         await InvalidateProblemsCacheAsync(cancellationToken);
     }
@@ -77,7 +75,7 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     public override async Task<List<Problem>> GetAsync(CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            ProblemsCacheKey,
+            ProblemCacheKeys.AllProblems(),
             async ct => await base.GetAsync(ct),
             cancellationToken
         );
@@ -92,7 +90,7 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     public override async Task<Problem?> GetAsync(string id, CancellationToken cancellationToken = default)
     {
         return await GetOrSetCacheAsync(
-            $"{ProblemIdCacheKey}:{id}",
+            ProblemCacheKeys.ById(id),
             async ct => await base.GetAsync(id, ct),
             cancellationToken
         );
@@ -106,7 +104,7 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     /// <returns>A task representing the asynchronous operation</returns>
     private async Task InvalidateProblemCacheAsync(Problem problem, CancellationToken cancellationToken = default)
     {
-        await CacheService.RemoveAsync($"{ProblemIdCacheKey}:{problem.Id}", cancellationToken);
+        await CacheService.RemoveAsync(ProblemCacheKeys.ById(problem.Id!), cancellationToken);
 
         await InvalidateProblemsCacheAsync(cancellationToken);
     }
@@ -118,7 +116,7 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     /// <returns>A task representing the asynchronous operation</returns>
     private async Task InvalidateProblemsCacheAsync(CancellationToken cancellationToken = default)
     {
-        await CacheService.RemoveAsync(ProblemsCacheKey, cancellationToken);
+        await CacheService.RemoveAsync(ProblemCacheKeys.AllProblems(), cancellationToken);
     }
 
     /// <summary>
@@ -148,8 +146,10 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     {
         await base.UpdateAsync(entity, cancellationToken);
 
-        await SetCacheAsync($"{ProblemIdCacheKey}:{entity.Id}", entity, cancellationToken);
-
+        // Invalidate old cache entries before updating to ensure consistency
+        await InvalidateProblemCacheAsync(entity, cancellationToken);
         await InvalidateProblemsCacheAsync(cancellationToken);
+
+        await SetCacheAsync(ProblemCacheKeys.ForEntity(entity), entity, cancellationToken);
     }
 }
