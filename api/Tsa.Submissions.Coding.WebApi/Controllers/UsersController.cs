@@ -14,7 +14,7 @@ using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/users")]
 [ApiController]
 [Produces("application/json")]
 public class UsersController : WebApiBaseController

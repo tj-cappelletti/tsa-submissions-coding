@@ -13,7 +13,7 @@ using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/problems")]
 [ApiController]
 [Produces("application/json")]
 public class ProblemsController : WebApiBaseController
