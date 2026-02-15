@@ -5,9 +5,6 @@ using Tsa.Submissions.Coding.Contracts.Problems;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
-/// <summary>
-///     Provides extension methods for converting <see cref="Problem" /> entities to response models.
-/// </summary>
 public static partial class EntityExtensions
 {
     /// <summary>
