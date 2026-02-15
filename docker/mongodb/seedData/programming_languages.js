@@ -9,7 +9,7 @@ db.programming_languages.insertMany([
         "identifier": "csharp",
         "isEnabled": true,
         "name": "C#",
-        "supportedVersions": [
+        "versions": [
             {
                 "displayName": ".NET 9.0",
                 "isDefault": false,
