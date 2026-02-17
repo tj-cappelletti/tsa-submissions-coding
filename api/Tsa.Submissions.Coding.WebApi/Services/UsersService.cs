@@ -64,10 +64,10 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     {
         await base.CreateAsync(entity, cancellationToken);
 
+        await InvalidateUsersCacheAsync(cancellationToken);
+
         await SetCacheAsync(UserCacheKeys.ForEntity(entity), entity, cancellationToken);
         await SetCacheAsync(UserCacheKeys.ForEntityUserName(entity), entity, cancellationToken);
-
-        await InvalidateUsersCacheAsync(cancellationToken);
     }
 
     /// <summary>
