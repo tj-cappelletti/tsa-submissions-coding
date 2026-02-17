@@ -85,4 +85,22 @@ public static partial class EntityExtensions
     {
         return programmingLanguages.Select(programmingLanguage => programmingLanguage.ToResponse());
     }
+
+    /// <summary>
+    ///     Converts a collection of <see cref="ProgrammingLanguageVersion" /> to a collection of
+    ///     <see cref="ProgrammingLanguageVersionResponse" />.
+    /// </summary>
+    /// <param name="programmingLanguageVersions">The collection of programming language versions to convert.</param>
+    /// <returns>
+    ///     A collection of <see cref="ProgrammingLanguageVersionResponse" /> representing the programming language
+    ///     versions.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown if any required properties of the programming language version are
+    ///     missing.
+    /// </exception>
+    public static IEnumerable<ProgrammingLanguageVersionResponse> ToResponses(this IEnumerable<ProgrammingLanguageVersion> programmingLanguageVersions)
+    {
+        return programmingLanguageVersions.Select(programmingLanguageVersion => programmingLanguageVersion.ToResponse());
+    }
 }
