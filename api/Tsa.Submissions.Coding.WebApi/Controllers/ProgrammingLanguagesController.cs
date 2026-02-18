@@ -375,7 +375,6 @@ public class ProgrammingLanguagesController : WebApiBaseController
 
         programmingLanguageVersion.DisplayName = programmingLanguageVersionRequest.DisplayName;
         programmingLanguageVersion.IsDefault = programmingLanguageVersionRequest.IsDefault;
-        programmingLanguageVersion.VersionTag = programmingLanguageVersionRequest.VersionTag;
 
         await _programmingLanguagesService.UpdateAsync(programmingLanguage, cancellationToken);
 
