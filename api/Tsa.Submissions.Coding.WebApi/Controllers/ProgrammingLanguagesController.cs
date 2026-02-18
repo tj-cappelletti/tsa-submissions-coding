@@ -76,7 +76,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
     /// <param name="programmingLanguageVersionRequest">The request containing the version to delete</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>No content if successful</returns>
-    /// <response code="204">The programming language was successfully deleted</response>
+    /// <response code="204">The programming language version was successfully deleted</response>
     /// <response code="401">Authentication has failed</response>
     /// <response code="403">You do not have permission to use this endpoint</response>
     /// <response code="404">The programming language does not exist</response>
