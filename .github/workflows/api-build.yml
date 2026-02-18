@@ -19,7 +19,7 @@ jobs:
     with:
       dotnetVersion: ${{ vars.DOTNET_VERSION }}
       runner: windows-latest
-      solutionFile: ${{ vars.DOTNET_SOLUTION_PATH }}
+      solutionFile: ${{ vars.API_DOTNET_SOLUTION_PATH }}
 
   buildApplicationJob:
     name: CI - Build Workflow
@@ -30,11 +30,11 @@ jobs:
       dotnetVersion: ${{ vars.DOTNET_VERSION }}
       semVer: ${{ needs.gitVersionJob.outputs.semVer }}
       sendToCodecov: true
-      solutionFile: ${{ vars.DOTNET_SOLUTION_PATH }}
-      unitTestProjectFile: ${{ vars.DOTNET_UNIT_TEST_PROJECT_FILE }}
-      unitTestProjectFolder: ${{ vars.DOTNET_UNIT_TEST_PROJECT_FOLDER }}
-      publishProjectFile: ${{ vars.DOTNET_PUBLISH_PROJECT_FILE }}
-      publishProjectFolder: ${{ vars.DOTNET_PUBLISH_PROJECT_FOLDER }}
+      solutionFile: ${{ vars.API_DOTNET_SOLUTION_PATH }}
+      unitTestProjectFile: ${{ vars.API_DOTNET_UNIT_TEST_PROJECT_FILE }}
+      unitTestProjectFolder: ${{ vars.API_DOTNET_UNIT_TEST_PROJECT_FOLDER }}
+      publishProjectFile: ${{ vars.API_DOTNET_PUBLISH_PROJECT_FILE }}
+      publishProjectFolder: ${{ vars.API_DOTNET_PUBLISH_PROJECT_FOLDER }}
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -45,7 +45,7 @@ jobs:
       packages: write
     uses: webstorm-tech/workflows/.github/workflows/docker-build-container-workflow.yml@v5
     with:
-      dockerfile: ${{ vars.DOTNET_PUBLISH_PROJECT_FOLDER }}/Dockerfile
+      dockerfile: ${{ vars.API_DOTNET_PUBLISH_PROJECT_FOLDER }}/Dockerfile
       dockerNamespace: api
       dockerRegistry: ghcr.io
       dockerRepository: ${{ github.repository }}
