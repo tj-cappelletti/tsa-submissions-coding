@@ -27,7 +27,8 @@ public class SubmissionsService : MongoDbService<Submission>, ISubmissionsServic
             mongoClient,
             options.Value.Name!,
             MongoDbCollectionName,
-            logger) { }
+            logger)
+    { }
 
     public async Task<List<Submission>> GetByProblemIdAsync(string problemId, CancellationToken cancellationToken = default)
     {

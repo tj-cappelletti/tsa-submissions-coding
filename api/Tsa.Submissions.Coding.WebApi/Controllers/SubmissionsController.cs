@@ -109,7 +109,7 @@ public class SubmissionsController : WebApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<SubmissionResponse>))]
     [ProducesResponseType(StatusCodes.Status424FailedDependency, Type = typeof(ApiErrorResponse))]
     public async Task<ActionResult<IList<SubmissionResponse>>> GetAll(
-        [FromQuery]string? problemId = null,
+        [FromQuery] string? problemId = null,
         CancellationToken cancellationToken = default)
     {
         //TODO: Add pagination

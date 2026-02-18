@@ -50,7 +50,8 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
             mongoClient,
             options.Value.Name!,
             MongoDbCollectionName,
-            logger) { }
+            logger)
+    { }
 
     /// <summary>
     ///     Creates a new problem in the database and populates the cache.

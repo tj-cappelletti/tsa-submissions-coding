@@ -282,7 +282,7 @@ public class SubmissionsServiceTest
         var expectedPingCommand = (Command<BsonDocument>)"{ping:1}";
 
         MockHelpers.SetupMockedMongoCollectionRunCommandAsync(mockedMongoCollection, expectedPingCommand);
-        
+
         var mockedCacheService = new Mock<ICacheService>();
 
         var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);

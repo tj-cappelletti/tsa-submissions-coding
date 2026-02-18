@@ -143,7 +143,7 @@ public class Startup(IConfiguration configuration)
         const string servicesNamespace = "Tsa.Submissions.Coding.WebApi.Services";
         var serviceTypes = assemblyTypes
             .Where(type => type.Namespace == servicesNamespace && type is
-                { IsAbstract: false, IsClass: true, IsGenericType: false, IsInterface: false, IsNested: false })
+            { IsAbstract: false, IsClass: true, IsGenericType: false, IsInterface: false, IsNested: false })
             .ToList();
 
         var mongoEntityServiceInterfaceType = typeof(IMongoEntityService<>);

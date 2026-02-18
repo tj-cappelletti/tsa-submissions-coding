@@ -56,7 +56,8 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
             mongoClient,
             options.Value.Name!,
             MongoDbCollectionName,
-            logger) { }
+            logger)
+    { }
 
     /// <summary>
     ///     Creates a new test case in the database and populates the cache.
