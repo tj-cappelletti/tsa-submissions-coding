@@ -73,7 +73,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
     ///     Deletes a programming language version from the system.
     /// </summary>
     /// <param name="id">The ID of the programming language whose version is to be deleted</param>
-    /// <param name="programmingLanguageVersionRequest">The request containing the version to delete</param>
+    /// <param name="versionTag">The tag of the version to delete</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>No content if successful</returns>
     /// <response code="204">The programming language version was successfully deleted</response>
@@ -81,20 +81,19 @@ public class ProgrammingLanguagesController : WebApiBaseController
     /// <response code="403">You do not have permission to use this endpoint</response>
     /// <response code="404">The programming language or version does not exist</response>
     [Authorize(Roles = SubmissionRoles.Judge)]
-    [HttpDelete("{id:length(24)}/versions")]
+    [HttpDelete("{id:length(24)}/versions/{versionTag}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
     [ProducesResponseType(StatusCodes.Status403Forbidden, Type = typeof(ApiErrorResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponse))]
-    public async Task<IActionResult> DeleteProgrammingLanguageVersion(string id, ProgrammingLanguageVersionRequest programmingLanguageVersionRequest,
-        CancellationToken cancellationToken = default)
+    public async Task<IActionResult> DeleteProgrammingLanguageVersion(string id, string versionTag, CancellationToken cancellationToken = default)
     {
         var programmingLanguage = await _programmingLanguagesService.GetAsync(id, cancellationToken);
 
         if (programmingLanguage == null) return NotFound();
 
         var programmingLanguageVersion =
-            programmingLanguage.Versions.FirstOrDefault(languageVersion => languageVersion.VersionTag == programmingLanguageVersionRequest.VersionTag);
+            programmingLanguage.Versions.FirstOrDefault(languageVersion => languageVersion.VersionTag == versionTag);
 
         if (programmingLanguageVersion == null) return NotFound();
 
