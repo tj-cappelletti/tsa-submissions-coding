@@ -5,22 +5,22 @@ namespace Tsa.Submissions.Coding.Contracts.Languages;
 public record ProgrammingLanguageResponse
 {
     [JsonPropertyName("fileExtension")]
-    public string FileExtension { get; set; }
+    public string FileExtension { get; init; }
 
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string Id { get; init; }
 
     [JsonPropertyName("identifier")]
-    public string Identifier { get; set; }
+    public string Identifier { get; init; }
 
     [JsonPropertyName("isEnabled")]
-    public bool IsEnabled { get; set; } = true;
+    public bool IsEnabled { get; init; } = true;
 
     [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
     [JsonPropertyName("versions")]
-    public List<ProgrammingLanguageVersionResponse> Versions { get; set; } = [];
+    public List<ProgrammingLanguageVersionResponse> Versions { get; init; } = [];
 
     public ProgrammingLanguageResponse(
         string id,
