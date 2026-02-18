@@ -5,16 +5,16 @@ namespace Tsa.Submissions.Coding.Contracts.Languages;
 public record ProgrammingLanguageRequest
 {
     [JsonPropertyName("fileExtension")]
-    public string FileExtension { get; set; }
+    public string FileExtension { get; init; }
 
     [JsonPropertyName("identifier")]
-    public string Identifier { get; set; }
+    public string Identifier { get; init; }
 
     [JsonPropertyName("isEnabled")]
-    public bool IsEnabled { get; set; } = true;
+    public bool IsEnabled { get; init; } = true;
 
     [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
     public ProgrammingLanguageRequest(
         string identifier,
