@@ -72,14 +72,14 @@ public class ProgrammingLanguagesController : WebApiBaseController
     /// <summary>
     ///     Deletes a programming language version from the system.
     /// </summary>
-    /// <param name="id">The ID of the programming language to delete</param>
+    /// <param name="id">The ID of the programming language whose version is to be deleted</param>
     /// <param name="programmingLanguageVersionRequest">The request containing the version to delete</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>No content if successful</returns>
     /// <response code="204">The programming language version was successfully deleted</response>
     /// <response code="401">Authentication has failed</response>
     /// <response code="403">You do not have permission to use this endpoint</response>
-    /// <response code="404">The programming language does not exist</response>
+    /// <response code="404">The programming language or version does not exist</response>
     [Authorize(Roles = SubmissionRoles.Judge)]
     [HttpDelete("{id:length(24)}/versions")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
