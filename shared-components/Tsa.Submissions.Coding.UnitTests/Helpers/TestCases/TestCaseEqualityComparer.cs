@@ -65,17 +65,12 @@ internal class TestCaseEqualityComparer : EqualityComparerBase<TestCase>
         return hash.ToHashCode();
     }
 
-    public override int GetHashCode(IList<TestCase>? obj)
+    /// <summary>
+    ///     Provides the ordering key for list hash code computation.
+    ///     Orders by Signature to ensure consistent hash codes.
+    /// </summary>
+    protected override object GetOrderByKey(TestCase item)
     {
-        if (obj == null) return 0;
-
-        var hash = new HashCode();
-
-        foreach (var item in obj.OrderBy(i => i.Signature))
-        {
-            hash.Add(GetHashCode(item));
-        }
-
-        return hash.ToHashCode();
+        return item.Signature!;
     }
 }

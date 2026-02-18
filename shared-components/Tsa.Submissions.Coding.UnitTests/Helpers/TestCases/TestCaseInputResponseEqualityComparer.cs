@@ -38,17 +38,12 @@ internal class TestCaseInputResponseEqualityComparer : EqualityComparerBase<Test
         return obj == null ? 0 : HashCode.Combine(obj.Index, obj.DataType, obj.IsArray, obj.Value);
     }
 
-    public override int GetHashCode(IList<TestCaseInputResponse>? obj)
+    /// <summary>
+    ///     Provides the ordering key for list hash code computation.
+    ///     Orders by Index to ensure consistent hash codes.
+    /// </summary>
+    protected override object GetOrderByKey(TestCaseInputResponse item)
     {
-        if (obj == null) return 0;
-
-        var hash = new HashCode();
-
-        foreach (var item in obj.OrderBy(i => i.Index))
-        {
-            hash.Add(GetHashCode(item));
-        }
-
-        return hash.ToHashCode();
+        return item.Index;
     }
 }

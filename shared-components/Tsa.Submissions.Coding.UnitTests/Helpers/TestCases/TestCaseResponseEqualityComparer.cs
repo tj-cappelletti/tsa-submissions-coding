@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers.TestCases;
@@ -35,7 +36,14 @@ internal class TestCaseResponseEqualityComparer : EqualityComparerBase<TestCaseR
 
     protected override bool EqualsCore(IList<TestCaseResponse> x, IList<TestCaseResponse> y)
     {
-        throw new NotImplementedException();
+        foreach (var leftTestCaseResponse in x)
+        {
+            var rightTestCaseResponse = y.SingleOrDefault(testCase => testCase.Signature == leftTestCaseResponse.Signature);
+
+            if (!Equals(leftTestCaseResponse, rightTestCaseResponse)) return false;
+        }
+
+        return true;
     }
 
     public override int GetHashCode(TestCaseResponse? obj)
@@ -43,8 +51,8 @@ internal class TestCaseResponseEqualityComparer : EqualityComparerBase<TestCaseR
         throw new NotImplementedException();
     }
 
-    public override int GetHashCode(IList<TestCaseResponse>? obj)
+    protected override object GetOrderByKey(TestCaseResponse item)
     {
-        throw new NotImplementedException();
+        return item.Id;
     }
 }
