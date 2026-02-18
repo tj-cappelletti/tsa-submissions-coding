@@ -67,7 +67,7 @@ public class ProgrammingLanguagesService : MongoDbService<ProgrammingLanguage>, 
     {
         await base.CreateAsync(entity, cancellationToken);
 
-        await InvalidateProgrammingLanguageAsync(cancellationToken);
+        await InvalidateProgrammingLanguagesAsync(cancellationToken);
 
         await SetCacheAsync(ProgrammingLanguageCacheKeys.ForEntity(entity), entity, cancellationToken);
     }
@@ -106,7 +106,7 @@ public class ProgrammingLanguagesService : MongoDbService<ProgrammingLanguage>, 
     /// </summary>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    private async Task InvalidateProgrammingLanguageAsync(CancellationToken cancellationToken = default)
+    private async Task InvalidateProgrammingLanguagesAsync(CancellationToken cancellationToken = default)
     {
         await CacheService.RemoveAsync(ProgrammingLanguageCacheKeys.AllProgrammingLanguages(), cancellationToken);
     }
@@ -121,7 +121,7 @@ public class ProgrammingLanguagesService : MongoDbService<ProgrammingLanguage>, 
     {
         await CacheService.RemoveAsync(ProgrammingLanguageCacheKeys.ForEntity(programmingLanguage), cancellationToken);
 
-        await InvalidateProgrammingLanguageAsync(cancellationToken);
+        await InvalidateProgrammingLanguagesAsync(cancellationToken);
     }
 
     /// <summary>
