@@ -12,7 +12,7 @@ namespace Tsa.Submissions.Coding.WebApi.Services;
 
 /// <summary>
 ///     Provides data access and caching operations for programming language entities.
-///     All read operations are cached for 2 hours to optimize performance during competitions.
+///     All read operations are cached for 4 hours to optimize performance during competitions.
 /// </summary>
 /// <remarks>
 ///     This service overrides base <see cref="MongoDbService{T}" /> methods to implement caching.
@@ -50,7 +50,8 @@ public class ProgrammingLanguagesService : MongoDbService<ProgrammingLanguage>, 
             mongoClient,
             options.Value.Name!,
             MongoDbCollectionName,
-            logger) { }
+            logger)
+    { }
 
     /// <summary>
     ///     Creates a new programming language in the database and populates the cache.
@@ -72,7 +73,7 @@ public class ProgrammingLanguagesService : MongoDbService<ProgrammingLanguage>, 
     }
 
     /// <summary>
-    ///     Gets all programming languages from the database. Results are cached for 2 hours.
+    ///     Gets all programming languages from the database. Results are cached for 4 hours.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A list of all programming languages</returns>
@@ -86,7 +87,7 @@ public class ProgrammingLanguagesService : MongoDbService<ProgrammingLanguage>, 
     }
 
     /// <summary>
-    ///     Gets a programming language by its unique identifier. Results are cached for 2 hours.
+    ///     Gets a programming language by its unique identifier. Results are cached for 4 hours.
     /// </summary>
     /// <param name="id">The programming language's unique identifier</param>
     /// <param name="cancellationToken">The cancellation token</param>
