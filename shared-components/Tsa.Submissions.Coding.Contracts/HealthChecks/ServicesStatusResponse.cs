@@ -8,7 +8,7 @@ public class ServicesStatusResponse
 
     public bool SubmissionsServiceIsAlive { get; set; }
 
-    public bool TestSetsServiceIsAlive { get; set; }
+    public bool TestCasesServiceIsAlive { get; set; }
 
     private bool EvaluateIsHealthy()
     {
