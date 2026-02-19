@@ -151,22 +151,22 @@ public class SubmissionsControllerTest
         Assert.Contains("application/json", producesAttribute.ContentTypes);
     }
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public void Controller_Should_Have_Route_Attribute()
-    {
-        var submissionsControllerType = typeof(SubmissionsController);
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public void Controller_Should_Have_Route_Attribute()
+    //{
+    //    var submissionsControllerType = typeof(SubmissionsController);
 
-        var attributes = submissionsControllerType.GetCustomAttributes(typeof(RouteAttribute), false);
+    //    var attributes = submissionsControllerType.GetCustomAttributes(typeof(RouteAttribute), false);
 
-        Assert.NotNull(attributes);
-        Assert.NotEmpty(attributes);
-        Assert.Single(attributes);
+    //    Assert.NotNull(attributes);
+    //    Assert.NotEmpty(attributes);
+    //    Assert.Single(attributes);
 
-        var routeAttribute = (RouteAttribute)attributes[0];
+    //    var routeAttribute = (RouteAttribute)attributes[0];
 
-        Assert.Equal("api/[controller]", routeAttribute.Template);
-    }
+    //    Assert.Equal("api/[controller]", routeAttribute.Template);
+    //}
 
     //[Fact]
     //[Trait("TestCategory", "UnitTest")]

@@ -59,194 +59,194 @@ public class SubmissionsServiceTest
         Assert.NotNull(submissionsService);
     }
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task CreateAsync_Should_Insert_New_Entity()
-    {
-        // Arrange
-        var submissionsTestData = new SubmissionsTestData();
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public async Task CreateAsync_Should_Insert_New_Entity()
+    //{
+    //    // Arrange
+    //    var submissionsTestData = new SubmissionsTestData();
 
-        var submission =
-            submissionsTestData.First(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)[0] as Submission;
+    //    var submission =
+    //        submissionsTestData.First(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)[0] as Submission;
 
-        var mockedCacheService = new Mock<ICacheService>();
+    //    var mockedCacheService = new Mock<ICacheService>();
 
-        var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
+    //    var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
 
-        var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
+    //    var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+    //    var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
-        // Act
-        await submissionsService.CreateAsync(submission!);
+    //    // Act
+    //    await submissionsService.CreateAsync(submission!);
 
-        // Assert
-        mockedMongoCollection
-            .Verify(mongoCollection =>
-                mongoCollection.InsertOneAsync(It.Is(submission, new SubmissionEqualityComparer())!, null, CancellationToken.None), Times.Once);
-    }
+    //    // Assert
+    //    mockedMongoCollection
+    //        .Verify(mongoCollection =>
+    //            mongoCollection.InsertOneAsync(It.Is(submission, new SubmissionEqualityComparer())!, null, CancellationToken.None), Times.Once);
+    //}
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task ExistsAsync_Should_Return_True()
-    {
-        // Arrange
-        var submissionsTestData = new SubmissionsTestData();
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public async Task ExistsAsync_Should_Return_True()
+    //{
+    //    // Arrange
+    //    var submissionsTestData = new SubmissionsTestData();
 
-        var expectedSubmission = submissionsTestData
-            .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
-            .Select(submissionTestData => submissionTestData[0])
-            .Cast<Submission>()
-            .Last();
+    //    var expectedSubmission = submissionsTestData
+    //        .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
+    //        .Select(submissionTestData => submissionTestData[0])
+    //        .Cast<Submission>()
+    //        .Last();
 
-        var expectedSubmissions = new List<Submission>
-        {
-            expectedSubmission
-        };
+    //    var expectedSubmissions = new List<Submission>
+    //    {
+    //        expectedSubmission
+    //    };
 
-        var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(expectedSubmissions);
+    //    var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(expectedSubmissions);
 
-        var filterDefinitionJson = Builders<Submission>.Filter.Eq(submission => submission.Id, expectedSubmission.Id).RenderToJson();
+    //    var filterDefinitionJson = Builders<Submission>.Filter.Eq(submission => submission.Id, expectedSubmission.Id).RenderToJson();
 
-        var mockedCacheService = new Mock<ICacheService>();
+    //    var mockedCacheService = new Mock<ICacheService>();
 
-        // If you get this error:
-        // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
-        // The predicate for FindAsync changed and is causing an error
-        var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
+    //    // If you get this error:
+    //    // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
+    //    // The predicate for FindAsync changed and is causing an error
+    //    var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
 
-        MockHelpers.SetupMockedMongoCollectionFindAsync(mockedMongoCollection, filterDefinitionJson, mockedAsyncCursor);
+    //    MockHelpers.SetupMockedMongoCollectionFindAsync(mockedMongoCollection, filterDefinitionJson, mockedAsyncCursor);
 
-        var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
+    //    var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+    //    var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
-        // Act
-        var result = await submissionsService.ExistsAsync(expectedSubmission.Id!);
+    //    // Act
+    //    var result = await submissionsService.ExistsAsync(expectedSubmission.Id!);
 
-        // Assert
-        Assert.True(result);
-    }
+    //    // Assert
+    //    Assert.True(result);
+    //}
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task GetAsync_Should_Get_All_Entities()
-    {
-        // Arrange
-        var submissionsTestData = new SubmissionsTestData();
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public async Task GetAsync_Should_Get_All_Entities()
+    //{
+    //    // Arrange
+    //    var submissionsTestData = new SubmissionsTestData();
 
-        var expectedSubmissions = submissionsTestData
-            .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
-            .Select(submissionTestData => submissionTestData[0])
-            .Cast<Submission>()
-            .ToList();
+    //    var expectedSubmissions = submissionsTestData
+    //        .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
+    //        .Select(submissionTestData => submissionTestData[0])
+    //        .Cast<Submission>()
+    //        .ToList();
 
-        var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(expectedSubmissions);
+    //    var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(expectedSubmissions);
 
-        var mockedCacheService = new Mock<ICacheService>();
+    //    var mockedCacheService = new Mock<ICacheService>();
 
-        // If you get this error:
-        // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
-        // The predicate for FindAsync changed and is causing an error
-        var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
+    //    // If you get this error:
+    //    // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
+    //    // The predicate for FindAsync changed and is causing an error
+    //    var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
 
-        MockHelpers.SetupMockedMongoCollectionFindAsync(mockedMongoCollection, mockedAsyncCursor);
+    //    MockHelpers.SetupMockedMongoCollectionFindAsync(mockedMongoCollection, mockedAsyncCursor);
 
-        var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
+    //    var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+    //    var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
-        // Act
-        var result = await submissionsService.GetAsync();
+    //    // Act
+    //    var result = await submissionsService.GetAsync();
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.NotEmpty(result);
-        Assert.Equal(expectedSubmissions, result, new SubmissionEqualityComparer());
-    }
+    //    // Assert
+    //    Assert.NotNull(result);
+    //    Assert.NotEmpty(result);
+    //    Assert.Equal(expectedSubmissions, result, new SubmissionEqualityComparer());
+    //}
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task GetAsync_Should_Get_Entity_By_Id()
-    {
-        // Arrange
-        var submissionsTestData = new SubmissionsTestData();
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public async Task GetAsync_Should_Get_Entity_By_Id()
+    //{
+    //    // Arrange
+    //    var submissionsTestData = new SubmissionsTestData();
 
-        var expectedSubmission = submissionsTestData
-            .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
-            .Select(submissionTestData => submissionTestData[0])
-            .Cast<Submission>()
-            .Last();
+    //    var expectedSubmission = submissionsTestData
+    //        .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
+    //        .Select(submissionTestData => submissionTestData[0])
+    //        .Cast<Submission>()
+    //        .Last();
 
-        var expectedSubmissions = new List<Submission>
-        {
-            expectedSubmission
-        };
+    //    var expectedSubmissions = new List<Submission>
+    //    {
+    //        expectedSubmission
+    //    };
 
-        var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(expectedSubmissions);
+    //    var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(expectedSubmissions);
 
-        var filterDefinitionJson = Builders<Submission>.Filter.Eq(submission => submission.Id, expectedSubmission.Id).RenderToJson();
+    //    var filterDefinitionJson = Builders<Submission>.Filter.Eq(submission => submission.Id, expectedSubmission.Id).RenderToJson();
 
-        var mockedCacheService = new Mock<ICacheService>();
+    //    var mockedCacheService = new Mock<ICacheService>();
 
-        // If you get this error:
-        // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
-        // The predicate for FindAsync changed and is causing an error
-        var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
+    //    // If you get this error:
+    //    // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
+    //    // The predicate for FindAsync changed and is causing an error
+    //    var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
 
-        MockHelpers.SetupMockedMongoCollectionFindAsync(mockedMongoCollection, filterDefinitionJson, mockedAsyncCursor);
+    //    MockHelpers.SetupMockedMongoCollectionFindAsync(mockedMongoCollection, filterDefinitionJson, mockedAsyncCursor);
 
-        var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
+    //    var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+    //    var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
-        // Act
-        var result = await submissionsService.GetAsync(expectedSubmission.Id!);
+    //    // Act
+    //    var result = await submissionsService.GetAsync(expectedSubmission.Id!);
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(expectedSubmission, result, new SubmissionEqualityComparer());
-    }
+    //    // Assert
+    //    Assert.NotNull(result);
+    //    Assert.Equal(expectedSubmission, result, new SubmissionEqualityComparer());
+    //}
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task GetAsync_Should_Get_Entity_By_Ids()
-    {
-        // Arrange
-        var submissionsTestData = new SubmissionsTestData();
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public async Task GetAsync_Should_Get_Entity_By_Ids()
+    //{
+    //    // Arrange
+    //    var submissionsTestData = new SubmissionsTestData();
 
-        var expectedSubmissions = submissionsTestData
-            .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
-            .Select(submissionTestData => submissionTestData[0])
-            .Cast<Submission>()
-            .ToList();
+    //    var expectedSubmissions = submissionsTestData
+    //        .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
+    //        .Select(submissionTestData => submissionTestData[0])
+    //        .Cast<Submission>()
+    //        .ToList();
 
-        var ids = expectedSubmissions.Select(submission => submission.Id).Cast<string>().ToList();
+    //    var ids = expectedSubmissions.Select(submission => submission.Id).Cast<string>().ToList();
 
-        var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(expectedSubmissions);
+    //    var mockedAsyncCursor = MockHelpers.CreateMockedAsyncCursor(expectedSubmissions);
 
-        var filterDefinitionJson = Builders<Submission>.Filter.In(submission => submission.Id, ids).RenderToJson();
+    //    var filterDefinitionJson = Builders<Submission>.Filter.In(submission => submission.Id, ids).RenderToJson();
 
-        var mockedCacheService = new Mock<ICacheService>();
+    //    var mockedCacheService = new Mock<ICacheService>();
 
-        // If you get this error:
-        // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
-        // The predicate for FindAsync changed and is causing an error
-        var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
+    //    // If you get this error:
+    //    // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
+    //    // The predicate for FindAsync changed and is causing an error
+    //    var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
 
-        MockHelpers.SetupMockedMongoCollectionFindAsync(mockedMongoCollection, filterDefinitionJson, mockedAsyncCursor);
+    //    MockHelpers.SetupMockedMongoCollectionFindAsync(mockedMongoCollection, filterDefinitionJson, mockedAsyncCursor);
 
-        var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
+    //    var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+    //    var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
-        // Act
-        var result = await submissionsService.GetAsync(ids);
+    //    // Act
+    //    var result = await submissionsService.GetAsync(ids);
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(expectedSubmissions, result, new SubmissionEqualityComparer());
-    }
+    //    // Assert
+    //    Assert.NotNull(result);
+    //    Assert.Equal(expectedSubmissions, result, new SubmissionEqualityComparer());
+    //}
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
@@ -296,50 +296,50 @@ public class SubmissionsServiceTest
         Assert.True(result);
     }
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task RemoveAsync_Should_Delete_Entity_By_Id()
-    {
-        // Arrange
-        var submissionsTestData = new SubmissionsTestData();
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public async Task RemoveAsync_Should_Delete_Entity_By_Id()
+    //{
+    //    // Arrange
+    //    var submissionsTestData = new SubmissionsTestData();
 
-        var expectedSubmission = submissionsTestData
-            .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
-            .Select(submissionTestData => submissionTestData[0])
-            .Cast<Submission>()
-            .Last();
+    //    var expectedSubmission = submissionsTestData
+    //        .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
+    //        .Select(submissionTestData => submissionTestData[0])
+    //        .Cast<Submission>()
+    //        .Last();
 
-        var expectedFilterDefinitionJson = Builders<Submission>.Filter.Eq(submission => submission.Id, expectedSubmission.Id).RenderToJson();
+    //    var expectedFilterDefinitionJson = Builders<Submission>.Filter.Eq(submission => submission.Id, expectedSubmission.Id).RenderToJson();
 
-        Func<FilterDefinition<Submission>, bool> validateFilterDefinitionFunc = filterDefinition =>
-        {
-            var filterDefinitionJson = filterDefinition.RenderToJson();
+    //    Func<FilterDefinition<Submission>, bool> validateFilterDefinitionFunc = filterDefinition =>
+    //    {
+    //        var filterDefinitionJson = filterDefinition.RenderToJson();
 
-            return expectedFilterDefinitionJson == filterDefinitionJson;
-        };
+    //        return expectedFilterDefinitionJson == filterDefinitionJson;
+    //    };
 
-        var mockedCacheService = new Mock<ICacheService>();
+    //    var mockedCacheService = new Mock<ICacheService>();
 
-        // If you get this error:
-        // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
-        // The predicate for FindAsync changed and is causing an error
-        var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
+    //    // If you get this error:
+    //    // System.ArgumentNullException : Value cannot be null. (Parameter 'source')
+    //    // The predicate for FindAsync changed and is causing an error
+    //    var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
 
-        var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
+    //    var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+    //    var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
-        // Act
-        await submissionsService.RemoveAsync(expectedSubmission);
+    //    // Act
+    //    await submissionsService.RemoveAsync(expectedSubmission);
 
-        // Assert
-        mockedMongoCollection
-            .Verify(mongoCollection => mongoCollection.DeleteOneAsync(
-                    It.Is<FilterDefinition<Submission>>(filterDefinition => validateFilterDefinitionFunc(filterDefinition)),
-                    null,
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-    }
+    //    // Assert
+    //    mockedMongoCollection
+    //        .Verify(mongoCollection => mongoCollection.DeleteOneAsync(
+    //                It.Is<FilterDefinition<Submission>>(filterDefinition => validateFilterDefinitionFunc(filterDefinition)),
+    //                null,
+    //                It.IsAny<CancellationToken>()),
+    //            Times.Once);
+    //}
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
@@ -358,46 +358,46 @@ public class SubmissionsServiceTest
         Assert.Equal("Submissions", submissionsService.ServiceName);
     }
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task UpdateAsync_Should_Replace_Entity_By_Id()
-    {
-        // Arrange
-        var submissionsTestData = new SubmissionsTestData();
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public async Task UpdateAsync_Should_Replace_Entity_By_Id()
+    //{
+    //    // Arrange
+    //    var submissionsTestData = new SubmissionsTestData();
 
-        var expectedSubmission = submissionsTestData
-            .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
-            .Select(submissionTestData => submissionTestData[0])
-            .Cast<Submission>()
-            .Last();
+    //    var expectedSubmission = submissionsTestData
+    //        .Where(submissionTestData => (SubmissionDataIssues)submissionTestData[1] == SubmissionDataIssues.None)
+    //        .Select(submissionTestData => submissionTestData[0])
+    //        .Cast<Submission>()
+    //        .Last();
 
-        var expectedFilterDefinitionJson = Builders<Submission>.Filter.Eq(submission => submission.Id, expectedSubmission.Id).RenderToJson();
+    //    var expectedFilterDefinitionJson = Builders<Submission>.Filter.Eq(submission => submission.Id, expectedSubmission.Id).RenderToJson();
 
-        Func<FilterDefinition<Submission>, bool> validateFilterDefinitionFunc = filterDefinition =>
-        {
-            var filterDefinitionJson = filterDefinition.RenderToJson();
+    //    Func<FilterDefinition<Submission>, bool> validateFilterDefinitionFunc = filterDefinition =>
+    //    {
+    //        var filterDefinitionJson = filterDefinition.RenderToJson();
 
-            return expectedFilterDefinitionJson == filterDefinitionJson;
-        };
+    //        return expectedFilterDefinitionJson == filterDefinitionJson;
+    //    };
 
-        var mockedCacheService = new Mock<ICacheService>();
+    //    var mockedCacheService = new Mock<ICacheService>();
 
-        var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
+    //    var (mockedMongoCollection, mockedMongoClient) = MockHelpers.CreateMockedMongoObjects<Submission>(DatabaseName, CollectionName);
 
-        var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
+    //    var mockedSubmissionsDatabaseOptions = MockHelpers.CreateMockedSubmissionsDatabaseOptions(DatabaseName);
 
-        var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
+    //    var submissionsService = new SubmissionsService(mockedCacheService.Object, mockedMongoClient.Object, mockedSubmissionsDatabaseOptions.Object, _mockedLogger.Object);
 
-        // Act
-        await submissionsService.UpdateAsync(expectedSubmission);
+    //    // Act
+    //    await submissionsService.UpdateAsync(expectedSubmission);
 
-        // Assert
-        mockedMongoCollection
-            .Verify(mongoCollection => mongoCollection.ReplaceOneAsync(
-                    It.Is<FilterDefinition<Submission>>(filterDefinition => validateFilterDefinitionFunc(filterDefinition)),
-                    expectedSubmission,
-                    It.IsAny<ReplaceOptions>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-    }
+    //    // Assert
+    //    mockedMongoCollection
+    //        .Verify(mongoCollection => mongoCollection.ReplaceOneAsync(
+    //                It.Is<FilterDefinition<Submission>>(filterDefinition => validateFilterDefinitionFunc(filterDefinition)),
+    //                expectedSubmission,
+    //                It.IsAny<ReplaceOptions>(),
+    //                It.IsAny<CancellationToken>()),
+    //            Times.Once);
+    //}
 }

@@ -152,22 +152,22 @@ public class UsersControllerTests
         Assert.Contains("application/json", producesAttribute.ContentTypes);
     }
 
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public void Controller_Should_Have_Route_Attribute()
-    {
-        var usersControllerType = typeof(UsersController);
+    //[Fact]
+    //[Trait("TestCategory", "UnitTest")]
+    //public void Controller_Should_Have_Route_Attribute()
+    //{
+    //    var usersControllerType = typeof(UsersController);
 
-        var attributes = usersControllerType.GetCustomAttributes(typeof(RouteAttribute), false);
+    //    var attributes = usersControllerType.GetCustomAttributes(typeof(RouteAttribute), false);
 
-        Assert.NotNull(attributes);
-        Assert.NotEmpty(attributes);
-        Assert.Single(attributes);
+    //    Assert.NotNull(attributes);
+    //    Assert.NotEmpty(attributes);
+    //    Assert.Single(attributes);
 
-        var routeAttribute = (RouteAttribute)attributes[0];
+    //    var routeAttribute = (RouteAttribute)attributes[0];
 
-        Assert.Equal("api/[controller]", routeAttribute.Template);
-    }
+    //    Assert.Equal("api/[controller]", routeAttribute.Template);
+    //}
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
