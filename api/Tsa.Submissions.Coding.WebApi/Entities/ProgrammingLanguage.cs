@@ -16,7 +16,7 @@ public class ProgrammingLanguage : IMongoDbEntity
 
     public bool IsEnabled { get; set; } = true;
 
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
 
     public List<ProgrammingLanguageVersion> Versions { get; set; } = [];
 }
