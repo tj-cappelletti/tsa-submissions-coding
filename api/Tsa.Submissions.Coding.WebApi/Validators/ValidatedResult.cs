@@ -8,7 +8,7 @@ public class ValidatedResult
     /// <summary>
     ///     The error result associated with a failed validation.
     /// </summary>
-    public IActionResult? ErrorResult { get; init; }
+    public ValidationProblemDetails? ErrorResult { get; init; }
 
     /// <summary>
     ///     Flag indicating whether the validation failed.
@@ -33,7 +33,7 @@ public class ValidatedResult
     ///     A <see cref="ValidatedResult" /> instance with <c>IsValid</c> set to <see langword="false" /> and the specified
     ///     error result.
     /// </returns>
-    public static ValidatedResult Failure(IActionResult error)
+    public static ValidatedResult Failure(ValidationProblemDetails error)
     {
         return new ValidatedResult { IsValid = false, ErrorResult = error };
     }
@@ -45,9 +45,9 @@ public class ValidatedResult
     ///     This method should only be called when the validation has failed. Calling this method when
     ///     the validation is successful will result in an exception.
     /// </remarks>
-    /// <returns>The <see cref="IActionResult" /> representing the error details for the failed validation.</returns>
+    /// <returns>The <see cref="ValidationProblemDetails" /> representing the error details for the failed validation.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the validation is successful and there is no error to return.</exception>
-    public IActionResult GetError()
+    public ValidationProblemDetails GetError()
     {
         if (IsValid)
         {
