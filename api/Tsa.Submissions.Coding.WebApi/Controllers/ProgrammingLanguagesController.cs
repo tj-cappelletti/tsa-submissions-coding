@@ -115,7 +115,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProgrammingLanguageResponse>))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
-    public async Task<ActionResult<IList<ProgrammingLanguageResponse>>> Get(CancellationToken cancellationToken = default)
+    public async Task<IList<ProgrammingLanguageResponse>> Get(CancellationToken cancellationToken = default)
     {
         var programmingLanguages = await _programmingLanguagesService.GetAsync(cancellationToken);
 
@@ -138,7 +138,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProgrammingLanguageResponse))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponse))]
-    public async Task<ActionResult<ProgrammingLanguageResponse>> Get(string id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Get(string id, CancellationToken cancellationToken = default)
     {
         var programmingLanguage = await _programmingLanguagesService.GetAsync(id, cancellationToken);
 
@@ -194,7 +194,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
 
         if (!validationResult.IsValid)
         {
-            return validationResult.GetError();
+            return BadRequest(validationResult.GetError());
         }
 
         var existingProgrammingLanguages = await _programmingLanguagesService.GetAsync(cancellationToken);
@@ -248,7 +248,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
 
         if (!validationResult.IsValid)
         {
-            return validationResult.GetError();
+            return BadRequest(validationResult.GetError());
         }
 
         var programmingLanguageVersion = ToEntity(programmingLanguageVersionRequest);
@@ -307,7 +307,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
 
         if (!validationResult.IsValid)
         {
-            return validationResult.GetError();
+            return BadRequest(validationResult.GetError());
         }
 
         var programmingLanguage = await _programmingLanguagesService.GetAsync(id, cancellationToken);
@@ -362,7 +362,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
 
         if (!validationResult.IsValid)
         {
-            return validationResult.GetError();
+            return BadRequest(validationResult.GetError());
         }
 
         if (programmingLanguageVersionRequest.IsDefault)
