@@ -34,8 +34,4 @@
     <ProjectReference Include="..\Tsa.Submissions.Coding.Contracts\Tsa.Submissions.Coding.Contracts.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="WebApi\Validators\" />
-  </ItemGroup>
-
 </Project>
