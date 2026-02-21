@@ -120,7 +120,7 @@ public class ProblemsController : WebApiBaseController
 
         if (!validationResult.IsValid)
         {
-            return validationResult.GetError();
+            return BadRequest(validationResult.GetError());
         }
 
         var problem = ToEntity(problemRequest);
@@ -153,7 +153,7 @@ public class ProblemsController : WebApiBaseController
 
         if (!validationResult.IsValid)
         {
-            return validationResult.GetError();
+            return BadRequest(validationResult.GetError());
         }
 
         var problem = await _problemsService.GetAsync(id, cancellationToken);

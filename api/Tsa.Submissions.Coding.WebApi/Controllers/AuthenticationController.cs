@@ -51,7 +51,7 @@ public class AuthenticationController : WebApiBaseController
         if (validatedResult.IsInvalid)
         {
             _logger.LogWarning("Login attempt failed with invalid authentication request");
-            return validatedResult.GetError();
+            return BadRequest(validatedResult.GetError());
         }
 
         _logger.LogInformation("Login attempt for user {UserName}", authenticationRequest.UserName.SanitizeForLogging());
