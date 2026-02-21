@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Xunit;
 
 namespace Tsa.Submissions.Coding.UnitTests.WebApi.Configuration;
 
+[ExcludeFromCodeCoverage]
 public class JwtSettingsTests
 {
     [Theory]
