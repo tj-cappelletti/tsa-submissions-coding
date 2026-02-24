@@ -12,7 +12,7 @@ namespace Tsa.Submissions.Coding.UnitTests.Helpers.Mocks;
 ///     Fluent builder for creating mocked service instances with pre-configured behaviors.
 /// </summary>
 [ExcludeFromCodeCoverage]
-internal class MockedServiceBuilder<TService, TEntity>
+internal abstract class MockedServiceBuilder<TService, TEntity>
     where TService : class, IMongoEntityService<TEntity>
     where TEntity : IMongoDbEntity, new()
 {
@@ -37,7 +37,15 @@ internal class MockedServiceBuilder<TService, TEntity>
     /// <summary>
     ///     Configures CreateAsync to create an entity with the specified ID.
     /// </summary>
-    public MockedServiceBuilder<TService, TEntity> WithCreateAsync(
+    public abstract MockedServiceBuilder<TService, TEntity> WithCreateAsync(
+        TEntity expectedEntity,
+        string newId,
+        Times? times = null);
+
+    /// <summary>
+    ///     Configures CreateAsync to create an entity with the specified ID.
+    /// </summary>
+    protected MockedServiceBuilder<TService, TEntity> WithCreateAsync(
         TEntity expectedEntity,
         string newId,
         IEqualityComparer<TEntity> equalityComparer,
@@ -83,10 +91,14 @@ internal class MockedServiceBuilder<TService, TEntity>
         return this;
     }
 
+    public abstract MockedServiceBuilder<TService, TEntity> WithRemoveAsync(
+        TEntity entity,
+        Times? times = null);
+
     /// <summary>
     ///     Configures RemoveAsync for a specific entity.
     /// </summary>
-    public MockedServiceBuilder<TService, TEntity> WithRemoveAsync(
+    protected MockedServiceBuilder<TService, TEntity> WithRemoveAsync(
         TEntity entity,
         IEqualityComparer<TEntity> equalityComparer,
         Times? times = null)
@@ -99,10 +111,14 @@ internal class MockedServiceBuilder<TService, TEntity>
         return this;
     }
 
+    public abstract MockedServiceBuilder<TService, TEntity> WithUpdateAsync(
+        TEntity expectedEntity,
+        Times? times = null);
+
     /// <summary>
     ///     Configures UpdateAsync to update a specific entity.
     /// </summary>
-    public MockedServiceBuilder<TService, TEntity> WithUpdateAsync(
+    protected MockedServiceBuilder<TService, TEntity> WithUpdateAsync(
         TEntity expectedEntity,
         IEqualityComparer<TEntity> equalityComparer,
         Times? times = null)
