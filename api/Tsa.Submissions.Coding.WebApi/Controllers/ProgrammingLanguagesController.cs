@@ -354,16 +354,16 @@ public class ProgrammingLanguagesController : WebApiBaseController
 
         if (programmingLanguage == null) return NotFound();
 
-        var programmingLanguageVersion = programmingLanguage.Versions.FirstOrDefault(v => v.VersionTag == programmingLanguageVersionRequest.VersionTag);
-
-        if (programmingLanguageVersion == null) return NotFound();
-
         var validationResult = await ValidateAsync(programmingLanguageVersionRequest, _programmingLanguageVersionRequestValidator, cancellationToken);
 
         if (!validationResult.IsValid)
         {
             return BadRequest(validationResult.GetError());
         }
+
+        var programmingLanguageVersion = programmingLanguage.Versions.FirstOrDefault(v => v.VersionTag == programmingLanguageVersionRequest.VersionTag);
+
+        if (programmingLanguageVersion == null) return NotFound();
 
         if (programmingLanguageVersionRequest.IsDefault)
         {
