@@ -153,5 +153,7 @@ public class ProgrammingLanguagesService : MongoDbService<ProgrammingLanguage>, 
         await base.UpdateAsync(entity, cancellationToken);
 
         await InvalidateProgrammingLanguageCacheAsync(entity, cancellationToken);
+
+        await SetCacheAsync(ProgrammingLanguageCacheKeys.ForEntity(entity), entity, cancellationToken);
     }
 }
