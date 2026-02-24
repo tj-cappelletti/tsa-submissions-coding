@@ -180,7 +180,7 @@ public class ProgrammingLanguagesController : WebApiBaseController
     /// <response code="400">The programming language request is invalid</response>
     /// <response code="401">Authentication has failed</response>
     /// <response code="403">You do not have permission to use this endpoint</response>
-    /// <response code="409">A programming language with the same name already exists</response>
+    /// <response code="409">A programming language with the same name or identifier already exists</response>
     [Authorize(Roles = SubmissionRoles.Judge)]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ProgrammingLanguageResponse))]
@@ -202,6 +202,11 @@ public class ProgrammingLanguagesController : WebApiBaseController
         if (existingProgrammingLanguages.Any(pl => pl.Name == programmingLanguageRequest.Name))
         {
             return Conflict(ApiErrorEntityAlreadyExists(nameof(ProgrammingLanguage), programmingLanguageRequest.Name));
+        }
+
+        if (existingProgrammingLanguages.Any(pl => pl.Identifier == programmingLanguageRequest.Identifier))
+        {
+            return Conflict(ApiErrorEntityAlreadyExists(nameof(ProgrammingLanguage), programmingLanguageRequest.Identifier));
         }
 
         var programmingLanguage = ToEntity(programmingLanguageRequest);
