@@ -105,26 +105,6 @@ public class ProgrammingLanguagesController : WebApiBaseController
     }
 
     /// <summary>
-    ///     Gets all programming languages available in the system.
-    /// </summary>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>A list of all programming languages</returns>
-    /// <response code="200">Returns all available programming languages</response>
-    /// <response code="401">Authentication has failed</response>
-    [Authorize(Roles = SubmissionRoles.All)]
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProgrammingLanguageResponse>))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
-    public async Task<IList<ProgrammingLanguageResponse>> Get(CancellationToken cancellationToken = default)
-    {
-        var programmingLanguages = await _programmingLanguagesService.GetAsync(cancellationToken);
-
-        return programmingLanguages.Count == 0
-            ? []
-            : programmingLanguages.ToResponses().ToList();
-    }
-
-    /// <summary>
     ///     Gets a specific programming language by its ID.
     /// </summary>
     /// <param name="id">The ID of the programming language to retrieve</param>
@@ -145,6 +125,26 @@ public class ProgrammingLanguagesController : WebApiBaseController
         return programmingLanguage == null
             ? NotFound()
             : Ok(programmingLanguage.ToResponse());
+    }
+
+    /// <summary>
+    ///     Gets all programming languages available in the system.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A list of all programming languages</returns>
+    /// <response code="200">Returns all available programming languages</response>
+    /// <response code="401">Authentication has failed</response>
+    [Authorize(Roles = SubmissionRoles.All)]
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProgrammingLanguageResponse>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
+    public async Task<IList<ProgrammingLanguageResponse>> Get(CancellationToken cancellationToken = default)
+    {
+        var programmingLanguages = await _programmingLanguagesService.GetAsync(cancellationToken);
+
+        return programmingLanguages.Count == 0
+            ? []
+            : programmingLanguages.ToResponses().ToList();
     }
 
     /// <summary>
@@ -199,12 +199,12 @@ public class ProgrammingLanguagesController : WebApiBaseController
 
         var existingProgrammingLanguages = await _programmingLanguagesService.GetAsync(cancellationToken);
 
-        if (existingProgrammingLanguages.Any(pl => pl.Name == programmingLanguageRequest.Name))
+        if (existingProgrammingLanguages.Any(programmingLanguage => programmingLanguage.Name == programmingLanguageRequest.Name))
         {
             return Conflict(ApiErrorEntityAlreadyExists(nameof(ProgrammingLanguage), programmingLanguageRequest.Name));
         }
 
-        if (existingProgrammingLanguages.Any(pl => pl.Identifier == programmingLanguageRequest.Identifier))
+        if (existingProgrammingLanguages.Any(programmingLanguage => programmingLanguage.Identifier == programmingLanguageRequest.Identifier))
         {
             return Conflict(ApiErrorEntityAlreadyExists(nameof(ProgrammingLanguage), programmingLanguageRequest.Identifier));
         }
@@ -315,16 +315,30 @@ public class ProgrammingLanguagesController : WebApiBaseController
             return BadRequest(validationResult.GetError());
         }
 
-        var programmingLanguage = await _programmingLanguagesService.GetAsync(id, cancellationToken);
+        var existingProgrammingLanguage = await _programmingLanguagesService.GetAsync(id, cancellationToken);
 
-        if (programmingLanguage == null) return NotFound();
+        if (existingProgrammingLanguage == null) return NotFound();
 
-        programmingLanguage.FileExtension = programmingLanguageRequest.FileExtension;
-        programmingLanguage.Identifier = programmingLanguageRequest.Identifier;
-        programmingLanguage.IsEnabled = programmingLanguageRequest.IsEnabled;
-        programmingLanguage.Name = programmingLanguageRequest.Name;
+        var programmingLanguages = await _programmingLanguagesService.GetAsync(cancellationToken);
 
-        await _programmingLanguagesService.UpdateAsync(programmingLanguage, cancellationToken);
+        if (programmingLanguages.Any(programmingLanguage =>
+                programmingLanguage.Id != id && programmingLanguage.Name == programmingLanguageRequest.Name))
+        {
+            return Conflict(ApiErrorEntityAlreadyExists(nameof(ProgrammingLanguage), programmingLanguageRequest.Name));
+        }
+
+        if (programmingLanguages.Any(programmingLanguage =>
+                programmingLanguage.Id != id && programmingLanguage.Identifier == programmingLanguageRequest.Identifier))
+        {
+            return Conflict(ApiErrorEntityAlreadyExists(nameof(ProgrammingLanguage), programmingLanguageRequest.Identifier));
+        }
+
+        existingProgrammingLanguage.FileExtension = programmingLanguageRequest.FileExtension;
+        existingProgrammingLanguage.Identifier = programmingLanguageRequest.Identifier;
+        existingProgrammingLanguage.IsEnabled = programmingLanguageRequest.IsEnabled;
+        existingProgrammingLanguage.Name = programmingLanguageRequest.Name;
+
+        await _programmingLanguagesService.UpdateAsync(existingProgrammingLanguage, cancellationToken);
 
         return NoContent();
     }
