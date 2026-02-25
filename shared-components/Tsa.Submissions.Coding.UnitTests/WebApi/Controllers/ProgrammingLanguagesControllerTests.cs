@@ -687,6 +687,58 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
+    public async Task Post_Should_Return_Conflict_When_Name_Already_Exists()
+    {
+        // Arrange
+        var programmingLanguage = GetValidProgrammingLanguage();
+
+        const int expectedErrorCode = (int)ErrorCodes.EntityAlreadyExists;
+        const string expectedErrorMessage = "The resource requested to create already exists.";
+        const string expectedEntity = nameof(ProgrammingLanguage);
+
+        var expectedLookupKey = programmingLanguage.Name;
+
+        // Use same Identifier but different Name to trigger the name conflict check
+        var programmingLanguageRequest = new ProgrammingLanguageRequest(
+            "DIFFERENT_IDENTIFIER",
+            programmingLanguage.Name!,
+            programmingLanguage.FileExtension!,
+            programmingLanguage.IsEnabled);
+
+        var mockedProgrammingLanguagesServices = new MockedProgrammingLanguagesServiceBuilder()
+            .WithGetAsync([programmingLanguage])
+            .Build();
+
+        var mockedProgrammingLanguageRequestValidator = new MockedProgrammingLanguageRequestValidator()
+            .WithSuccessfulValidationResult(programmingLanguageRequest)
+            .Build();
+
+        var mockedProgrammingLanguageVersionRequestValidator = new MockedProgrammingLanguageVersionRequestValidator().Build();
+
+        var controller = CreateController(
+            mockedProgrammingLanguagesServices,
+            mockedProgrammingLanguageRequestValidator,
+            mockedProgrammingLanguageVersionRequestValidator
+        );
+
+        // Act
+        var actionResult = await controller.Post(programmingLanguageRequest);
+
+        // Assert
+        Assert.IsType<ConflictObjectResult>(actionResult);
+
+        var conflictObjectResult = (ConflictObjectResult)actionResult;
+        Assert.IsType<ApiErrorResponse>(conflictObjectResult.Value);
+
+        var apiErrorResponse = (ApiErrorResponse)conflictObjectResult.Value;
+        Assert.Equal(expectedLookupKey, apiErrorResponse.Data["lookupKey"]);
+        Assert.Equal(expectedEntity, apiErrorResponse.Data["entityName"]);
+        Assert.Equal(expectedErrorCode, apiErrorResponse.ErrorCode);
+        Assert.Equal(expectedErrorMessage, apiErrorResponse.Message);
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
     public async Task Post_Should_Return_Conflict_When_Identifier_Already_Exists()
     {
         // Arrange
@@ -1016,10 +1068,130 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
+    public async Task Put_Should_Return_Conflict_When_Name_Already_Exists()
+    {
+        // Arrange
+        var programmingLanguages = GetValidProgrammingLanguages();
+
+        var existingProgrammingLanguage = programmingLanguages[0];
+
+        var programmingLanguage = programmingLanguages[1];
+
+        var id = programmingLanguage.Id;
+
+        const int expectedErrorCode = (int)ErrorCodes.EntityAlreadyExists;
+        const string expectedErrorMessage = "The resource requested to create already exists.";
+        const string expectedEntity = nameof(ProgrammingLanguage);
+
+        var expectedLookupKey = existingProgrammingLanguage.Name;
+
+        var programmingLanguageRequest = new ProgrammingLanguageRequest(
+            programmingLanguage.Identifier!,
+            // Use the name of the existing programming language to trigger the conflict
+            existingProgrammingLanguage.Name!,
+            programmingLanguage.FileExtension!,
+            programmingLanguage.IsEnabled);
+
+        var mockedProgrammingLanguagesServices = new MockedProgrammingLanguagesServiceBuilder()
+            .WithGetAsync(id!, programmingLanguage)
+            .WithGetAsync(programmingLanguages)
+            .Build();
+
+        var mockedProgrammingLanguageRequestValidator = new MockedProgrammingLanguageRequestValidator()
+            .WithSuccessfulValidationResult(programmingLanguageRequest)
+            .Build();
+
+        var mockedProgrammingLanguageVersionRequestValidator = new MockedProgrammingLanguageVersionRequestValidator().Build();
+
+        var controller = CreateController(
+            mockedProgrammingLanguagesServices,
+            mockedProgrammingLanguageRequestValidator,
+            mockedProgrammingLanguageVersionRequestValidator
+        );
+
+        // Act
+        var actionResult = await controller.Put(id!, programmingLanguageRequest);
+
+        // Assert
+        Assert.IsType<ConflictObjectResult>(actionResult);
+
+        var conflictObjectResult = (ConflictObjectResult)actionResult;
+        Assert.IsType<ApiErrorResponse>(conflictObjectResult.Value);
+
+        var apiErrorResponse = (ApiErrorResponse)conflictObjectResult.Value;
+        Assert.Equal(expectedLookupKey, apiErrorResponse.Data["lookupKey"]);
+        Assert.Equal(expectedEntity, apiErrorResponse.Data["entityName"]);
+        Assert.Equal(expectedErrorCode, apiErrorResponse.ErrorCode);
+        Assert.Equal(expectedErrorMessage, apiErrorResponse.Message);
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public async Task Put_Should_Return_Conflict_When_Identifier_Already_Exists()
+    {
+        // Arrange
+        var programmingLanguages = GetValidProgrammingLanguages();
+
+        var existingProgrammingLanguage = programmingLanguages[0];
+
+        var programmingLanguage = programmingLanguages[1];
+
+        var id = programmingLanguage.Id;
+
+        const int expectedErrorCode = (int)ErrorCodes.EntityAlreadyExists;
+        const string expectedErrorMessage = "The resource requested to create already exists.";
+        const string expectedEntity = nameof(ProgrammingLanguage);
+
+        var expectedLookupKey = existingProgrammingLanguage.Identifier;
+
+        var programmingLanguageRequest = new ProgrammingLanguageRequest(
+            // Use the identifier of the existing programming language to trigger the conflict
+            existingProgrammingLanguage.Identifier!,
+            programmingLanguage.Name!,
+            programmingLanguage.FileExtension!,
+            programmingLanguage.IsEnabled);
+
+        var mockedProgrammingLanguagesServices = new MockedProgrammingLanguagesServiceBuilder()
+            .WithGetAsync(id!, programmingLanguage)
+            .WithGetAsync(programmingLanguages)
+            .Build();
+
+        var mockedProgrammingLanguageRequestValidator = new MockedProgrammingLanguageRequestValidator()
+            .WithSuccessfulValidationResult(programmingLanguageRequest)
+            .Build();
+
+        var mockedProgrammingLanguageVersionRequestValidator = new MockedProgrammingLanguageVersionRequestValidator().Build();
+
+        var controller = CreateController(
+            mockedProgrammingLanguagesServices,
+            mockedProgrammingLanguageRequestValidator,
+            mockedProgrammingLanguageVersionRequestValidator
+        );
+
+        // Act
+        var actionResult = await controller.Put(id!, programmingLanguageRequest);
+
+        // Assert
+        Assert.IsType<ConflictObjectResult>(actionResult);
+
+        var conflictObjectResult = (ConflictObjectResult)actionResult;
+        Assert.IsType<ApiErrorResponse>(conflictObjectResult.Value);
+
+        var apiErrorResponse = (ApiErrorResponse)conflictObjectResult.Value;
+        Assert.Equal(expectedLookupKey, apiErrorResponse.Data["lookupKey"]);
+        Assert.Equal(expectedEntity, apiErrorResponse.Data["entityName"]);
+        Assert.Equal(expectedErrorCode, apiErrorResponse.ErrorCode);
+        Assert.Equal(expectedErrorMessage, apiErrorResponse.Message);
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
     public async Task Put_Should_Return_No_Content()
     {
         // Arrange
-        var programmingLanguage = GetValidProgrammingLanguage();
+        var programmingLanguages = GetValidProgrammingLanguages();
+
+        var programmingLanguage = programmingLanguages[0];
 
         var id = programmingLanguage.Id;
 
@@ -1037,6 +1209,7 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
 
         var mockedProgrammingLanguagesServices = new MockedProgrammingLanguagesServiceBuilder()
             .WithGetAsync(id!, programmingLanguage)
+            .WithGetAsync(programmingLanguages)
             .WithUpdateAsync(expectedProgrammingLanguage)
             .Build();
 
