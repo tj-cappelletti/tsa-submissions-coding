@@ -687,6 +687,58 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
+    public async Task Post_Should_Return_Conflict_When_Identifier_Already_Exists()
+    {
+        // Arrange
+        var programmingLanguage = GetValidProgrammingLanguage();
+
+        const int expectedErrorCode = (int)ErrorCodes.EntityAlreadyExists;
+        const string expectedErrorMessage = "The resource requested to create already exists.";
+        const string expectedEntity = nameof(ProgrammingLanguage);
+
+        var expectedLookupKey = programmingLanguage.Identifier;
+
+        // Use same Identifier but different Name to trigger the identifier conflict check
+        var programmingLanguageRequest = new ProgrammingLanguageRequest(
+            programmingLanguage.Identifier!,
+            "A Different Name",
+            programmingLanguage.FileExtension!,
+            programmingLanguage.IsEnabled);
+
+        var mockedProgrammingLanguagesServices = new MockedProgrammingLanguagesServiceBuilder()
+            .WithGetAsync([programmingLanguage])
+            .Build();
+
+        var mockedProgrammingLanguageRequestValidator = new MockedProgrammingLanguageRequestValidator()
+            .WithSuccessfulValidationResult(programmingLanguageRequest)
+            .Build();
+
+        var mockedProgrammingLanguageVersionRequestValidator = new MockedProgrammingLanguageVersionRequestValidator().Build();
+
+        var controller = CreateController(
+            mockedProgrammingLanguagesServices,
+            mockedProgrammingLanguageRequestValidator,
+            mockedProgrammingLanguageVersionRequestValidator
+        );
+
+        // Act
+        var actionResult = await controller.Post(programmingLanguageRequest);
+
+        // Assert
+        Assert.IsType<ConflictObjectResult>(actionResult);
+
+        var conflictObjectResult = (ConflictObjectResult)actionResult;
+        Assert.IsType<ApiErrorResponse>(conflictObjectResult.Value);
+
+        var apiErrorResponse = (ApiErrorResponse)conflictObjectResult.Value;
+        Assert.Equal(expectedLookupKey, apiErrorResponse.Data["lookupKey"]);
+        Assert.Equal(expectedEntity, apiErrorResponse.Data["entityName"]);
+        Assert.Equal(expectedErrorCode, apiErrorResponse.ErrorCode);
+        Assert.Equal(expectedErrorMessage, apiErrorResponse.Message);
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
     public async Task Post_Should_Return_Created()
     {
         // Arrange

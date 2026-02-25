@@ -1,6 +1,7 @@
 db = db.getSiblingDB('tsa_submissions_coding');
 
 db.programming_languages.createIndex({ identifier: 1 }, { unique: true });
+db.programming_languages.createIndex({ name: 1 }, { unique: true });
 
 db.programming_languages.insertMany([
     {
