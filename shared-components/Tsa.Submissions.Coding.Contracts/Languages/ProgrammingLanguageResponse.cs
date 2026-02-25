@@ -1,18 +1,26 @@
-﻿namespace Tsa.Submissions.Coding.Contracts.Languages;
+﻿using System.Text.Json.Serialization;
+
+namespace Tsa.Submissions.Coding.Contracts.Languages;
 
 public record ProgrammingLanguageResponse
 {
-    public string FileExtension { get; set; }
+    [JsonPropertyName("fileExtension")]
+    public string FileExtension { get; init; }
 
-    public string Id { get; set; }
+    [JsonPropertyName("id")]
+    public string Id { get; init; }
 
-    public string Identifier { get; set; }
+    [JsonPropertyName("identifier")]
+    public string Identifier { get; init; }
 
-    public bool IsEnabled { get; set; } = true;
+    [JsonPropertyName("isEnabled")]
+    public bool IsEnabled { get; init; } = true;
 
-    public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("name")]
+    public string Name { get; init; } = string.Empty;
 
-    public List<ProgrammingLanguageVersionResponse> Versions { get; set; } = [];
+    [JsonPropertyName("versions")]
+    public List<ProgrammingLanguageVersionResponse> Versions { get; init; } = [];
 
     public ProgrammingLanguageResponse(
         string id,

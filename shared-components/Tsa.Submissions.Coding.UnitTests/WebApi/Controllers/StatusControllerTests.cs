@@ -20,7 +20,7 @@ public class StatusControllerTests
     {
         Assert.Equal(servicesStatusModel.ProblemsServiceIsAlive, !pingableServiceFailures.HasFlag(PingableServiceFailures.Problems));
         Assert.Equal(servicesStatusModel.SubmissionsServiceIsAlive, !pingableServiceFailures.HasFlag(PingableServiceFailures.Submissions));
-        Assert.Equal(servicesStatusModel.TestSetsServiceIsAlive, !pingableServiceFailures.HasFlag(PingableServiceFailures.TestSets));
+        Assert.Equal(servicesStatusModel.TestCasesServiceIsAlive, !pingableServiceFailures.HasFlag(PingableServiceFailures.TestCases));
     }
 
     private static List<IPingableService> BuildHealthyPingableServices()
@@ -95,13 +95,13 @@ public class StatusControllerTests
     #region Inline Data
 
     // Generate each set here: https://planetcalc.com/3757/
-    [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.Submissions | PingableServiceFailures.TestSets)]
+    [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.Submissions | PingableServiceFailures.TestCases)]
     [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.Submissions)]
-    [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.TestSets)]
-    [InlineData(PingableServiceFailures.Submissions | PingableServiceFailures.TestSets)]
+    [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.TestCases)]
+    [InlineData(PingableServiceFailures.Submissions | PingableServiceFailures.TestCases)]
     [InlineData(PingableServiceFailures.Problems)]
     [InlineData(PingableServiceFailures.Submissions)]
-    [InlineData(PingableServiceFailures.TestSets)]
+    [InlineData(PingableServiceFailures.TestCases)]
 
     #endregion
 
@@ -138,13 +138,13 @@ public class StatusControllerTests
     #region Inline Data
 
     // Generate each set here: https://planetcalc.com/3757/
-    [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.Submissions | PingableServiceFailures.TestSets)]
+    [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.Submissions | PingableServiceFailures.TestCases)]
     [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.Submissions)]
-    [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.TestSets)]
-    [InlineData(PingableServiceFailures.Submissions | PingableServiceFailures.TestSets)]
+    [InlineData(PingableServiceFailures.Problems | PingableServiceFailures.TestCases)]
+    [InlineData(PingableServiceFailures.Submissions | PingableServiceFailures.TestCases)]
     [InlineData(PingableServiceFailures.Problems)]
     [InlineData(PingableServiceFailures.Submissions)]
-    [InlineData(PingableServiceFailures.TestSets)]
+    [InlineData(PingableServiceFailures.TestCases)]
 
     #endregion
 
@@ -177,10 +177,12 @@ public class StatusControllerTests
         AssertServiceStatus(servicesStatus, pingableServiceFailures);
     }
 
+    // TODO: Use reflection to pull these instead of hardcoding them here. This will make sure we don't forget to add new services here
     private static IEnumerable<Type> GetServiceTypes()
     {
         yield return typeof(ProblemsService);
         yield return typeof(SubmissionsService);
+        yield return typeof(TestCasesService);
     }
 
     [Fact]
@@ -278,7 +280,7 @@ public class StatusControllerTests
 
         var routeAttribute = (RouteAttribute)attributes[0];
 
-        Assert.Equal("api/[controller]", routeAttribute.Template);
+        Assert.Equal("api/status", routeAttribute.Template);
     }
 
     [Fact]
@@ -351,7 +353,7 @@ public enum PingableServiceFailures
 {
     Problems = 1 << 0,
     Submissions = 1 << 1,
-    TestSets = 1 << 2
+    TestCases = 1 << 2
 }
 
 public enum ServiceFailureType

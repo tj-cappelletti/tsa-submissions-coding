@@ -50,7 +50,8 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
             mongoClient,
             options.Value.Name!,
             MongoDbCollectionName,
-            logger) { }
+            logger)
+    { }
 
     /// <summary>
     ///     Creates a new problem in the database and populates the cache.
@@ -62,9 +63,9 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
     {
         await base.CreateAsync(entity, cancellationToken);
 
-        await SetCacheAsync(ProblemCacheKeys.ForEntity(entity), entity, cancellationToken);
-
         await InvalidateProblemsCacheAsync(cancellationToken);
+
+        await SetCacheAsync(ProblemCacheKeys.ForEntity(entity), entity, cancellationToken);
     }
 
     /// <summary>
@@ -148,7 +149,6 @@ public class ProblemsService : MongoDbService<Problem>, IProblemsService
 
         // Invalidate old cache entries and refresh cache after updating to ensure consistency
         await InvalidateProblemCacheAsync(entity, cancellationToken);
-        await InvalidateProblemsCacheAsync(cancellationToken);
 
         await SetCacheAsync(ProblemCacheKeys.ForEntity(entity), entity, cancellationToken);
     }

@@ -221,9 +221,9 @@ public class KubernetesJobManager
                 cancellationToken: cancellationToken);
 
             using var reader = new StreamReader(logsStream);
-            
+
             var logs = await reader.ReadToEndAsync(cancellationToken);
-            
+
             return logs;
         }
         catch (Exception exception)

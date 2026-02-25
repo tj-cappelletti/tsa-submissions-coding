@@ -35,7 +35,7 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     ///     Gets the service name for diagnostic and logging purposes.
     /// </summary>
     public string ServiceName => "Users";
-    
+
     /// <summary>
     ///     Initializes a new instance of the <see cref="UsersService" /> class.
     /// </summary>
@@ -53,7 +53,8 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
             mongoClient,
             options.Value.Name!,
             MongoDbCollectionName,
-            logger) { }
+            logger)
+    { }
 
     /// <summary>
     ///     Creates a new user in the database and populates the cache.
@@ -64,10 +65,10 @@ public sealed class UsersService : MongoDbService<User>, IUsersService
     {
         await base.CreateAsync(entity, cancellationToken);
 
+        await InvalidateUsersCacheAsync(cancellationToken);
+
         await SetCacheAsync(UserCacheKeys.ForEntity(entity), entity, cancellationToken);
         await SetCacheAsync(UserCacheKeys.ForEntityUserName(entity), entity, cancellationToken);
-
-        await InvalidateUsersCacheAsync(cancellationToken);
     }
 
     /// <summary>

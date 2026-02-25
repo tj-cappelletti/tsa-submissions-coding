@@ -44,14 +44,14 @@ public class AuthenticationController : WebApiBaseController
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthenticationResponse))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody]AuthenticationRequest authenticationRequest, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Login([FromBody] AuthenticationRequest authenticationRequest, CancellationToken cancellationToken = default)
     {
         var validatedResult = await ValidateAsync(authenticationRequest, _authenticationRequestValidator, cancellationToken);
 
         if (validatedResult.IsInvalid)
         {
             _logger.LogWarning("Login attempt failed with invalid authentication request");
-            return validatedResult.GetError();
+            return BadRequest(validatedResult.GetError());
         }
 
         _logger.LogInformation("Login attempt for user {UserName}", authenticationRequest.UserName.SanitizeForLogging());

@@ -17,7 +17,7 @@ using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/submissions")]
 [ApiController]
 [Produces("application/json")]
 public class SubmissionsController : WebApiBaseController
@@ -109,7 +109,7 @@ public class SubmissionsController : WebApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<SubmissionResponse>))]
     [ProducesResponseType(StatusCodes.Status424FailedDependency, Type = typeof(ApiErrorResponse))]
     public async Task<ActionResult<IList<SubmissionResponse>>> GetAll(
-        [FromQuery]string? problemId = null,
+        [FromQuery] string? problemId = null,
         CancellationToken cancellationToken = default)
     {
         //TODO: Add pagination

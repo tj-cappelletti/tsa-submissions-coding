@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Diagnostics.CodeAnalysis;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,7 @@ using Xunit;
 
 namespace Tsa.Submissions.Coding.UnitTests.WebApi.Controllers;
 
+[ExcludeFromCodeCoverage]
 public class AuthenticationControllerTests
 {
     private readonly AuthenticationController _controller;

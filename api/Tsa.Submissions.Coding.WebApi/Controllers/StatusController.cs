@@ -11,7 +11,7 @@ using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/status")]
 [ApiController]
 [Produces("application/json")]
 public class StatusController : ControllerBase

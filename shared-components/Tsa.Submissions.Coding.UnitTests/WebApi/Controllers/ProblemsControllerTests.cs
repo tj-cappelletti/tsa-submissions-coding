@@ -7,6 +7,8 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -175,7 +177,7 @@ public class ProblemsControllerTests
 
         var routeAttribute = (RouteAttribute)attributes[0];
 
-        Assert.Equal("api/[controller]", routeAttribute.Template);
+        Assert.Equal("api/problems", routeAttribute.Template);
     }
 
     [Fact]
@@ -187,13 +189,16 @@ public class ProblemsControllerTests
 
         var problem = problemsTestData.First(problemTestData => (ProblemDataIssues)problemTestData[1] == ProblemDataIssues.None)[0] as Problem;
 
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(It.IsAny<string>(), default))
             .ReturnsAsync(problem);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
 
         // Act
         var actionResult = await problemsController.Delete("64639f6fcdde06187b09ecae");
@@ -208,11 +213,12 @@ public class ProblemsControllerTests
     public async Task Delete_Should_Return_Not_Found()
     {
         // Arrange
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
         var mockedProblemsService = new Mock<IProblemsService>();
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
-
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
         // Act
         var actionResult = await problemsController.Delete("64639f6fcdde06187b09ecae");
 
@@ -226,11 +232,12 @@ public class ProblemsControllerTests
     public async Task Get_By_Id_Should_Return_Not_Found()
     {
         // Arrange
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
         var mockedProblemsService = new Mock<IProblemsService>();
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
-
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
         // Act
         var actionResult = await problemsController.Get("64639f6fcdde06187b09ecae");
 
@@ -248,13 +255,16 @@ public class ProblemsControllerTests
 
         var problem = problemsTestData.First(problemTestData => (ProblemDataIssues)problemTestData[1] == ProblemDataIssues.None)[0] as Problem;
 
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(It.IsAny<string>(), default))
             .ReturnsAsync(problem);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
 
         // Act
         var actionResult = await problemsController.Get("64639f6fcdde06187b09ecae");
@@ -278,6 +288,8 @@ public class ProblemsControllerTests
 
         var expectedProblemResponse = problem.ToResponse();
 
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
             .Setup(problemsService => problemsService.GetAsync(It.Is(problemId, new StringEqualityComparer())!, default))
@@ -297,7 +309,7 @@ public class ProblemsControllerTests
             User = claimsPrincipalMock.Object
         };
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object)
+        var problemsController = new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -327,6 +339,8 @@ public class ProblemsControllerTests
 
         var expectedProblemResponse = problem.ToResponse();
 
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
             .Setup(problemsService => problemsService.GetAsync(It.Is(problemId, new StringEqualityComparer())!, default))
@@ -346,7 +360,7 @@ public class ProblemsControllerTests
             User = claimsPrincipalMock.Object
         };
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object)
+        var problemsController = new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -370,13 +384,16 @@ public class ProblemsControllerTests
         // Arrange
         var emptyProblemsList = new List<Problem>();
 
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(default))
             .ReturnsAsync(emptyProblemsList);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
 
         // Act
         var actionResult = await problemsController.Get();
@@ -400,13 +417,16 @@ public class ProblemsControllerTests
             .Cast<Problem>()
             .ToList();
 
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(default))
             .ReturnsAsync(problemsList);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
 
         // Act
         var actionResult = await problemsController.Get();
@@ -424,7 +444,14 @@ public class ProblemsControllerTests
     public async Task Post_Should_Return_Created()
     {
         // Arrange
-        var newProblem = new ProblemRequest("This is the description", true, "This is the title");
+        const string expectedDescription = "This is the description";
+        const string expectedId = "64639f6fcdde06187b09ecae";
+        const bool expectedIsActive = true;
+        const string expectedTitle = "This is the title";
+
+        var expectedProblemResponse = new ProblemResponse(expectedId, expectedTitle, expectedDescription, expectedIsActive);
+
+        var newProblem = new ProblemRequest(expectedTitle, expectedDescription, expectedIsActive);
 
         var expectedEntity = new Problem
         {
@@ -433,24 +460,40 @@ public class ProblemsControllerTests
             Title = newProblem.Title
         };
 
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+        mockedProblemRequestValidator
+            .Setup(validator => validator.ValidateAsync(It.Is(newProblem, new ProblemRequestEqualityComparer()), default))
+            .ReturnsAsync(new ValidationResult());
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService
             .Setup(problemsService => problemsService.CreateAsync(It.Is(expectedEntity, new ProblemEqualityComparer()), default))
-            .Callback<Problem, CancellationToken>((problem, _) => { problem.Id = "64639f6fcdde06187b09ecae"; })
+            .Callback<Problem, CancellationToken>((problem, _) => { problem.Id = expectedId; })
             .Returns(Task.CompletedTask);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
 
 
         // Act
-        var createdAtActionResult = await problemsController.Post(newProblem);
+        var actionResult = await problemsController.Post(newProblem);
 
         // Assert
-        Assert.NotNull(createdAtActionResult);
+        Assert.NotNull(actionResult);
 
+        Assert.IsType<CreatedAtActionResult>(actionResult);
+
+        // Unboxing the ActionResult to access its properties for further assertions
+        var createdAtActionResult = (CreatedAtActionResult)actionResult;
+        Assert.Equal("Get", createdAtActionResult.ActionName);
+        Assert.Equal("64639f6fcdde06187b09ecae", createdAtActionResult.RouteValues!["id"]);
+        Assert.NotNull(createdAtActionResult.Value);
         Assert.IsType<ProblemResponse>(createdAtActionResult.Value);
+
+        var problemResponse = (ProblemResponse)createdAtActionResult.Value;
+        Assert.Equal(expectedProblemResponse, problemResponse, new ProblemResponseEqualityComparer());
     }
 
     [Fact]
@@ -462,7 +505,7 @@ public class ProblemsControllerTests
 
         var problem = problemsTestData.First(problemTestData => (ProblemDataIssues)problemTestData[1] == ProblemDataIssues.None)[0] as Problem;
 
-        var updatedProblem = new ProblemRequest("This is the description", true, "This is the title");
+        var updatedProblem = new ProblemRequest("This is the title", "This is the description", true);
 
         var expectedEntity = new Problem
         {
@@ -472,13 +515,19 @@ public class ProblemsControllerTests
             Title = updatedProblem.Title
         };
 
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+        mockedProblemRequestValidator
+            .Setup(validator => validator.ValidateAsync(It.Is(updatedProblem, new ProblemRequestEqualityComparer()), default))
+            .ReturnsAsync(new ValidationResult());
+
         var mockedProblemsService = new Mock<IProblemsService>();
         mockedProblemsService.Setup(problemsService => problemsService.GetAsync(It.Is(problem.Id, new StringEqualityComparer())!, default))
             .ReturnsAsync(problem);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
 
         // Act
         var actionResult = await problemsController.Put(problem.Id!, updatedProblem);
@@ -496,12 +545,18 @@ public class ProblemsControllerTests
     public async Task Put_Should_Return_Not_Found()
     {
         // Arrange
+        var updatedProblem = new ProblemRequest("This is the title", "This is the description", true);
+
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+        mockedProblemRequestValidator
+            .Setup(validator => validator.ValidateAsync(It.Is(updatedProblem, new ProblemRequestEqualityComparer()), default))
+            .ReturnsAsync(new ValidationResult());
+
         var mockedProblemsService = new Mock<IProblemsService>();
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
-        var problemsController = new ProblemsController(mockedProblemsService.Object, mockedTestCasesService.Object);
-
-        var updatedProblem = new ProblemRequest("This is the description", true, "This is the title");
+        var problemsController =
+            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
 
         // Act
         var actionResult = await problemsController.Put("64639f6fcdde06187b09ecae", updatedProblem);

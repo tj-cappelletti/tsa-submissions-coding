@@ -43,17 +43,12 @@ internal class ProblemResponseEqualityComparer : EqualityComparerBase<ProblemRes
         return obj == null ? 0 : HashCode.Combine(obj.Description, obj.Id, obj.IsActive, obj.TestCases, obj.Title);
     }
 
-    public override int GetHashCode(IList<ProblemResponse>? obj)
+    /// <summary>
+    ///     Provides the ordering key for list hash code computation.
+    ///     Orders by Id to ensure consistent hash codes.
+    /// </summary>
+    protected override object GetOrderByKey(ProblemResponse item)
     {
-        if (obj == null) return 0;
-
-        var hash = new HashCode();
-
-        foreach (var item in obj.OrderBy(i => i.Id))
-        {
-            hash.Add(GetHashCode(item));
-        }
-
-        return hash.ToHashCode();
+        return item.Id;
     }
 }

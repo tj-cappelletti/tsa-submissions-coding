@@ -31,11 +31,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\api\Tsa.Submissions.Coding.WebApi\Tsa.Submissions.Coding.WebApi.csproj" />
+    <ProjectReference Include="..\..\code-executor\Tsa.Submissions.Coding.CodeExecutor.Runner\Tsa.Submissions.Coding.CodeExecutor.Runner.csproj" />
+    <ProjectReference Include="..\..\code-executor\Tsa.Submissions.Coding.CodeExecutor.Worker\Tsa.Submissions.Coding.CodeExecutor.Worker.csproj" />
+    <ProjectReference Include="..\Tsa.Submissions.Coding.ApiClient\Tsa.Submissions.Coding.ApiClient.csproj" />
     <ProjectReference Include="..\Tsa.Submissions.Coding.Contracts\Tsa.Submissions.Coding.Contracts.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="WebApi\Validators\" />
   </ItemGroup>
 
 </Project>

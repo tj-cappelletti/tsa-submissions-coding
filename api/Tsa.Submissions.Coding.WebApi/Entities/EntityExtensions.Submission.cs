@@ -8,48 +8,6 @@ namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
-    public static ProgrammingLanguageResponse ToResponse(this ProgrammingLanguage programmingLanguage)
-    {
-        var versions = new List<ProgrammingLanguageVersionResponse>();
-
-        foreach (var programmingLanguageVersion in programmingLanguage.Versions)
-        {
-            if (string.IsNullOrWhiteSpace(programmingLanguageVersion.DisplayName))
-            {
-                throw new InvalidOperationException("Programming Language Version Display Name is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(programmingLanguageVersion.VersionTag))
-            {
-                throw new InvalidOperationException("Programming Language Version Tag is required.");
-            }
-
-            versions.Add(new ProgrammingLanguageVersionResponse(
-                programmingLanguageVersion.DisplayName,
-                programmingLanguageVersion.IsDefault,
-                programmingLanguageVersion.VersionTag
-            ));
-        }
-
-        if (string.IsNullOrWhiteSpace(programmingLanguage.Id)) throw new InvalidOperationException("Programming Language ID is required.");
-
-        if (string.IsNullOrWhiteSpace(programmingLanguage.Identifier))
-            throw new InvalidOperationException("Programming Language Identifier is required.");
-
-        if (string.IsNullOrWhiteSpace(programmingLanguage.Name)) throw new InvalidOperationException("Programming Language Name is required.");
-
-        if (string.IsNullOrWhiteSpace(programmingLanguage.FileExtension))
-            throw new InvalidOperationException("Programming Language File Extension is required.");
-
-        return new ProgrammingLanguageResponse(
-            programmingLanguage.Id,
-            programmingLanguage.Identifier,
-            programmingLanguage.Name,
-            programmingLanguage.FileExtension,
-            programmingLanguage.IsEnabled,
-            versions);
-    }
-
     public static SubmissionResponse ToResponse(this Submission submission)
     {
         throw new NotImplementedException("Submission to SubmissionResponse mapping is not implemented yet.");

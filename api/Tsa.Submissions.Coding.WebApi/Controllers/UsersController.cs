@@ -14,7 +14,7 @@ using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/users")]
 [ApiController]
 [Produces("application/json")]
 public class UsersController : WebApiBaseController
@@ -146,7 +146,7 @@ public class UsersController : WebApiBaseController
     {
         var validatedResult = await ValidateAsync(userCreateRequest, _userCreateRequestValidator, cancellationToken);
 
-        if (validatedResult.IsInvalid) return validatedResult.GetError();
+        if (validatedResult.IsInvalid) return BadRequest(validatedResult.GetError());
 
         var existingUser = await _usersService.GetByUserNameAsync(userCreateRequest.UserName, cancellationToken);
 
@@ -248,7 +248,7 @@ public class UsersController : WebApiBaseController
     {
         var validatedResult = await ValidateAsync(updatedUserModel, _userModifyRequestValidator, cancellationToken);
 
-        if (validatedResult.IsInvalid) return validatedResult.GetError();
+        if (validatedResult.IsInvalid) return BadRequest(validatedResult.GetError());
 
         var user = await _usersService.GetAsync(id, cancellationToken);
 

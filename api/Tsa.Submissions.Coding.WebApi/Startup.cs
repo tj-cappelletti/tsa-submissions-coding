@@ -20,6 +20,8 @@ using MongoDB.Driver.Core.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Tsa.Submissions.Coding.Contracts.Authentication;
+using Tsa.Submissions.Coding.Contracts.Languages;
+using Tsa.Submissions.Coding.Contracts.Problems;
 using Tsa.Submissions.Coding.Contracts.Users;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Services;
@@ -141,7 +143,7 @@ public class Startup(IConfiguration configuration)
         const string servicesNamespace = "Tsa.Submissions.Coding.WebApi.Services";
         var serviceTypes = assemblyTypes
             .Where(type => type.Namespace == servicesNamespace && type is
-                { IsAbstract: false, IsClass: true, IsGenericType: false, IsInterface: false, IsNested: false })
+            { IsAbstract: false, IsClass: true, IsGenericType: false, IsInterface: false, IsNested: false })
             .ToList();
 
         var mongoEntityServiceInterfaceType = typeof(IMongoEntityService<>);
@@ -258,6 +260,9 @@ public class Startup(IConfiguration configuration)
 
         // Add Validators
         services.AddScoped<IValidator<AuthenticationRequest>, AuthenticationRequestValidator>();
+        services.AddScoped<IValidator<ProblemRequest>, ProblemRequestValidator>();
+        services.AddScoped<IValidator<ProgrammingLanguageRequest>, ProgrammingLanguageRequestValidator>();
+        services.AddScoped<IValidator<ProgrammingLanguageVersionRequest>, ProgrammingLanguageVersionRequestValidator>();
         services.AddScoped<IValidator<UserCreateRequest>, UserCreateRequestValidator>();
         services.AddScoped<IValidator<UserModifyRequest>, UserModifyRequestValidator>();
 

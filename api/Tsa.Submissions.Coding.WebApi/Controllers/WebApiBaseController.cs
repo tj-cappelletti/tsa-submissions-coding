@@ -76,13 +76,10 @@ public abstract class WebApiBaseController : ControllerBase
             return ValidatedResult.Success();
         }
 
-        return ValidatedResult.Failure(BadRequest(new
-        {
-            errors = result.Errors.Select(e => new
-            {
-                field = e.PropertyName,
-                message = e.ErrorMessage
-            })
-        }));
+        var validationProblemDetails = new ValidationProblemDetails(result.Errors
+            .GroupBy(validationFailure => validationFailure.PropertyName)
+            .ToDictionary(grouping => grouping.Key, grouping => grouping.Select(validationFailure => validationFailure.ErrorMessage).ToArray()));
+
+        return ValidatedResult.Failure(validationProblemDetails);
     }
 }

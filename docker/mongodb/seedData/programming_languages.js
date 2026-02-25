@@ -1,6 +1,7 @@
 db = db.getSiblingDB('tsa_submissions_coding');
 
 db.programming_languages.createIndex({ identifier: 1 }, { unique: true });
+db.programming_languages.createIndex({ name: 1 }, { unique: true });
 
 db.programming_languages.insertMany([
     {
@@ -9,7 +10,7 @@ db.programming_languages.insertMany([
         "identifier": "csharp",
         "isEnabled": true,
         "name": "C#",
-        "supportedVersions": [
+        "versions": [
             {
                 "displayName": ".NET 9.0",
                 "isDefault": false,

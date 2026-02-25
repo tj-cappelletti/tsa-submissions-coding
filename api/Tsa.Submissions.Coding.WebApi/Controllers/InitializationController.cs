@@ -10,7 +10,7 @@ using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/init")]
 [ApiController]
 [Produces("application/json")]
 public class InitializationController : ControllerBase
@@ -45,7 +45,7 @@ public class InitializationController : ControllerBase
     [HttpPost("initialize")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserCreateRequest))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public Task<IActionResult> Initialize([FromBody]UserCreateRequest userCreateRequest, CancellationToken cancellationToken = default)
+    public Task<IActionResult> Initialize([FromBody] UserCreateRequest userCreateRequest, CancellationToken cancellationToken = default)
     {
         //var isInitialized = await IsInitialized(cancellationToken);
 

@@ -56,7 +56,8 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
             mongoClient,
             options.Value.Name!,
             MongoDbCollectionName,
-            logger) { }
+            logger)
+    { }
 
     /// <summary>
     ///     Creates a new test case in the database and populates the cache.
@@ -72,13 +73,13 @@ public class TestCasesService : MongoDbService<TestCase>, ITestCasesService
     {
         await base.CreateAsync(entity, cancellationToken);
 
-        await SetCacheAsync(TestCaseCacheKeys.ForEntity(entity), entity, cancellationToken);
-        await SetCacheAsync(TestCaseCacheKeys.ForEntitySignature(entity), entity, cancellationToken);
-
         // Null forgiveness is safe here because a test case must have a problem ID to be valid, and the database enforces this constraint.
         await InvalidateTestCasesCacheAsync(entity.ProblemId!, cancellationToken);
 
         await InvalidateTestCasesCacheAsync(cancellationToken);
+
+        await SetCacheAsync(TestCaseCacheKeys.ForEntity(entity), entity, cancellationToken);
+        await SetCacheAsync(TestCaseCacheKeys.ForEntitySignature(entity), entity, cancellationToken);
     }
 
     /// <summary>
