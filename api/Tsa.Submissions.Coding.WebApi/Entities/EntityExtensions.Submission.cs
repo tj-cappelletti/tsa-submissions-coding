@@ -1,13 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Tsa.Submissions.Coding.Contracts.Languages;
+using Tsa.Submissions.Coding.Contracts.Pagination;
 using Tsa.Submissions.Coding.Contracts.Submissions;
+using Tsa.Submissions.Coding.WebApi.Pagination;
 
 namespace Tsa.Submissions.Coding.WebApi.Entities;
 
 public static partial class EntityExtensions
 {
+    public static SubmissionListResponse ToListResponse(this Submission submission, User user)
+    {
+        if (string.IsNullOrWhiteSpace(submission.Id))
+        {
+            throw new ArgumentException("Submission ID is required.", nameof(submission));
+        }
+
+        if (string.IsNullOrWhiteSpace(submission.ProblemId))
+        {
+            throw new ArgumentException("Submission Problem ID is required.", nameof(submission));
+        }
+
+        if (string.IsNullOrWhiteSpace(submission.ProgrammingLanguageId))
+        {
+            throw new ArgumentException("Submission Programming Language ID is required.", nameof(submission));
+        }
+
+        if (string.IsNullOrWhiteSpace(submission.ProgrammingLanguageVersionTag))
+        {
+            throw new ArgumentException("Submission Programming Language Version Tag is required.", nameof(submission));
+        }
+
+        if (submission.SubmittedOn == null)
+        {
+            throw new ArgumentException("Submission Submitted On is required.", nameof(submission));
+        }
+
+        if (submission.UserId != user.Id)
+        {
+            throw new ArgumentException($"Submission User ID '{submission.UserId}' does not match User ID '{user.Id}'.", nameof(submission));
+        }
+
+        return new SubmissionListResponse(
+            submission.Id,
+            submission.ProblemId,
+            submission.ProgrammingLanguageId,
+            submission.ProgrammingLanguageVersionTag,
+            submission.SubmittedOn.Value,
+            user.ToResponse());
+    }
+
     public static SubmissionResponse ToResponse(this Submission submission)
     {
         throw new NotImplementedException("Submission to SubmissionResponse mapping is not implemented yet.");
@@ -33,8 +75,36 @@ public static partial class EntityExtensions
         //    submission.UserId);
     }
 
+    public static IEnumerable<SubmissionListResponse> ToResponses(
+        this IEnumerable<Submission> submissions,
+        IEnumerable<User> users)
+    {
+        return submissions.Select(submission =>
+        {
+            var user = users.FirstOrDefault(u => u.Id == submission.UserId);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with ID '{submission.UserId}' not found for submission '{submission.Id}'.");
+            }
+
+            return submission.ToListResponse(user);
+        });
+    }
+
     public static IEnumerable<SubmissionResponse> ToResponses(this IEnumerable<Submission> submissions)
     {
         return submissions.Select(submission => submission.ToResponse());
+    }
+
+    public static PaginatedResponse<SubmissionListResponse> ToPaginatedResponse(
+        this PagedResult<Submission> submissions,
+        IList<User> users)
+    {
+        return new PaginatedResponse<SubmissionListResponse>(
+            submissions.Items.ToResponses(users).ToList(),
+            submissions.PageSize,
+            submissions.HasNextPage,
+            submissions.NextCursor);
     }
 }
