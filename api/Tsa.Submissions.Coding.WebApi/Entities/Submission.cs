@@ -20,6 +20,8 @@ public class Submission : IMongoDbEntity
     [BsonRepresentation(BsonType.ObjectId)]
     public string? ProgrammingLanguageId { get; set; }
 
+    public string? ProgrammingLanguageVersionTag { get; set; }
+
     public SubmissionScorecard? Scorecard { get; set; }
 
     public string? Solution { get; set; }
@@ -30,6 +32,4 @@ public class Submission : IMongoDbEntity
 
     [BsonRepresentation(BsonType.ObjectId)]
     public string? UserId { get; set; }
-
-    public string? VersionTag { get; set; }
 }
