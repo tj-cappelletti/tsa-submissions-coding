@@ -170,16 +170,6 @@ public abstract class ControllerTestsBase<TController> where TController : class
     public abstract void Controller_Should_Have_Route_Attribute();
 
     /// <summary>
-    ///     Verifies that there are no public methods without HTTP method attributes.
-    /// </summary>
-    /// <remarks>
-    ///     This abstract method must be implemented in derived test classes with the [Fact] attribute
-    ///     to ensure it appears in the test explorer and is executed as a test. The implementation
-    ///     should call the protected helper method <see cref="PublicMethodsHaveHttpAttributes" />.
-    /// </remarks>
-    public abstract void Controller_Should_Not_Have_Public_Methods_Without_Http_Attributes();
-
-    /// <summary>
     ///     Verifies that the controller has a [Produces] attribute with the specified content types.
     /// </summary>
     /// <param name="contentTypes">The expected content types (e.g., "application/json")</param>
@@ -259,26 +249,6 @@ public abstract class ControllerTestsBase<TController> where TController : class
             // Verify roles match
             Assert.Equal(expectedRoles, authorizeAttribute.Roles);
         }
-    }
-
-    /// <summary>
-    ///     Verifies that all public methods have HTTP method attributes.
-    /// </summary>
-    /// <remarks>
-    ///     This test provides an additional safety check to catch any public methods
-    ///     that are missing HTTP method attributes entirely. This helps prevent
-    ///     accidentally exposing methods that weren't intended to be API endpoints.
-    /// </remarks>
-    protected void PublicMethodsHaveHttpAttributes()
-    {
-        var methodInfos = TypeHelpers.GetPublicMethods(typeof(TController));
-
-        var methodsWithoutHttpAttributes = methodInfos
-            .Where(methodInfo => !TypeHelpers.MethodHasSingleAttribute<HttpMethodAttribute>(methodInfo))
-            .Select(methodInfo => methodInfo.Name)
-            .ToList();
-
-        Assert.Empty(methodsWithoutHttpAttributes);
     }
 
     /// <summary>

@@ -139,13 +139,6 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase<Programmi
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public override void Controller_Should_Not_Have_Public_Methods_Without_Http_Attributes()
-    {
-        PublicMethodsHaveHttpMethodAttribute();
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
     public async Task Delete_Should_Return_No_Content()
     {
         // Arrange
