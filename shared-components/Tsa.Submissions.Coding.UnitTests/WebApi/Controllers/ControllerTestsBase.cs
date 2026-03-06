@@ -45,12 +45,40 @@ public abstract class ControllerTestsBase<TController> where TController : class
     /// </remarks>
     protected abstract string[] MethodsForJudgesOnly { get; }
 
+    /// <summary>
+    ///     Gets the array of method names that require either the Judge or Participant role.
+    /// </summary>
+    /// <remarks>
+    ///     Override this property in derived classes to specify which controller methods
+    ///     should have [Authorize] with <see cref="SubmissionRoles.JudgeOrParticipant" />.
+    /// </remarks>
     protected abstract string[] MethodsForJudgesOrParticipants { get; }
 
+    /// <summary>
+    ///     Gets the array of method names that require either the Judge or System role.
+    /// </summary>
+    /// <remarks>
+    ///     Override this property in derived classes to specify which controller methods
+    ///     should have [Authorize] with <see cref="SubmissionRoles.JudgeOrSystem" />.
+    /// </remarks>
     protected abstract string[] MethodsForJudgesOrSystem { get; }
 
+    /// <summary>
+    ///     Gets the array of method names that require the Participant role.
+    /// </summary>
+    /// <remarks>
+    ///     Override this property in derived classes to specify which controller methods
+    ///     should have [Authorize] with <see cref="SubmissionRoles.Participant" />.
+    /// </remarks>
     protected abstract string[] MethodsForParticipantsOnly { get; }
 
+    /// <summary>
+    ///     Gets the array of method names that require the System role.
+    /// </summary>
+    /// <remarks>
+    ///     Override this property in derived classes to specify which controller methods
+    ///     should have [Authorize] with <see cref="SubmissionRoles.System" />.
+    /// </remarks>
     protected abstract string[] MethodsForSystemOnly { get; }
 
     /// <summary>
@@ -80,39 +108,85 @@ public abstract class ControllerTestsBase<TController> where TController : class
     }
 
     /// <summary>
-    ///     An abstract test method that verifies all public controller methods have the [Authorize] attribute with the proper
+    ///     Verifies that all public controller methods have the [Authorize] attribute with the proper
     ///     roles assigned.
     /// </summary>
     /// <remarks>
-    ///     This method needs to be implemented as an abstract method so that it can be decorated with the [Fact] attribute in
-    ///     the derived test class, ensuring that it is executed as a test and appears in the test explorer. The actual
-    ///     implementation of this method will call the protected helper method
-    ///     PublicMethodsHaveAuthorizeAttributeWithProperRoles, passing in the controller type to be tested.
+    ///     This abstract method must be implemented in derived test classes with the [Fact] attribute
+    ///     to ensure it appears in the test explorer and is executed as a test. The implementation
+    ///     should call the protected helper method <see cref="PublicMethodsHaveAuthorizeAttributeWithProperRoles" />.
     /// </remarks>
     public abstract void Controller_Public_Methods_Should_Have_Authorize_Attribute_With_Proper_Roles();
 
     /// <summary>
-    ///     An abstract test method that verifies all public controller methods have the appropriate HTTP method attributes
+    ///     Verifies that all public controller methods have the appropriate HTTP method attributes
     ///     (e.g., [HttpGet], [HttpPost], etc.).
     /// </summary>
     /// <remarks>
-    ///     This method needs to be implemented as an abstract method so that it can be decorated with the [Fact] attribute in
-    ///     the derived test class, ensuring that it is executed as a test and appears in the test explorer. The actual
-    ///     implementation of this method will call the protected helper method
-    ///     PublicMethodsHaveHttpMethodAttribute, passing in the controller type to be tested.
+    ///     This abstract method must be implemented in derived test classes with the [Fact] attribute
+    ///     to ensure it appears in the test explorer and is executed as a test. The implementation
+    ///     should call the protected helper method <see cref="PublicMethodsHaveHttpMethodAttribute" />.
     /// </remarks>
     public abstract void Controller_Public_Methods_Should_Have_HttpMethod_Attributes();
 
+    /// <summary>
+    ///     Verifies that the controller has the [ApiController] attribute.
+    /// </summary>
+    /// <remarks>
+    ///     This abstract method must be implemented in derived test classes with the [Fact] attribute
+    ///     to ensure it appears in the test explorer and is executed as a test. The implementation
+    ///     should verify that <see cref="ApiControllerAttribute" /> is present on the controller class.
+    /// </remarks>
     public abstract void Controller_Should_Have_ApiController_Attribute();
 
+    /// <summary>
+    ///     Verifies that the controller has the expected number of public methods.
+    /// </summary>
+    /// <remarks>
+    ///     This abstract method must be implemented in derived test classes with the [Fact] attribute
+    ///     to ensure it appears in the test explorer and is executed as a test. The implementation
+    ///     should call the protected helper method <see cref="ClassHasExpectedNumberOfPublicMethods" />.
+    /// </remarks>
     public abstract void Controller_Should_Have_Expected_Number_Of_Public_Methods();
 
+    /// <summary>
+    ///     Verifies that the controller has the [Produces] attribute with the expected content types.
+    /// </summary>
+    /// <remarks>
+    ///     This abstract method must be implemented in derived test classes with the [Fact] attribute
+    ///     to ensure it appears in the test explorer and is executed as a test. The implementation
+    ///     should call the protected helper method <see cref="HasProducesAttribute" /> with the expected content types.
+    /// </remarks>
     public abstract void Controller_Should_Have_Produces_Attribute();
 
+    /// <summary>
+    ///     Verifies that the controller has the [Route] attribute with the expected route template.
+    /// </summary>
+    /// <remarks>
+    ///     This abstract method must be implemented in derived test classes with the [Fact] attribute
+    ///     to ensure it appears in the test explorer and is executed as a test. The implementation
+    ///     should call the protected helper method <see cref="HasRouteAttribute" /> with the expected route template.
+    /// </remarks>
     public abstract void Controller_Should_Have_Route_Attribute();
 
+    /// <summary>
+    ///     Verifies that there are no public methods without HTTP method attributes.
+    /// </summary>
+    /// <remarks>
+    ///     This abstract method must be implemented in derived test classes with the [Fact] attribute
+    ///     to ensure it appears in the test explorer and is executed as a test. The implementation
+    ///     should call the protected helper method <see cref="PublicMethodsHaveHttpAttributes" />.
+    /// </remarks>
     public abstract void Controller_Should_Not_Have_Public_Methods_Without_Http_Attributes();
 
+    /// <summary>
+    ///     Verifies that the controller has a [Produces] attribute with the specified content types.
+    /// </summary>
+    /// <param name="contentTypes">The expected content types (e.g., "application/json")</param>
+    /// <remarks>
+    ///     This test ensures that the controller properly declares which media types it can produce,
+    ///     which is important for API documentation and client code generation.
+    /// </remarks>
     protected void HasProducesAttribute(params string[] contentTypes)
     {
         Assert.True(TypeHelpers.ClassHasSingleAttribute<ProducesAttribute>(typeof(TController)));
@@ -151,8 +225,10 @@ public abstract class ControllerTestsBase<TController> where TController : class
     /// </summary>
     /// <remarks>
     ///     This test ensures that no endpoints are accidentally exposed without proper authorization.
-    ///     The expected roles for each method are determined by checking the
-    ///     <see cref="MethodsForAllRoles" /> and <see cref="MethodsForJudgesOnly" /> arrays.
+    ///     The expected roles for each method are determined by checking the Methods* properties
+    ///     (<see cref="MethodsForAllRoles" />, <see cref="MethodsForJudgesOnly" />, 
+    ///     <see cref="MethodsForJudgesOrParticipants" />, <see cref="MethodsForJudgesOrSystem" />,
+    ///     <see cref="MethodsForParticipantsOnly" />, and <see cref="MethodsForSystemOnly" />).
     ///     Any method not found in these arrays will cause the test to fail, forcing
     ///     developers to explicitly specify authorization requirements for new methods.
     /// </remarks>
@@ -186,7 +262,7 @@ public abstract class ControllerTestsBase<TController> where TController : class
     }
 
     /// <summary>
-    ///     Verifies that there are no public methods without HTTP method attributes.
+    ///     Verifies that all public methods have HTTP method attributes.
     /// </summary>
     /// <remarks>
     ///     This test provides an additional safety check to catch any public methods
@@ -206,13 +282,15 @@ public abstract class ControllerTestsBase<TController> where TController : class
     }
 
     /// <summary>
-    ///     Verifies that all public controller methods have the appropriate HTTP method attribute.
+    ///     Verifies that all public controller methods have the appropriate HTTP method attribute
+    ///     matching their naming convention.
     /// </summary>
     /// <remarks>
     ///     This test verifies that:
-    ///     1. Every public method has at least one HTTP method attribute (HttpGet, HttpPost, etc.)
+    ///     1. Every public method has exactly one HTTP method attribute ([HttpGet], [HttpPost], etc.)
     ///     2. The specific HTTP method attribute matches the method's naming convention
-    ///     (e.g., methods starting with "Get" should have [HttpGet])
+    ///        (e.g., methods starting with "Get" should have [HttpGet], methods starting with
+    ///        "Post" should have [HttpPost], etc.)
     /// </remarks>
     protected void PublicMethodsHaveHttpMethodAttribute()
     {
