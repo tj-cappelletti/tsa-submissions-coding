@@ -21,18 +21,12 @@ using Xunit;
 namespace Tsa.Submissions.Coding.UnitTests.WebApi.Controllers;
 
 [ExcludeFromCodeCoverage]
-public class ProgrammingLanguagesControllerTests : ControllerTestsBase
+public class ProgrammingLanguagesControllerTests : ControllerTestsBase<ProgrammingLanguagesController>
 {
     private static readonly Type ControllerType = typeof(ProgrammingLanguagesController);
 
-    protected override string[] AllRolesMethods =>
-    [
-        "Get",
-        "GetVersions"
-    ];
-
     /// <summary>
-    /// Creates a new instance of <see cref="ProgrammingLanguagesController"/> with the specified mocked dependencies.
+    ///     Creates a new instance of <see cref="ProgrammingLanguagesController" /> with the specified mocked dependencies.
     /// </summary>
     /// <param name="mockedService">The mocked programming languages service.</param>
     /// <param name="mockedProgrammingLanguageValidator">The mocked programming language request validator.</param>
@@ -50,7 +44,7 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
     }
 
     /// <summary>
-    /// Gets a valid <see cref="ProgrammingLanguage"/> instance from test data with no data issues.
+    ///     Gets a valid <see cref="ProgrammingLanguage" /> instance from test data with no data issues.
     /// </summary>
     /// <returns>A valid programming language for testing.</returns>
     private static ProgrammingLanguage GetValidProgrammingLanguage()
@@ -62,7 +56,7 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
     }
 
     /// <summary>
-    /// Gets a list of valid <see cref="ProgrammingLanguage"/> instances from test data with no data issues.
+    ///     Gets a list of valid <see cref="ProgrammingLanguage" /> instances from test data with no data issues.
     /// </summary>
     /// <returns>A list of valid programming languages for testing.</returns>
     private static List<ProgrammingLanguage> GetValidProgrammingLanguages()
@@ -75,7 +69,13 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
             .ToList();
     }
 
-    protected override string[] JudgeOnlyMethods =>
+    protected override string[] MethodsForAllRoles =>
+    [
+        "Get",
+        "GetVersions"
+    ];
+
+    protected override string[] MethodsForJudgesOnly =>
     [
         "Delete",
         "DeleteProgrammingLanguageVersion",
@@ -85,63 +85,63 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
         "PutProgrammingLanguageVersion"
     ];
 
-    /// <summary>
-    ///     Verifies that all public controller methods have the
-    ///     <see cref="Microsoft.AspNetCore.Authorization.AuthorizeAttribute" />
-    ///     with the appropriate roles assigned.
-    /// </summary>
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public void Controller_Public_Methods_Should_Have_Authorize_Attribute_With_Proper_Roles()
-    {
-        PublicMethodsHaveAuthorizeAttributeWithProperRoles(ControllerType);
-    }
+    protected override string[] MethodsForJudgesOrParticipants => [];
 
-    /// <summary>
-    ///     Verifies that all public controller methods have the appropriate HTTP method attribute.
-    /// </summary>
+    protected override string[] MethodsForJudgesOrSystem => [];
+
+    protected override string[] MethodsForParticipantsOnly => [];
+
+    protected override string[] MethodsForSystemOnly => [];
+
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public void Controller_Public_Methods_Should_Have_Http_Method_Attribute()
+    public override void Controller_Public_Methods_Should_Have_Authorize_Attribute_With_Proper_Roles()
     {
-        PublicMethodsHaveHttpMethodAttribute(ControllerType);
+        PublicMethodsHaveAuthorizeAttributeWithProperRoles();
     }
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public void Controller_Should_Have_ApiController_Attribute()
+    public override void Controller_Public_Methods_Should_Have_HttpMethod_Attributes()
+    {
+        PublicMethodsHaveHttpMethodAttribute();
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public override void Controller_Should_Have_ApiController_Attribute()
     {
         // Move this to the base class if this logic grows more complex
         // Single line assertion doesn't justify the need for a separate method at this time
         Assert.True(TypeHelpers.ClassHasSingleAttribute<ApiControllerAttribute>(ControllerType));
     }
 
-    /// <summary>
-    ///     Verifies that the expected number of public methods exists.
-    ///     This test catches when methods are added or removed.
-    /// </summary>
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public void Controller_Should_Have_Expected_Number_Of_Public_Methods()
+    public override void Controller_Should_Have_Expected_Number_Of_Public_Methods()
     {
-        ClassHasExpectedNumberOfPublicMethods(ControllerType);
+        ClassHasExpectedNumberOfPublicMethods();
     }
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public void Controller_Should_Have_Route_Attribute()
+    public override void Controller_Should_Have_Produces_Attribute()
     {
-        HasRouteAttribute(ControllerType, "api/programming-languages");
+        HasProducesAttribute("application/json");
     }
 
-    /// <summary>
-    ///     Verifies that there are no public methods without HTTP method attributes.
-    /// </summary>
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public void Controller_Should_Not_Have_Public_Methods_Without_Http_Attributes()
+    public override void Controller_Should_Have_Route_Attribute()
     {
-        PublicMethodsHaveHttpMethodAttribute(ControllerType);
+        HasRouteAttribute("api/programming-languages");
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public override void Controller_Should_Not_Have_Public_Methods_Without_Http_Attributes()
+    {
+        PublicMethodsHaveHttpMethodAttribute();
     }
 
     [Fact]
@@ -644,63 +644,11 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
         const int expectedErrorCode = (int)ErrorCodes.EntityAlreadyExists;
         const string expectedErrorMessage = "The resource requested to create already exists.";
         const string expectedEntity = nameof(ProgrammingLanguage);
-        
+
         var expectedLookupKey = programmingLanguage.Name;
 
         var programmingLanguageRequest = new ProgrammingLanguageRequest(
             programmingLanguage.Identifier!,
-            programmingLanguage.Name!,
-            programmingLanguage.FileExtension!,
-            programmingLanguage.IsEnabled);
-
-        var mockedProgrammingLanguagesServices = new MockedProgrammingLanguagesServiceBuilder()
-            .WithGetAsync([programmingLanguage])
-            .Build();
-
-        var mockedProgrammingLanguageRequestValidator = new MockedProgrammingLanguageRequestValidator()
-            .WithSuccessfulValidationResult(programmingLanguageRequest)
-            .Build();
-
-        var mockedProgrammingLanguageVersionRequestValidator = new MockedProgrammingLanguageVersionRequestValidator().Build();
-
-        var controller = CreateController(
-            mockedProgrammingLanguagesServices,
-            mockedProgrammingLanguageRequestValidator,
-            mockedProgrammingLanguageVersionRequestValidator
-        );
-
-        // Act
-        var actionResult = await controller.Post(programmingLanguageRequest);
-
-        // Assert
-        Assert.IsType<ConflictObjectResult>(actionResult);
-
-        var conflictObjectResult = (ConflictObjectResult)actionResult;
-        Assert.IsType<ApiErrorResponse>(conflictObjectResult.Value);
-
-        var apiErrorResponse = (ApiErrorResponse)conflictObjectResult.Value;
-        Assert.Equal(expectedLookupKey, apiErrorResponse.Data["lookupKey"]);
-        Assert.Equal(expectedEntity, apiErrorResponse.Data["entityName"]);
-        Assert.Equal(expectedErrorCode, apiErrorResponse.ErrorCode);
-        Assert.Equal(expectedErrorMessage, apiErrorResponse.Message);
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public async Task Post_Should_Return_Conflict_When_Name_Already_Exists()
-    {
-        // Arrange
-        var programmingLanguage = GetValidProgrammingLanguage();
-
-        const int expectedErrorCode = (int)ErrorCodes.EntityAlreadyExists;
-        const string expectedErrorMessage = "The resource requested to create already exists.";
-        const string expectedEntity = nameof(ProgrammingLanguage);
-
-        var expectedLookupKey = programmingLanguage.Name;
-
-        // Use same Identifier but different Name to trigger the name conflict check
-        var programmingLanguageRequest = new ProgrammingLanguageRequest(
-            "DIFFERENT_IDENTIFIER",
             programmingLanguage.Name!,
             programmingLanguage.FileExtension!,
             programmingLanguage.IsEnabled);
@@ -754,6 +702,58 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
         var programmingLanguageRequest = new ProgrammingLanguageRequest(
             programmingLanguage.Identifier!,
             "A Different Name",
+            programmingLanguage.FileExtension!,
+            programmingLanguage.IsEnabled);
+
+        var mockedProgrammingLanguagesServices = new MockedProgrammingLanguagesServiceBuilder()
+            .WithGetAsync([programmingLanguage])
+            .Build();
+
+        var mockedProgrammingLanguageRequestValidator = new MockedProgrammingLanguageRequestValidator()
+            .WithSuccessfulValidationResult(programmingLanguageRequest)
+            .Build();
+
+        var mockedProgrammingLanguageVersionRequestValidator = new MockedProgrammingLanguageVersionRequestValidator().Build();
+
+        var controller = CreateController(
+            mockedProgrammingLanguagesServices,
+            mockedProgrammingLanguageRequestValidator,
+            mockedProgrammingLanguageVersionRequestValidator
+        );
+
+        // Act
+        var actionResult = await controller.Post(programmingLanguageRequest);
+
+        // Assert
+        Assert.IsType<ConflictObjectResult>(actionResult);
+
+        var conflictObjectResult = (ConflictObjectResult)actionResult;
+        Assert.IsType<ApiErrorResponse>(conflictObjectResult.Value);
+
+        var apiErrorResponse = (ApiErrorResponse)conflictObjectResult.Value;
+        Assert.Equal(expectedLookupKey, apiErrorResponse.Data["lookupKey"]);
+        Assert.Equal(expectedEntity, apiErrorResponse.Data["entityName"]);
+        Assert.Equal(expectedErrorCode, apiErrorResponse.ErrorCode);
+        Assert.Equal(expectedErrorMessage, apiErrorResponse.Message);
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public async Task Post_Should_Return_Conflict_When_Name_Already_Exists()
+    {
+        // Arrange
+        var programmingLanguage = GetValidProgrammingLanguage();
+
+        const int expectedErrorCode = (int)ErrorCodes.EntityAlreadyExists;
+        const string expectedErrorMessage = "The resource requested to create already exists.";
+        const string expectedEntity = nameof(ProgrammingLanguage);
+
+        var expectedLookupKey = programmingLanguage.Name;
+
+        // Use same Identifier but different Name to trigger the name conflict check
+        var programmingLanguageRequest = new ProgrammingLanguageRequest(
+            "DIFFERENT_IDENTIFIER",
+            programmingLanguage.Name!,
             programmingLanguage.FileExtension!,
             programmingLanguage.IsEnabled);
 
@@ -1068,7 +1068,7 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public async Task Put_Should_Return_Conflict_When_Name_Already_Exists()
+    public async Task Put_Should_Return_Conflict_When_Identifier_Already_Exists()
     {
         // Arrange
         var programmingLanguages = GetValidProgrammingLanguages();
@@ -1083,12 +1083,12 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
         const string expectedErrorMessage = "The resource requested to create already exists.";
         const string expectedEntity = nameof(ProgrammingLanguage);
 
-        var expectedLookupKey = existingProgrammingLanguage.Name;
+        var expectedLookupKey = existingProgrammingLanguage.Identifier;
 
         var programmingLanguageRequest = new ProgrammingLanguageRequest(
-            programmingLanguage.Identifier!,
-            // Use the name of the existing programming language to trigger the conflict
-            existingProgrammingLanguage.Name!,
+            // Use the identifier of the existing programming language to trigger the conflict
+            existingProgrammingLanguage.Identifier!,
+            programmingLanguage.Name!,
             programmingLanguage.FileExtension!,
             programmingLanguage.IsEnabled);
 
@@ -1127,7 +1127,7 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public async Task Put_Should_Return_Conflict_When_Identifier_Already_Exists()
+    public async Task Put_Should_Return_Conflict_When_Name_Already_Exists()
     {
         // Arrange
         var programmingLanguages = GetValidProgrammingLanguages();
@@ -1142,12 +1142,12 @@ public class ProgrammingLanguagesControllerTests : ControllerTestsBase
         const string expectedErrorMessage = "The resource requested to create already exists.";
         const string expectedEntity = nameof(ProgrammingLanguage);
 
-        var expectedLookupKey = existingProgrammingLanguage.Identifier;
+        var expectedLookupKey = existingProgrammingLanguage.Name;
 
         var programmingLanguageRequest = new ProgrammingLanguageRequest(
-            // Use the identifier of the existing programming language to trigger the conflict
-            existingProgrammingLanguage.Identifier!,
-            programmingLanguage.Name!,
+            programmingLanguage.Identifier!,
+            // Use the name of the existing programming language to trigger the conflict
+            existingProgrammingLanguage.Name!,
             programmingLanguage.FileExtension!,
             programmingLanguage.IsEnabled);
 
