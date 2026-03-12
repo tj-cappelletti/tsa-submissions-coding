@@ -33,8 +33,32 @@ public class UsersTestData : IEnumerable<object[]>
             {
                 Id = "000000000000000000000002",
                 Role = "participant",
-                Team = new Team(CompetitionLevel.HighSchool, "9000", "901"),
+                Team = new Team(CompetitionLevel.HighSchool, "2000", "901"),
                 UserName = "9000-901"
+            },
+            UserDataIssues.None
+        ];
+
+        yield return
+        [
+            new User
+            {
+                Id = "000000000000000000000003",
+                Role = "participant",
+                Team = new Team(CompetitionLevel.HighSchool, "2001", "901"),
+                UserName = "9001-901"
+            },
+            UserDataIssues.None
+        ];
+
+        yield return
+        [
+            new User
+            {
+                Id = "000000000000000000000004",
+                Role = "participant",
+                Team = new Team(CompetitionLevel.HighSchool, "2002", "901"),
+                UserName = "9002-901"
             },
             UserDataIssues.None
         ];
