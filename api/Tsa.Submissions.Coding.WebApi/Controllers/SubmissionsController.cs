@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Tsa.Submissions.Coding.Contracts;
 using Tsa.Submissions.Coding.Contracts.Messages;
+using Tsa.Submissions.Coding.Contracts.Pagination;
 using Tsa.Submissions.Coding.Contracts.Submissions;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.ExtensionMethods;
+using Tsa.Submissions.Coding.WebApi.Pagination;
 using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
@@ -25,6 +27,7 @@ public class SubmissionsController : WebApiBaseController
     private readonly ILogger<SubmissionsController> _logger;
     private readonly IProblemsService _problemsService;
     private readonly IProgrammingLanguagesService _programmingLanguagesService;
+    private readonly IValidator<SubmissionCreateRequest> _submissionCreateRequestValidator;
     private readonly ISubmissionsQueueService _submissionsQueueService;
     private readonly ISubmissionsService _submissionsService;
     private readonly IUsersService _usersService;
@@ -33,6 +36,7 @@ public class SubmissionsController : WebApiBaseController
         ILogger<SubmissionsController> logger,
         IProblemsService problemsService,
         IProgrammingLanguagesService programmingLanguagesService,
+        IValidator<SubmissionCreateRequest> submissionCreateRequestValidator,
         ISubmissionsService submissionsService,
         ISubmissionsQueueService submissionsQueueService,
         IUsersService usersService)
@@ -40,9 +44,57 @@ public class SubmissionsController : WebApiBaseController
         _logger = logger;
         _problemsService = problemsService;
         _programmingLanguagesService = programmingLanguagesService;
+        _submissionCreateRequestValidator = submissionCreateRequestValidator;
         _submissionsService = submissionsService;
         _submissionsQueueService = submissionsQueueService;
         _usersService = usersService;
+    }
+
+    /// <summary>
+    ///     Fetches a paginated list of submissions from the database
+    /// </summary>
+    /// <param name="cursor">The cursor for pagination (ID of the last submission from previous page)</param>
+    /// <param name="pageSize">The number of items per page (default: 20, max: 100)</param>
+    /// <param name="sortOrder">The order to sort the ID of the submissions on</param>
+    /// <param name="cancellationToken">The .NET cancellation token</param>
+    /// <response code="200">All available submissions returned</response>
+    [Authorize(Roles = SubmissionRoles.JudgeOrSystem)]
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginatedResponse<SubmissionListResponse>))]
+    public async Task<ActionResult<PaginatedResponse<SubmissionListResponse>>> Get(
+        [FromQuery]string? cursor = null,
+        [FromQuery]int pageSize = 20,
+        [FromQuery]string sortOrder = "desc",
+        CancellationToken cancellationToken = default)
+    {
+        PaginationSortOrder paginationSortOrder;
+
+        if (string.Equals(sortOrder, "asc", StringComparison.InvariantCultureIgnoreCase))
+        {
+            paginationSortOrder = PaginationSortOrder.Ascending;
+        }
+        else if (string.Equals(sortOrder, "desc", StringComparison.InvariantCultureIgnoreCase))
+        {
+            paginationSortOrder = PaginationSortOrder.Descending;
+        }
+        else
+        {
+            // Ignore bad values for sortOrder and default to descending
+            paginationSortOrder = PaginationSortOrder.Descending;
+        }
+
+        var pagination = new CursorPagination
+        {
+            Cursor = cursor,
+            PageSize = pageSize,
+            SortOrder = paginationSortOrder
+        };
+
+        var submissions = await _submissionsService.GetPagedByIdCursorAsync(pagination, cancellationToken);
+
+        var users = await _usersService.GetAsync(cancellationToken);
+
+        return submissions.ToPaginatedResponse(users);
     }
 
     /// <summary>
@@ -57,7 +109,7 @@ public class SubmissionsController : WebApiBaseController
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SubmissionResponse))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SubmissionResponse>> Get(string id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<SubmissionResponse>> GetById(string id, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Fetching submission with ID {Id}", id.SanitizeForLogging());
         var sanitizedId = id.SanitizeForLogging();
@@ -99,32 +151,65 @@ public class SubmissionsController : WebApiBaseController
     }
 
     /// <summary>
-    ///     Fetches all the submissions from the database
+    ///     Fetches a paginated list of submissions from the database for the given user
     /// </summary>
-    /// <param name="problemId">The ID of the problem to filter submissions by</param>
+    /// <param name="userId">The ID of the user to fetch submissions for</param>
+    /// <param name="cursor">The cursor for pagination (ID of the last submission from previous page)</param>
+    /// <param name="pageSize">The number of items per page (default: 20, max: 100)</param>
+    /// <param name="sortOrder">The order to sort the ID of the submissions on</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="200">All available submissions returned</response>
     [Authorize(Roles = SubmissionRoles.All)]
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<SubmissionResponse>))]
+    [HttpGet("users/{userId:length(24)}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginatedResponse<SubmissionListResponse>))]
     [ProducesResponseType(StatusCodes.Status424FailedDependency, Type = typeof(ApiErrorResponse))]
-    public async Task<ActionResult<IList<SubmissionResponse>>> GetAll(
-        [FromQuery] string? problemId = null,
+    public async Task<ActionResult<PaginatedResponse<SubmissionListResponse>>> GetByUserId(
+        string userId,
+        [FromQuery]string? cursor = null,
+        [FromQuery]int pageSize = 20,
+        [FromQuery]string sortOrder = "desc",
         CancellationToken cancellationToken = default)
     {
-        //TODO: Add pagination
-        var submissions = string.IsNullOrEmpty(problemId)
-            ? await _submissionsService.GetAsync(cancellationToken)
-            : await _submissionsService.GetByProblemIdAsync(problemId, cancellationToken);
+        if (User.IsInRole(SubmissionRoles.Participant))
+        {
+            var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
 
-        if (User.IsInRole(SubmissionRoles.Judge)) return submissions.ToResponses().ToList();
+            if (user!.Id != userId)
+            {
+                _logger.LogWarning("User {UserName} attempted to access submissions for user ID {UserId}", User.Identity.Name.SanitizeForLogging(),
+                    userId.SanitizeForLogging());
+                return Forbid();
+            }
+        }
 
-        var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
+        PaginationSortOrder paginationSortOrder;
 
-        return submissions
-            .Where(submission => submission.UserId == user!.Id)
-            .ToResponses()
-            .ToList();
+        if (string.Equals(sortOrder, "asc", StringComparison.InvariantCultureIgnoreCase))
+        {
+            paginationSortOrder = PaginationSortOrder.Ascending;
+        }
+        else if (string.Equals(sortOrder, "desc", StringComparison.InvariantCultureIgnoreCase))
+        {
+            paginationSortOrder = PaginationSortOrder.Descending;
+        }
+        else
+        {
+            // Ignore bad values for sortOrder and default to descending
+            paginationSortOrder = PaginationSortOrder.Descending;
+        }
+
+        var pagination = new CursorPagination
+        {
+            Cursor = cursor,
+            PageSize = pageSize,
+            SortOrder = paginationSortOrder
+        };
+
+        var submissions = await _submissionsService.GetPagedByUserIdCursorAsync(userId, pagination, cancellationToken);
+
+        var users = await _usersService.GetAsync(cancellationToken);
+
+        return submissions.ToPaginatedResponse(users);
     }
 
     /// <summary>
@@ -144,22 +229,23 @@ public class SubmissionsController : WebApiBaseController
     {
         var submittedOn = DateTimeOffset.UtcNow;
 
+        var validationResult = await ValidateAsync(submissionCreateRequest, _submissionCreateRequestValidator, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.GetError());
+        }
+
         _logger.LogInformation(
             "Creating submission for problem ID {ProblemId} for user {UserName}",
             submissionCreateRequest.ProblemId.SanitizeForLogging(),
             User.Identity?.Name.SanitizeForLogging() ?? "Unknown");
 
-        if (string.IsNullOrWhiteSpace(User.Identity?.Name))
-        {
-            _logger.LogWarning("User identity name is null or whitespace");
-            return Forbid();
-        }
-
-        var user = await _usersService.GetByUserNameAsync(User.Identity.Name, cancellationToken);
+        var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
 
         if (user == null)
         {
-            _logger.LogWarning("User {UserName} not found", User.Identity.Name.SanitizeForLogging());
+            _logger.LogWarning("User {UserName} not found", User.Identity?.Name?.SanitizeForLogging() ?? "Unknown");
             return Forbid();
         }
 
@@ -181,9 +267,21 @@ public class SubmissionsController : WebApiBaseController
             return BadRequest(ApiErrorEntityNotFound("Programming Language", submissionCreateRequest.ProgrammingLanguageId.SanitizeForLogging()));
         }
 
+        var programmingLanguageVersion = programmingLanguage.Versions.SingleOrDefault(v => v.VersionTag == submissionCreateRequest.ProgrammingLanguageVersionTag);
+
+        if (programmingLanguageVersion == null)
+        {
+            _logger.LogWarning(
+                "Programming language version with tag {ProgrammingLanguageVersionTag} for programming language ID {ProgrammingLanguageId} not found",
+                submissionCreateRequest.ProgrammingLanguageVersionTag.SanitizeForLogging(),
+                submissionCreateRequest.ProgrammingLanguageId.SanitizeForLogging());
+            return BadRequest(ApiErrorEntityNotFound("Programming Language Version", submissionCreateRequest.ProgrammingLanguageVersionTag.SanitizeForLogging()));
+        }
+
         var submission = new Submission
         {
             ProgrammingLanguageId = programmingLanguage.Id,
+            ProgrammingLanguageVersionTag = programmingLanguageVersion.VersionTag,
             ProblemId = problem.Id,
             Solution = submissionCreateRequest.Solution,
             SubmittedOn = submittedOn,
