@@ -1,172 +1,296 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using Microsoft.AspNetCore.Authorization;
+using System.Linq;
+using System.Threading.Tasks;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Tsa.Submissions.Coding.WebApi.Authorization;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Tsa.Submissions.Coding.Contracts.Submissions;
+using Tsa.Submissions.Coding.Contracts.Users;
+using Tsa.Submissions.Coding.UnitTests.Data;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Mocks;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Problems;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Reflection;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Submissions;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Users;
 using Tsa.Submissions.Coding.WebApi.Controllers;
+using Tsa.Submissions.Coding.WebApi.Entities;
+using Tsa.Submissions.Coding.WebApi.Pagination;
+using Tsa.Submissions.Coding.WebApi.Services;
 using Xunit;
 
 namespace Tsa.Submissions.Coding.UnitTests.WebApi.Controllers;
 
 [ExcludeFromCodeCoverage]
-public class SubmissionsControllerTest
+public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsController>
 {
+    private static readonly Type ControllerType = typeof(SubmissionsController);
+
+    private static SubmissionsController CreateController(
+        IMock<ILogger<SubmissionsController>> logger,
+        IMock<IProblemsService> problemsService,
+        IMock<IProgrammingLanguagesService> programmingLanguagesService,
+        IMock<IValidator<SubmissionCreateRequest>> submissionCreateRequestValidator,
+        IMock<ISubmissionsService> submissionsService,
+        IMock<ISubmissionsQueueService> submissionsQueueService,
+        IMock<IUsersService> usersService)
+    {
+        return new SubmissionsController(
+            logger.Object,
+            problemsService.Object,
+            programmingLanguagesService.Object,
+            submissionCreateRequestValidator.Object,
+            submissionsService.Object,
+            submissionsQueueService.Object,
+            usersService.Object
+        );
+    }
+
+    private static Submission GetValidSubmission()
+    {
+        var testData = new SubmissionsTestData();
+
+        return (Submission)testData
+            .First(data => (SubmissionDataIssues)data[1] == SubmissionDataIssues.None)[0];
+    }
+
+    private static List<Submission> GetValidSubmissions(int take = 5)
+    {
+        var testData = new SubmissionsTestData();
+
+        return testData
+            .Where(data => (SubmissionDataIssues)data[1] == SubmissionDataIssues.None)
+            .Take(take)
+            .Select(data => (Submission)data[0])
+            .ToList();
+    }
+
+    private static List<User> GetValidUsers()
+    {
+        var testData = new UsersTestData();
+
+        return testData
+            .Where(data => (UserDataIssues)data[1] == UserDataIssues.None)
+            .Select(data => (User)data[0])
+            .ToList();
+    }
+
+    protected override string[] MethodsForAllRoles =>
+    [
+        "GetById",
+        "GetByUserId"
+    ];
+
+    protected override string[] MethodsForJudgesOnly => [];
+
+    protected override string[] MethodsForJudgesOrParticipants => [];
+
+    protected override string[] MethodsForJudgesOrSystem =>
+    [
+        "Get",
+        "Put"
+    ];
+
+    protected override string[] MethodsForParticipantsOnly =>
+    [
+        "Post"
+    ];
+
+    protected override string[] MethodsForSystemOnly => [];
+
     [Fact]
     [Trait("TestCategory", "UnitTest")]
-    public void Controller_Public_Methods_Should_Have_Authorize_Attribute_With_Proper_Roles()
+    public override void Controller_Public_Methods_Should_Have_Authorize_Attribute_With_Proper_Roles()
     {
-        var submissionsControllerType = typeof(SubmissionsController);
+        PublicMethodsHaveAuthorizeAttributeWithProperRoles();
+    }
 
-        var methodInfos = submissionsControllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public override void Controller_Public_Methods_Should_Have_HttpMethod_Attributes()
+    {
+        PublicMethodsHaveHttpMethodAttribute();
+    }
 
-        Assert.NotEmpty(methodInfos);
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public override void Controller_Should_Have_ApiController_Attribute()
+    {
+        // Move this to the base class if this logic grows more complex
+        // Single line assertion doesn't justify the need for a separate method at this time
+        Assert.True(TypeHelpers.ClassHasSingleAttribute<ApiControllerAttribute>(ControllerType));
+    }
 
-        foreach (var methodInfo in methodInfos)
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public override void Controller_Should_Have_Expected_Number_Of_Public_Methods()
+    {
+        ClassHasExpectedNumberOfPublicMethods();
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public override void Controller_Should_Have_Produces_Attribute()
+    {
+        HasProducesAttribute("application/json");
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public override void Controller_Should_Have_Route_Attribute()
+    {
+        HasRouteAttribute("api/submissions");
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public async Task Get_Should_Return_Ok_When_Empty()
+    {
+        // Arrange
+        const int defaultPageSize = 20;
+
+        var expectedCursorPagination = new CursorPagination
         {
-            var attributes = methodInfo.GetCustomAttributes(typeof(AuthorizeAttribute), false);
+            Cursor = null,
+            PageSize = defaultPageSize,
+            SortOrder = PaginationSortOrder.Descending
+        };
 
-            Assert.NotNull(attributes);
-            Assert.NotEmpty(attributes);
-            Assert.Single(attributes);
-
-            var authorizeAttribute = (AuthorizeAttribute)attributes[0];
-
-            switch (methodInfo.Name)
-            {
-                case "Delete":
-                    Assert.Equal(SubmissionRoles.Judge, authorizeAttribute.Roles);
-                    break;
-
-                case "Get":
-                    Assert.Equal(SubmissionRoles.All, authorizeAttribute.Roles);
-                    break;
-
-                case "GetAll":
-                    Assert.Equal(SubmissionRoles.All, authorizeAttribute.Roles);
-                    break;
-
-                case "GetTestSets":
-                    Assert.Equal(SubmissionRoles.All, authorizeAttribute.Roles);
-                    break;
-
-                case "Post":
-                    Assert.Equal(SubmissionRoles.Participant, authorizeAttribute.Roles);
-                    break;
-
-                case "Put":
-                    Assert.Equal(SubmissionRoles.JudgeOrSystem, authorizeAttribute.Roles);
-                    break;
-
-                default:
-                    Assert.Fail($"A test case for the method `{methodInfo.Name}` does not exist");
-                    break;
-            }
-        }
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public void Controller_Public_Methods_Should_Have_Http_Method_Attribute()
-    {
-        var submissionsControllerType = typeof(SubmissionsController);
-
-        var methodInfos = submissionsControllerType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-
-        Assert.NotEmpty(methodInfos);
-
-        foreach (var methodInfo in methodInfos)
+        var pagedSubmissionResult = new PagedResult<Submission>
         {
-            // Needs to be nullable so the compiler sees it's initialized
-            // The Assert.Fail doesn't tell it that the line it's being used
-            // will only ever be hit if it's initialized
-            Type? attributeType = null;
+            HasNextPage = false,
+            Items = [],
+            NextCursor = null,
+            PageSize = defaultPageSize
+        };
 
-            switch (methodInfo.Name.ToLower())
-            {
-                case "delete":
-                    attributeType = typeof(HttpDeleteAttribute);
-                    break;
-                case "get":
-                    attributeType = typeof(HttpGetAttribute);
-                    break;
-                case "getall":
-                    attributeType = typeof(HttpGetAttribute);
-                    break;
-                case "head":
-                    attributeType = typeof(HttpHeadAttribute);
-                    break;
-                case "options":
-                    attributeType = typeof(HttpOptionsAttribute);
-                    break;
-                case "patch":
-                    attributeType = typeof(HttpPatchAttribute);
-                    break;
-                case "post":
-                    attributeType = typeof(HttpPostAttribute);
-                    break;
-                case "put":
-                    attributeType = typeof(HttpPutAttribute);
-                    break;
-                default:
-                    Assert.Fail("Unsupported public HTTP operation");
-                    break;
-            }
+        var mockedLogger = new Mock<ILogger<SubmissionsController>>();
 
-            var attributes = methodInfo.GetCustomAttributes(attributeType, false);
+        var mockedProblemsService = new MockedProblemsServiceBuilder().Build();
 
-            Assert.NotNull(attributes);
-            Assert.NotEmpty(attributes);
-            Assert.Single(attributes);
+        var mockedProgrammingLanguagesService = new MockedProgrammingLanguagesServiceBuilder().Build();
+
+        var mockedSubmissionCreateRequestValidator = new MockedSubmissionCreateRequestValidator().Build();
+
+        var mockedSubmissionsService = new MockedSubmissionsServiceBuilder()
+            .WithGetPagedByIdCursorAsync(expectedCursorPagination, pagedSubmissionResult, Times.Once())
+            .Build();
+
+        var mockedSubmissionsQueueService = new MockedSubmissionsQueueServiceBuilder().Build();
+
+        var mockedUsersService = new MockedUsersServiceBuilder()
+            .WithGetAsync([], Times.Once())
+            .Build();
+
+        var controller = CreateController(
+            mockedLogger,
+            mockedProblemsService,
+            mockedProgrammingLanguagesService,
+            mockedSubmissionCreateRequestValidator,
+            mockedSubmissionsService,
+            mockedSubmissionsQueueService,
+            mockedUsersService
+        );
+
+        // Act
+        var actionResult = await controller.Get(); // Using default parameters to test the empty case
+
+        // Assert
+        Assert.NotNull(actionResult);
+        Assert.NotNull(actionResult.Value);
+        Assert.False(actionResult.Value.HasNextPage);
+        Assert.Empty(actionResult.Value.Items);
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
+    public async Task Get_Should_Return_Ok_When_Results_Has_Less_Pages_Then_Requested()
+    {
+        // Arrange
+        const int defaultPageSize = 20;
+
+        var expectedCursorPagination = new CursorPagination
+        {
+            Cursor = null,
+            PageSize = defaultPageSize,
+            SortOrder = PaginationSortOrder.Descending
+        };
+
+        var submissions = GetValidSubmissions(2);
+        var users = GetValidUsers();
+
+        var pagedSubmissionResult = new PagedResult<Submission>
+        {
+            HasNextPage = false,
+            Items = submissions,
+            NextCursor = null,
+            PageSize = defaultPageSize
+        };
+
+        var submissionListResponses = new List<SubmissionListResponse>();
+
+        foreach (var submission in submissions)
+        {
+            var user = users.First(entity => entity.Id == submission.UserId);
+
+            submissionListResponses.Add(new SubmissionListResponse(
+                submission.Id!,
+                submission.ProblemId!,
+                submission.ProgrammingLanguageId!,
+                submission.ProgrammingLanguageVersionTag!,
+                submission.SubmittedOn!.Value,
+                submission.EvaluatedOn,
+                new UserResponse(
+                    user.Id!,
+                    user.UserName!,
+                    user.Role!,
+                    new TeamResponse(user.Team!.CompetitionLevel.ToString(), user.Team.SchoolNumber, user.Team.TeamNumber),
+                    user.Participants
+                )
+            ));
         }
+
+        var mockedLogger = new Mock<ILogger<SubmissionsController>>();
+
+        var mockedProblemsService = new MockedProblemsServiceBuilder().Build();
+
+        var mockedProgrammingLanguagesService = new MockedProgrammingLanguagesServiceBuilder().Build();
+
+        var mockedSubmissionCreateRequestValidator = new MockedSubmissionCreateRequestValidator().Build();
+
+        var mockedSubmissionsService = new MockedSubmissionsServiceBuilder()
+            .WithGetPagedByIdCursorAsync(expectedCursorPagination, pagedSubmissionResult, Times.Once())
+            .Build();
+
+        var mockedSubmissionsQueueService = new MockedSubmissionsQueueServiceBuilder().Build();
+
+        var mockedUsersService = new MockedUsersServiceBuilder()
+            .WithGetAsync(users, Times.Once())
+            .Build();
+
+        var controller = CreateController(
+            mockedLogger,
+            mockedProblemsService,
+            mockedProgrammingLanguagesService,
+            mockedSubmissionCreateRequestValidator,
+            mockedSubmissionsService,
+            mockedSubmissionsQueueService,
+            mockedUsersService
+        );
+
+        // Act
+        var actionResult = await controller.Get(); // Using default parameters to test the empty case
+
+        // Assert
+        Assert.NotNull(actionResult);
+        Assert.NotNull(actionResult.Value);
+        Assert.False(actionResult.Value.HasNextPage);
+        Assert.NotEmpty(actionResult.Value.Items);
+        Assert.Equal(submissionListResponses, actionResult.Value.Items, new SubmissionListResponseEqualityComparer());
+        Assert.Equal(defaultPageSize, actionResult.Value.PageSize);
     }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public void Controller_Should_Have_ApiController_Attribute()
-    {
-        var submissionsControllerType = typeof(SubmissionsController);
-
-        var attributes = submissionsControllerType.GetCustomAttributes(typeof(ApiControllerAttribute), false);
-
-        Assert.NotNull(attributes);
-        Assert.NotEmpty(attributes);
-        Assert.Single(attributes);
-    }
-
-    [Fact]
-    [Trait("TestCategory", "UnitTest")]
-    public void Controller_Should_Have_Produces_Attribute()
-    {
-        var submissionsControllerType = typeof(SubmissionsController);
-
-        var attributes = submissionsControllerType.GetCustomAttributes(typeof(ProducesAttribute), false);
-
-        Assert.NotNull(attributes);
-        Assert.NotEmpty(attributes);
-        Assert.Single(attributes);
-
-        var producesAttribute = (ProducesAttribute)attributes[0];
-
-        Assert.Contains("application/json", producesAttribute.ContentTypes);
-    }
-
-    //[Fact]
-    //[Trait("TestCategory", "UnitTest")]
-    //public void Controller_Should_Have_Route_Attribute()
-    //{
-    //    var submissionsControllerType = typeof(SubmissionsController);
-
-    //    var attributes = submissionsControllerType.GetCustomAttributes(typeof(RouteAttribute), false);
-
-    //    Assert.NotNull(attributes);
-    //    Assert.NotEmpty(attributes);
-    //    Assert.Single(attributes);
-
-    //    var routeAttribute = (RouteAttribute)attributes[0];
-
-    //    Assert.Equal("api/[controller]", routeAttribute.Template);
-    //}
 
     //[Fact]
     //[Trait("TestCategory", "UnitTest")]
