@@ -2,9 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using MongoDB.Driver;
 using Tsa.Submissions.Coding.WebApi.Entities;
-using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.UnitTests.Data;
 
@@ -18,39 +16,59 @@ internal class SubmissionsTestData : IEnumerable<object[]>
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        throw new NotImplementedException();
-        //yield return
-        //[
-        //    new Submission
-        //    {
-        //        Id = "000000000000000000000001",
-        //        Language = new ProgrammingLanguage
-        //        {
-        //            Name = "C#",
-        //            Version = "10.0"
-        //        },
-        //        Problem = new MongoDBRef(ProblemsService.MongoDbCollectionName, "000000000000000000000001"),
-        //        Solution = "The solution",
-        //        SubmittedOn = DateTime.Now,
-        //        //TestSetResults =
-        //        //[
-        //        //    new TestSetResult
-        //        //    {
-        //        //        Passed = true,
-        //        //        RunDuration = new TimeSpan(0, 0, 5, 30),
-        //        //        TestSet = new MongoDBRef(TestSetsService.MongoDbCollectionName, "000000000000000000000001")
-        //        //    },
-        //        //    new TestSetResult
-        //        //    {
-        //        //        Passed = false,
-        //        //        RunDuration = new TimeSpan(0, 0, 1, 30),
-        //        //        TestSet = new MongoDBRef(TestSetsService.MongoDbCollectionName, "000000000000000000000002")
-        //        //    }
-        //        //],
-        //        User = new MongoDBRef(UsersService.MongoDbCollectionName, "000000000000000000000001")
-        //    },
-        //    SubmissionDataIssues.None
-        //];
+        yield return
+        [
+            new Submission
+            {
+                EvaluatedOn = null,
+                Id = "000000000000000000000001",
+                ProblemId = "000000000000000000000001",
+                ProgrammingLanguageId = "000000000000000000000001",
+                ProgrammingLanguageVersionTag = "dotnet9.0",
+                Scorecard = null,
+                Solution = "Console.WriteLine(\"Hello, World!\");",
+                SubmittedOn = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5)),
+                TestCaseResults = [],
+                UserId = "000000000000000000000002"
+            },
+            SubmissionDataIssues.None
+        ];
+
+        yield return
+        [
+            new Submission
+            {
+                EvaluatedOn = null,
+                Id = "000000000000000000000002",
+                ProblemId = "000000000000000000000001",
+                ProgrammingLanguageId = "000000000000000000000001",
+                ProgrammingLanguageVersionTag = "dotnet9.0",
+                Scorecard = null,
+                Solution = "Console.WriteLine(\"Hello TSA!!\");",
+                SubmittedOn = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5)),
+                TestCaseResults = [],
+                UserId = "000000000000000000000003"
+            },
+            SubmissionDataIssues.None
+        ];
+
+        yield return
+        [
+            new Submission
+            {
+                EvaluatedOn = null,
+                Id = "000000000000000000000003",
+                ProblemId = "000000000000000000000001",
+                ProgrammingLanguageId = "000000000000000000000002",
+                ProgrammingLanguageVersionTag = "java17",
+                Scorecard = null,
+                Solution = "System.out.println(\"Hello, World!\");",
+                SubmittedOn = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5)),
+                TestCaseResults = [],
+                UserId = "000000000000000000000004"
+            },
+            SubmissionDataIssues.None
+        ];
     }
 }
 
