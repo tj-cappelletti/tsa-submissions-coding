@@ -12,18 +12,18 @@ namespace Tsa.Submissions.Coding.UnitTests.Helpers.Mocks;
 ///     Fluent builder for creating mocked service instances with pre-configured behaviors.
 /// </summary>
 [ExcludeFromCodeCoverage]
-internal abstract class MockedServiceBuilder<TService, TEntity>
+internal abstract class MockedServiceBuilder<TService, TEntity> : IMockBuilder<TService>
     where TService : class, IMongoEntityService<TEntity>
     where TEntity : IMongoDbEntity, new()
 {
-    private readonly Mock<TService> _mock = new();
+    protected readonly Mock<TService> Mock = new();
 
     /// <summary>
     ///     Builds and returns the configured mock instance.
     /// </summary>
     public Mock<TService> Build()
     {
-        return _mock;
+        return Mock;
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ internal abstract class MockedServiceBuilder<TService, TEntity>
     /// </summary>
     public TService BuildObject()
     {
-        return _mock.Object;
+        return Mock.Object;
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ internal abstract class MockedServiceBuilder<TService, TEntity>
         IEqualityComparer<TEntity> equalityComparer,
         Times? times = null)
     {
-        _mock
+        Mock
             .Setup(service => service.CreateAsync(It.Is(expectedEntity, equalityComparer), default))
             .Callback<TEntity, CancellationToken>((entity, _) => entity.Id = newId)
             .Returns(Task.CompletedTask)
@@ -68,7 +68,7 @@ internal abstract class MockedServiceBuilder<TService, TEntity>
         TEntity? returnValue,
         Times? times = null)
     {
-        _mock
+        Mock
             .Setup(service => service.GetAsync(It.Is(id, new StringEqualityComparer()), default))
             .ReturnsAsync(returnValue)
             .Verifiable(times ?? Times.Once());
@@ -83,7 +83,7 @@ internal abstract class MockedServiceBuilder<TService, TEntity>
         List<TEntity> returnValue,
         Times? times = null)
     {
-        _mock
+        Mock
             .Setup(service => service.GetAsync(default))
             .ReturnsAsync(returnValue)
             .Verifiable(times ?? Times.Once());
@@ -92,19 +92,19 @@ internal abstract class MockedServiceBuilder<TService, TEntity>
     }
 
     public abstract MockedServiceBuilder<TService, TEntity> WithRemoveAsync(
-        TEntity entity,
+        TEntity expectedEntity,
         Times? times = null);
 
     /// <summary>
     ///     Configures RemoveAsync for a specific entity.
     /// </summary>
     protected MockedServiceBuilder<TService, TEntity> WithRemoveAsync(
-        TEntity entity,
+        TEntity expectedEntity,
         IEqualityComparer<TEntity> equalityComparer,
         Times? times = null)
     {
-        _mock
-            .Setup(service => service.RemoveAsync(It.Is(entity, equalityComparer), default))
+        Mock
+            .Setup(service => service.RemoveAsync(It.Is(expectedEntity, equalityComparer), default))
             .Returns(Task.CompletedTask)
             .Verifiable(times ?? Times.Once());
 
@@ -123,7 +123,7 @@ internal abstract class MockedServiceBuilder<TService, TEntity>
         IEqualityComparer<TEntity> equalityComparer,
         Times? times = null)
     {
-        _mock
+        Mock
             .Setup(service => service.UpdateAsync(It.Is(expectedEntity, equalityComparer), default))
             .Returns(Task.CompletedTask)
             .Verifiable(times ?? Times.Once());
