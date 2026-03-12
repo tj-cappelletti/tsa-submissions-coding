@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Moq;
 using Tsa.Submissions.Coding.Contracts.Languages;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Languages;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers.Mocks;
 
@@ -28,7 +29,7 @@ internal class MockedProgrammingLanguageRequestValidator : MockedValidatorBuilde
     {
         WithFailedValidationResult(
             expectedModel,
-            EqualityComparer<ProgrammingLanguageRequest>.Default,
+            new ProgrammingLanguageRequestEqualityComparer(),
             property,
             message,
             times);
@@ -50,7 +51,7 @@ internal class MockedProgrammingLanguageRequestValidator : MockedValidatorBuilde
     {
         WithFailedValidationResult(
             expectedModel,
-            EqualityComparer<ProgrammingLanguageRequest>.Default,
+            new ProgrammingLanguageRequestEqualityComparer(),
             failures,
             times);
 
@@ -69,7 +70,7 @@ internal class MockedProgrammingLanguageRequestValidator : MockedValidatorBuilde
     {
         WithSuccessfulValidationResult(
             expectedModel,
-            EqualityComparer<ProgrammingLanguageRequest>.Default,
+            new ProgrammingLanguageRequestEqualityComparer(),
             times);
 
         return this;
