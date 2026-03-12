@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Tsa.Submissions.Coding.WebApi.Entities;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers.TestCases;
@@ -34,18 +32,6 @@ internal class TestCaseEqualityComparer : EqualityComparerBase<TestCase>
                signaturesMatch;
     }
 
-    protected override bool EqualsCore(IList<TestCase> x, IList<TestCase> y)
-    {
-        foreach (var leftTestCase in x)
-        {
-            var rightTestCase = y.SingleOrDefault(testCase => testCase.Signature == leftTestCase.Signature);
-
-            if (!Equals(leftTestCase, rightTestCase)) return false;
-        }
-
-        return true;
-    }
-
     public override int GetHashCode(TestCase? obj)
     {
         if (obj == null) return 0;
@@ -65,10 +51,11 @@ internal class TestCaseEqualityComparer : EqualityComparerBase<TestCase>
         return hash.ToHashCode();
     }
 
-    /// <summary>
-    ///     Provides the ordering key for list hash code computation.
-    ///     Orders by Signature to ensure consistent hash codes.
-    /// </summary>
+    protected override Func<TestCase, bool> GetItemPredicate(TestCase item)
+    {
+        return testCase => testCase.Signature == item.Signature;
+    }
+
     protected override object GetOrderByKey(TestCase item)
     {
         return item.Signature!;

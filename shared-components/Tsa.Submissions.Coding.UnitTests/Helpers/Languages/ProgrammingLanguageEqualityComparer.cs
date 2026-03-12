@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Tsa.Submissions.Coding.WebApi.Entities;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers.Languages;
@@ -28,23 +24,6 @@ internal class ProgrammingLanguageEqualityComparer : EqualityComparerBase<Progra
                versionsMatch;
     }
 
-    protected override bool EqualsCore(IList<ProgrammingLanguage> x, IList<ProgrammingLanguage> y)
-    {
-        foreach (var leftProgrammingLanguageResponse in x)
-        {
-            var matchingProgrammingLanguageResponse = y
-                .SingleOrDefault(programmingLanguageResponse =>
-                    programmingLanguageResponse.Id == leftProgrammingLanguageResponse.Id);
-
-            if (!Equals(leftProgrammingLanguageResponse, matchingProgrammingLanguageResponse))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     public override int GetHashCode(ProgrammingLanguage? obj)
     {
         if (obj == null) return 0;
@@ -62,6 +41,11 @@ internal class ProgrammingLanguageEqualityComparer : EqualityComparerBase<Progra
         }
 
         return hashCode.ToHashCode();
+    }
+
+    protected override Func<ProgrammingLanguage, bool> GetItemPredicate(ProgrammingLanguage item)
+    {
+        return programmingLanguage => programmingLanguage.Id == item.Id;
     }
 
     protected override object GetOrderByKey(ProgrammingLanguage item)

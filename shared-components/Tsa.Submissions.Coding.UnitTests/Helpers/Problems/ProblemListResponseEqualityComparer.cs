@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Tsa.Submissions.Coding.Contracts.Problems;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers.Problems;
@@ -20,27 +18,16 @@ internal class ProblemListResponseEqualityComparer : EqualityComparerBase<Proble
                titlesMatch;
     }
 
-    protected override bool EqualsCore(IList<ProblemListResponse> x, IList<ProblemListResponse> y)
-    {
-        foreach (var leftProblemResponse in x)
-        {
-            var rightProblemResponse = y.SingleOrDefault(problemResponse => problemResponse.Id == leftProblemResponse.Id);
-
-            if (!Equals(leftProblemResponse, rightProblemResponse)) return false;
-        }
-
-        return true;
-    }
-
     public override int GetHashCode(ProblemListResponse? obj)
     {
         return obj == null ? 0 : HashCode.Combine(obj.Id, obj.IsActive, obj.Title);
     }
 
-    /// <summary>
-    ///     Provides the ordering key for list hash code computation.
-    ///     Orders by Id to ensure consistent hash codes.
-    /// </summary>
+    protected override Func<ProblemListResponse, bool> GetItemPredicate(ProblemListResponse item)
+    {
+        return problemResponse => problemResponse.Id == item.Id;
+    }
+
     protected override object GetOrderByKey(ProblemListResponse item)
     {
         return item.Id;

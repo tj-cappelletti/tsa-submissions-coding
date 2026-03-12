@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers.TestCases;
@@ -34,21 +32,28 @@ internal class TestCaseResponseEqualityComparer : EqualityComparerBase<TestCaseR
                signaturesMatch;
     }
 
-    protected override bool EqualsCore(IList<TestCaseResponse> x, IList<TestCaseResponse> y)
-    {
-        foreach (var leftTestCaseResponse in x)
-        {
-            var rightTestCaseResponse = y.SingleOrDefault(testCase => testCase.Signature == leftTestCaseResponse.Signature);
-
-            if (!Equals(leftTestCaseResponse, rightTestCaseResponse)) return false;
-        }
-
-        return true;
-    }
-
     public override int GetHashCode(TestCaseResponse? obj)
     {
-        throw new NotImplementedException();
+        if (obj == null) return 0;
+
+        var hashCode = new HashCode();
+        hashCode.Add(obj.ExpectedOutput);
+        hashCode.Add(obj.Id);
+        hashCode.Add(obj.Inputs);
+        hashCode.Add(obj.IsActive);
+        hashCode.Add(obj.IsPublic);
+        hashCode.Add(obj.Name);
+        hashCode.Add(obj.OutputDataType);
+        hashCode.Add(obj.OutputIsArray);
+        hashCode.Add(obj.ProblemId);
+        hashCode.Add(obj.Signature);
+
+        return hashCode.ToHashCode();
+    }
+
+    protected override Func<TestCaseResponse, bool> GetItemPredicate(TestCaseResponse item)
+    {
+        return testCase => testCase.Signature == item.Signature;
     }
 
     protected override object GetOrderByKey(TestCaseResponse item)

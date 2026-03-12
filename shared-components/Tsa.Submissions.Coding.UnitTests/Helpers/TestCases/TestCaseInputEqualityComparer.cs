@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Tsa.Submissions.Coding.WebApi.Entities;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers.TestCases;
@@ -19,29 +17,16 @@ internal class TestCaseInputEqualityComparer : EqualityComparerBase<TestCaseInpu
         return dataTypesMatch && indicesMatch && isArraysMatch && valuesMatch;
     }
 
-    protected override bool EqualsCore(IList<TestCaseInput> x, IList<TestCaseInput> y)
-    {
-        foreach (var leftTestCaseInput in x)
-        {
-            // Find the corresponding TestCaseInput in the right list by Index
-            // Index is assumed to be unique within each list
-            var rightTestCaseInput = y.SingleOrDefault(testCaseInput => testCaseInput.Index == leftTestCaseInput.Index);
-
-            if (!Equals(leftTestCaseInput, rightTestCaseInput)) return false;
-        }
-
-        return true;
-    }
-
     public override int GetHashCode(TestCaseInput? obj)
     {
         return obj == null ? 0 : HashCode.Combine(obj.Index, obj.DataType, obj.IsArray, obj.Value);
     }
 
-    /// <summary>
-    ///     Provides the ordering key for list hash code computation.
-    ///     Orders by Index to ensure consistent hash codes.
-    /// </summary>
+    protected override Func<TestCaseInput, bool> GetItemPredicate(TestCaseInput item)
+    {
+        return testCaseInput => testCaseInput.Index == item.Index;
+    }
+
     protected override object GetOrderByKey(TestCaseInput item)
     {
         return item.Index;
