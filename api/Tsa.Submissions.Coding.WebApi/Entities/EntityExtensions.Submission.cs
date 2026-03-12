@@ -47,6 +47,7 @@ public static partial class EntityExtensions
             submission.ProgrammingLanguageId,
             submission.ProgrammingLanguageVersionTag,
             submission.SubmittedOn.Value,
+            submission.EvaluatedOn,
             user.ToResponse());
     }
 

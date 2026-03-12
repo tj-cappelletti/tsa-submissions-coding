@@ -4,6 +4,8 @@ namespace Tsa.Submissions.Coding.Contracts.Submissions;
 
 public record SubmissionListResponse
 {
+    public DateTimeOffset? EvaluatedOn { get; init; }
+
     public string Id { get; init; }
 
     public string ProblemId { get; init; }
@@ -28,8 +30,10 @@ public record SubmissionListResponse
         string programmingLanguageId,
         string programmingLanguageVersionTag,
         DateTimeOffset submittedOn,
+        DateTimeOffset? evaluatedOn,
         UserResponse user)
     {
+        EvaluatedOn = evaluatedOn;
         Id = id;
         ProblemId = problemId;
         ProgrammingLanguageId = programmingLanguageId;
