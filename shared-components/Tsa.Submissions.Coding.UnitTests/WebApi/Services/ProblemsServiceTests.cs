@@ -11,6 +11,7 @@ using Moq;
 using Tsa.Submissions.Coding.UnitTests.Data;
 using Tsa.Submissions.Coding.UnitTests.ExtensionMethods;
 using Tsa.Submissions.Coding.UnitTests.Helpers;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Problems;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.Services;
 using Xunit;
