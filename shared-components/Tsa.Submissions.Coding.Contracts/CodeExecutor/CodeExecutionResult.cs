@@ -8,7 +8,7 @@ namespace Tsa.Submissions.Coding.Contracts.CodeExecutor;
 /// </summary>
 public record CodeExecutionResult
 {
-    private readonly List<TestCaseResult> _testCaseResults;
+    private readonly List<TestCaseResultRequest> _testCaseResults;
 
     /// <summary>
     ///     Gets or sets any error message from the execution process
@@ -44,7 +44,7 @@ public record CodeExecutionResult
     ///     Gets or sets the test case results; if empty, no test cases were executed
     /// </summary>
     [JsonPropertyName("testCaseResults")]
-    public IReadOnlyList<TestCaseResult> TestCaseResults => _testCaseResults.AsReadOnly();
+    public IReadOnlyList<TestCaseResultRequest> TestCaseResults => _testCaseResults.AsReadOnly();
 
     /// <summary>
     ///     Creates a CodeExecutionResult representing failed execution and optionally any results for test cases that were
@@ -58,7 +58,7 @@ public record CodeExecutionResult
         string errorMessage,
         string standardError,
         string standardOutput,
-        List<TestCaseResult>? testCaseResults = null)
+        List<TestCaseResultRequest>? testCaseResults = null)
     {
         ErrorMessage = errorMessage;
         StandardError = standardError;
@@ -72,7 +72,7 @@ public record CodeExecutionResult
     /// </summary>
     /// <param name="standardOutput">The standard output captured during execution</param>
     /// <param name="testCaseResults">The list of test case results for the execution</param>
-    public CodeExecutionResult(string standardOutput, List<TestCaseResult> testCaseResults)
+    public CodeExecutionResult(string standardOutput, List<TestCaseResultRequest> testCaseResults)
     {
         ErrorMessage = string.Empty;
         StandardError = string.Empty;

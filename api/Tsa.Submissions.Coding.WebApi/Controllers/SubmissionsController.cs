@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Tsa.Submissions.Coding.Contracts;
 using Tsa.Submissions.Coding.Contracts.Messages;
 using Tsa.Submissions.Coding.Contracts.Pagination;
 using Tsa.Submissions.Coding.Contracts.Submissions;
+using Tsa.Submissions.Coding.Contracts.TestCases;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Entities;
 using Tsa.Submissions.Coding.WebApi.ExtensionMethods;
@@ -267,7 +269,8 @@ public class SubmissionsController : WebApiBaseController
             return BadRequest(ApiErrorEntityNotFound("Programming Language", submissionCreateRequest.ProgrammingLanguageId.SanitizeForLogging()));
         }
 
-        var programmingLanguageVersion = programmingLanguage.Versions.SingleOrDefault(v => v.VersionTag == submissionCreateRequest.ProgrammingLanguageVersionTag);
+        var programmingLanguageVersion =
+            programmingLanguage.Versions.SingleOrDefault(v => v.VersionTag == submissionCreateRequest.ProgrammingLanguageVersionTag);
 
         if (programmingLanguageVersion == null)
         {
@@ -275,7 +278,8 @@ public class SubmissionsController : WebApiBaseController
                 "Programming language version with tag {ProgrammingLanguageVersionTag} for programming language ID {ProgrammingLanguageId} not found",
                 submissionCreateRequest.ProgrammingLanguageVersionTag.SanitizeForLogging(),
                 submissionCreateRequest.ProgrammingLanguageId.SanitizeForLogging());
-            return BadRequest(ApiErrorEntityNotFound("Programming Language Version", submissionCreateRequest.ProgrammingLanguageVersionTag.SanitizeForLogging()));
+            return BadRequest(ApiErrorEntityNotFound("Programming Language Version",
+                submissionCreateRequest.ProgrammingLanguageVersionTag.SanitizeForLogging()));
         }
 
         var submission = new Submission
@@ -335,10 +339,28 @@ public class SubmissionsController : WebApiBaseController
 
         submission.EvaluatedOn = submissionModifyRequest.EvaluatedOn;
 
-        submission.TestCaseResults.AddRange(submissionModifyRequest.TestCaseResults);
+        submission.TestCaseResults.AddRange(ToEntityList(submissionModifyRequest.TestCaseResults));
 
         await _submissionsService.UpdateAsync(submission, cancellationToken);
 
         return NoContent();
+    }
+
+    private static TestCaseResult ToEntity(TestCaseResultRequest testCaseResultRequest)
+    {
+        return new TestCaseResult
+        {
+            ActualOutput = testCaseResultRequest.ActualOutput,
+            ExecutionTime = testCaseResultRequest.ExecutionTime,
+            Message = testCaseResultRequest.Message,
+            Passed = testCaseResultRequest.Passed,
+            TestCaseId = testCaseResultRequest.TestCaseId,
+            TimedOut = testCaseResultRequest.TimedOut
+        };
+    }
+
+    private static IEnumerable<TestCaseResult> ToEntityList(IEnumerable<TestCaseResultRequest> testCaseResultRequests)
+    {
+        return testCaseResultRequests.Select(ToEntity);
     }
 }

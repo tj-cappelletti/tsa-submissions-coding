@@ -23,7 +23,7 @@ public record SubmissionResponse
     public DateTimeOffset SubmittedOn { get; init; }
 
     [JsonPropertyName("testCaseResults")]
-    public List<TestCaseResult>? TestCaseResults { get; init; }
+    public List<TestCaseResultResponse>? TestCaseResults { get; init; }
 
     [JsonPropertyName("user")]
     public UserResponse User { get; set; }
@@ -35,7 +35,7 @@ public record SubmissionResponse
         string problemId,
         string solution,
         DateTimeOffset submittedOn,
-        List<TestCaseResult>? testCaseResults = null
+        List<TestCaseResultResponse>? testCaseResults = null
     )
     {
         Id = id;

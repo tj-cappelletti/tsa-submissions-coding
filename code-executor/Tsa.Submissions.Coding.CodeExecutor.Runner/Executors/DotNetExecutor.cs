@@ -165,9 +165,9 @@ public class DotNetExecutor : ILanguageExecutor
         return result;
     }
 
-    public List<TestCaseResult> GetTestCaseResults(CodeExecutionContext context)
+    public List<TestCaseResultRequest> GetTestCaseResults(CodeExecutionContext context)
     {
-        var testCaseResults = new List<TestCaseResult>();
+        var testCaseResults = new List<TestCaseResultRequest>();
 
         if (!TestResultsFileExists(context.WorkingDirectory))
         {
@@ -202,7 +202,7 @@ public class DotNetExecutor : ILanguageExecutor
                 ? testCase.ExpectedOutput
                 : Regex.Match(unitTestResult.ErrorMessage, "Actual:[\\s]+(.+)$").Groups[1].Value;
 
-            testCaseResults.Add(new TestCaseResult(testCase.Signature, actualOutput, unitTestResult.ErrorMessage, passed, false,
+            testCaseResults.Add(new TestCaseResultRequest(testCase.Signature, actualOutput, unitTestResult.ErrorMessage, passed, false,
                 unitTestResult.DurationValue));
         }
 

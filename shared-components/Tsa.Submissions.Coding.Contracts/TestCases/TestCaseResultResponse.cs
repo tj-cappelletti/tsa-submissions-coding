@@ -2,7 +2,7 @@
 
 namespace Tsa.Submissions.Coding.Contracts.TestCases;
 
-public record TestCaseResultRequest
+public record TestCaseResultResponse
 {
     [JsonPropertyName("actualOutput")]
     public string ActualOutput { get; init; }
@@ -22,7 +22,7 @@ public record TestCaseResultRequest
     [JsonPropertyName("timedOut")]
     public bool TimedOut { get; init; }
 
-    public TestCaseResultRequest(
+    public TestCaseResultResponse(
         string testCaseId,
         string actualOutput,
         string? message,

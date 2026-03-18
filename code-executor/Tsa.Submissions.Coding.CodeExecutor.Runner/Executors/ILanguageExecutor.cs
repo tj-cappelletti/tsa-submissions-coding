@@ -25,7 +25,7 @@ public interface ILanguageExecutor
     ///     This method should be called after <see cref="ExecuteTests" /> has completed successfully.
     /// </remarks>
     /// <returns>A list of <see cref="TestCaseResult" /> containing the outcome of each test case</returns>
-    List<TestCaseResult> GetTestCaseResults(CodeExecutionContext context);
+    List<TestCaseResultRequest> GetTestCaseResults(CodeExecutionContext context);
 
     /// <summary>
     ///     Prepares the execution environment and source code for testing
