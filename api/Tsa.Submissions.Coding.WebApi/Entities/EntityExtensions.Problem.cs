@@ -19,7 +19,7 @@ public static partial class EntityExtensions
     ///     This method produces a lightweight response intended for list operations.
     ///     It excludes the description and test cases to minimize payload size.
     /// </remarks>
-    private static ProblemListResponse ToProblemListResponse(this Problem problem)
+    private static ProblemListResponse ToListResponse(this Problem problem)
     {
         if (string.IsNullOrWhiteSpace(problem.Id)) throw new InvalidOperationException("Problem ID is required.");
 
@@ -71,6 +71,6 @@ public static partial class EntityExtensions
     /// </remarks>
     public static IEnumerable<ProblemListResponse> ToResponses(this IEnumerable<Problem> problems)
     {
-        return problems.Select(problem => problem.ToProblemListResponse());
+        return problems.Select(problem => problem.ToListResponse());
     }
 }
