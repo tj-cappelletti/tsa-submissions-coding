@@ -5,7 +5,7 @@ namespace Tsa.Submissions.Coding.Contracts.TestCases;
 public record TestCaseResultResponse
 {
     [JsonPropertyName("actualOutput")]
-    public string ActualOutput { get; init; }
+    public string? ActualOutput { get; init; }
 
     [JsonPropertyName("executionTime")]
     public TimeSpan ExecutionTime { get; init; } = TimeSpan.Zero;
@@ -24,7 +24,7 @@ public record TestCaseResultResponse
 
     public TestCaseResultResponse(
         string testCaseId,
-        string actualOutput,
+        string? actualOutput,
         string? message,
         bool passed,
         bool timedOut,
