@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Tsa.Submissions.Coding.Contracts.Submissions;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Languages;
+using Tsa.Submissions.Coding.UnitTests.Helpers.Problems;
 using Tsa.Submissions.Coding.UnitTests.Helpers.Users;
 
 namespace Tsa.Submissions.Coding.UnitTests.Helpers.Submissions;
@@ -11,15 +13,15 @@ internal class SubmissionListResponseEqualityComparer : EqualityComparerBase<Sub
     protected override bool EqualsCore(SubmissionListResponse x, SubmissionListResponse y)
     {
         var idsMatch = x.Id == y.Id;
-        var problemIdsMatch = x.ProblemId == y.ProblemId;
-        var programmingLanguageIdsMatch = x.ProgrammingLanguageId == y.ProgrammingLanguageId;
+        var problemsMatch = new ProblemListResponseEqualityComparer().Equals(x.Problem, y.Problem);
+        var programmingLanguagesMatch = new ProgrammingLanguageResponseEqualityComparer().Equals(x.ProgrammingLanguage, y.ProgrammingLanguage);
         var programmingLanguageVersionTagsMatch = x.ProgrammingLanguageVersionTag == y.ProgrammingLanguageVersionTag;
         var submittedOnsMatch = x.SubmittedOn == y.SubmittedOn;
         var usersMatch = new UserResponseEqualityComparer().Equals(x.User, y.User);
 
         return idsMatch
-               && problemIdsMatch
-               && programmingLanguageIdsMatch
+               && problemsMatch
+               && programmingLanguagesMatch
                && programmingLanguageVersionTagsMatch
                && submittedOnsMatch
                && usersMatch;
@@ -31,8 +33,8 @@ internal class SubmissionListResponseEqualityComparer : EqualityComparerBase<Sub
             ? 0
             : HashCode.Combine(
                 obj.Id,
-                obj.ProblemId,
-                obj.ProgrammingLanguageId,
+                new ProblemListResponseEqualityComparer().GetHashCode(obj.Problem),
+                new ProgrammingLanguageResponseEqualityComparer().GetHashCode(obj.ProgrammingLanguage),
                 obj.ProgrammingLanguageVersionTag,
                 obj.SubmittedOn,
                 new UserResponseEqualityComparer().GetHashCode(obj.User));
