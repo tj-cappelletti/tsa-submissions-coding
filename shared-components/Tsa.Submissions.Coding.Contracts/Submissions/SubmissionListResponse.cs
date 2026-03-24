@@ -1,4 +1,6 @@
-﻿using Tsa.Submissions.Coding.Contracts.Users;
+﻿using Tsa.Submissions.Coding.Contracts.Languages;
+using Tsa.Submissions.Coding.Contracts.Problems;
+using Tsa.Submissions.Coding.Contracts.Users;
 
 namespace Tsa.Submissions.Coding.Contracts.Submissions;
 
@@ -8,9 +10,11 @@ public record SubmissionListResponse
 
     public string Id { get; init; }
 
-    public string ProblemId { get; init; }
+    public ProblemListResponse Problem { get; init; }
 
-    public string ProgrammingLanguageId { get; init; }
+    // Need to think about this one
+    // What do we want to see in the UI when returning a list??
+    public ProgrammingLanguageResponse ProgrammingLanguage { get; init; }
 
     public string ProgrammingLanguageVersionTag { get; init; }
 
@@ -26,8 +30,8 @@ public record SubmissionListResponse
 
     public SubmissionListResponse(
         string id,
-        string problemId,
-        string programmingLanguageId,
+        ProblemListResponse problem,
+        ProgrammingLanguageResponse programmingLanguage,
         string programmingLanguageVersionTag,
         DateTimeOffset submittedOn,
         DateTimeOffset? evaluatedOn,
@@ -35,8 +39,8 @@ public record SubmissionListResponse
     {
         EvaluatedOn = evaluatedOn;
         Id = id;
-        ProblemId = problemId;
-        ProgrammingLanguageId = programmingLanguageId;
+        Problem = problem;
+        ProgrammingLanguage = programmingLanguage;
         ProgrammingLanguageVersionTag = programmingLanguageVersionTag;
         SubmittedOn = submittedOn;
         User = user;
