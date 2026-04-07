@@ -60,7 +60,7 @@ public class SubmissionsController : WebApiBaseController
     /// <param name="sortOrder">The order to sort the ID of the submissions on</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="200">All available submissions returned</response>
-    [Authorize(Roles = SubmissionRoles.JudgeOrSystem)]
+    [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginatedResponse<SubmissionListResponse>))]
     public async Task<ActionResult<PaginatedResponse<SubmissionListResponse>>> Get(
@@ -92,11 +92,26 @@ public class SubmissionsController : WebApiBaseController
             SortOrder = paginationSortOrder
         };
 
-        var submissions = await _submissionsService.GetPagedByIdCursorAsync(pagination, cancellationToken);
+        // Null-forgiveness operator is used below since all those values are required to be at this stage
+        // If missing, let an exception bubble up
+
+        var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
+
+        var submissions = User.IsInRole(SubmissionRoles.Judge) || User.IsInRole(SubmissionRoles.System)
+            ? await _submissionsService.GetPagedByIdCursorAsync(pagination, cancellationToken)
+            : await _submissionsService.GetPagedByUserIdCursorAsync(user!.Id!, pagination, cancellationToken);
+
+        // May need to optimize this pulls the full problem which can be large
+        // This data is also cached at the API level, so it shouldn't be a problem for now
+        // TODO: Load test this and optimize if necessary (e.g. only pull problem titles instead of full problems)
+        // TODO: Establish a metrics dashboard to monitor the performance of this endpoint and identify bottlenecks like this
+        var problems = await _problemsService.GetAsync(cancellationToken);
+
+        var programmingLanguages = await _programmingLanguagesService.GetAsync(cancellationToken);
 
         var users = await _usersService.GetAsync(cancellationToken);
 
-        return submissions.ToPaginatedResponse(users);
+        return submissions.ToPaginatedResponse(problems, programmingLanguages, users);
     }
 
     /// <summary>
@@ -132,23 +147,36 @@ public class SubmissionsController : WebApiBaseController
 
         _logger.LogInformation("Submission with ID {Id} found", id.SanitizeForLogging());
 
-        if (User.IsInRole(SubmissionRoles.Judge) || User.IsInRole(SubmissionRoles.System))
-        {
-            _logger.LogInformation("User is a judge or system, returning submission with ID {Id}", id.SanitizeForLogging());
-            return submission.ToResponse();
-        }
-
-        _logger.LogInformation("User is not a judge, checking if they are the owner of the submission with ID {Id}", id.SanitizeForLogging());
-
         var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
 
-        if (submission.UserId == user!.Id)
+        // Null-forgiving operator is used for entries on Submission because the values are required
+        // If they are missing, there is a data corruption and we need exceptions to throw
+        if (User.IsInRole(SubmissionRoles.Judge) ||
+            User.IsInRole(SubmissionRoles.System) ||
+            submission.UserId == user!.Id)
         {
-            _logger.LogInformation("The user {UserId} is the owner of the submission with ID {SubmissionId}", user.Id, submission.Id);
-            return submission.ToResponse();
+            var programmingLanguage = await _programmingLanguagesService.GetAsync(submission.ProgrammingLanguageId!, cancellationToken);
+            var problem = await _problemsService.GetAsync(submission.ProblemId!, cancellationToken);
+
+            _logger.LogInformation(
+                "The user {UserName} is authorized to view Submission {Id}; [IsJudge:{IsJudge}, IsSystem:{IsSystem}, IsOwner:{IsOwner}]",
+                User.Identity.Name.SanitizeForLogging(),
+                id.SanitizeForLogging(),
+                User.IsInRole(SubmissionRoles.Judge),
+                User.IsInRole(SubmissionRoles.System),
+                submission.UserId == user!.Id);
+
+
+            return submission.ToResponse(programmingLanguage!, problem!, user);
         }
 
-        _logger.LogWarning("The user {UserId} is not the owner of the submission with ID {SubmissionId}", user.Id, submission.Id);
+        _logger.LogWarning(
+            "The user {UserName} is not authorized to view Submission {Id}; [IsJudge:{IsJudge}, IsSystem:{IsSystem}, IsOwner:{IsOwner}]",
+            User.Identity.Name.SanitizeForLogging(),
+            id.SanitizeForLogging(),
+            User.IsInRole(SubmissionRoles.Judge),
+            User.IsInRole(SubmissionRoles.System),
+            submission.UserId == user.Id);
         return NotFound();
     }
 
@@ -209,9 +237,17 @@ public class SubmissionsController : WebApiBaseController
 
         var submissions = await _submissionsService.GetPagedByUserIdCursorAsync(userId, pagination, cancellationToken);
 
+        // May need to optimize this pulls the full problem which can be large
+        // This data is also cached at the API level, so it shouldn't be a problem for now
+        // TODO: Load test this and optimize if necessary (e.g. only pull problem titles instead of full problems)
+        // TODO: Establish a metrics dashboard to monitor the performance of this endpoint and identify bottlenecks like this
+        var problems = await _problemsService.GetAsync(cancellationToken);
+
+        var programmingLanguages = await _programmingLanguagesService.GetAsync(cancellationToken);
+
         var users = await _usersService.GetAsync(cancellationToken);
 
-        return submissions.ToPaginatedResponse(users);
+        return submissions.ToPaginatedResponse(problems, programmingLanguages, users);
     }
 
     /// <summary>
@@ -307,7 +343,7 @@ public class SubmissionsController : WebApiBaseController
         _logger.LogInformation("Enqueuing submission message for submission ID {SubmissionId}", submission.Id.SanitizeForLogging());
         await _submissionsQueueService.EnqueueSubmissionAsync(submissionMessage, cancellationToken);
 
-        return CreatedAtAction(nameof(Get), new { id = submission.Id }, submission.ToResponse());
+        return CreatedAtAction(nameof(Get), new { id = submission.Id }, submission.ToResponse(programmingLanguage, problem, user));
     }
 
     /// <summary>
