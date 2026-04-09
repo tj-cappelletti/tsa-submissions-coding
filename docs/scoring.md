@@ -53,7 +53,7 @@ For example:
 | Team 9001-901 (Python) | 200ms         | 220ms            | 90.909           |
 
 In this situation, the Python code is more efficient (as compared to the baseline).
-It's important to note that if a participant's solution is faster then the baseline, the score will reflect that reward the participant for their efforts.
+It's important to note that if a participant's solution is faster then the baseline, the score will reflect that and reward the participant for their efforts.
 
 ## Code Quality Ratio
 The Code Quality Ratio is designed to reward solutions that are written in such a way that future engineers would have no issues understaning the code and be able to easily maintain it.
