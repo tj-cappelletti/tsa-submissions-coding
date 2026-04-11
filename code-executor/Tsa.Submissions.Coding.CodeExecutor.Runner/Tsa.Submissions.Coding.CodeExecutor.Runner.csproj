@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\shared-components\Tsa.Submissions.Coding.CodeExecutor.Core\Tsa.Submissions.Coding.CodeExecutor.Core.csproj" />
     <ProjectReference Include="..\..\shared-components\Tsa.Submissions.Coding.Contracts\Tsa.Submissions.Coding.Contracts.csproj" />
   </ItemGroup>
 
