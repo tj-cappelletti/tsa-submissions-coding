@@ -6,39 +6,9 @@ namespace Tsa.Submissions.Coding.Contracts.CodeExecutor;
 /// <summary>
 ///     Result of code execution and test results
 /// </summary>
-public record CodeExecutionResult
+public record CodeExecutionResult : ExecutionResult
 {
     private readonly List<TestCaseResultRequest> _testCaseResults;
-
-    /// <summary>
-    ///     Gets or sets any error message from the execution process
-    /// </summary>
-    [JsonPropertyName("errorMessage")]
-    public string ErrorMessage { get; init; }
-
-    /// <summary>
-    ///     Gets whether the execution failed
-    /// </summary>
-    [JsonPropertyName("isFailure")]
-    public bool IsFailure => !IsSuccess;
-
-    /// <summary>
-    ///     Gets or sets whether the execution was successful
-    /// </summary>
-    [JsonPropertyName("isSuccess")]
-    public bool IsSuccess { get; init; }
-
-    /// <summary>
-    ///     Gets or sets the standard error output captured from the executed process.
-    /// </summary>
-    [JsonPropertyName("standardError")]
-    public string StandardError { get; init; }
-
-    /// <summary>
-    ///     Gets or sets the standard output captured from the executed process.
-    /// </summary>
-    [JsonPropertyName("standardOutput")]
-    public string StandardOutput { get; init; }
 
     /// <summary>
     ///     Gets or sets the test case results; if empty, no test cases were executed
@@ -58,13 +28,15 @@ public record CodeExecutionResult
         string errorMessage,
         string standardError,
         string standardOutput,
-        List<TestCaseResultRequest>? testCaseResults = null)
+        List<TestCaseResultRequest>? testCaseResults = null) :
+        base(errorMessage, standardError, standardOutput, false)
     {
-        ErrorMessage = errorMessage;
-        StandardError = standardError;
-        StandardOutput = standardOutput;
-        IsSuccess = false;
         _testCaseResults = testCaseResults ?? [];
+    }
+
+    public CodeExecutionResult(Exception exception) : base(exception)
+    {
+        _testCaseResults = [];
     }
 
     /// <summary>
@@ -72,11 +44,9 @@ public record CodeExecutionResult
     /// </summary>
     /// <param name="standardOutput">The standard output captured during execution</param>
     /// <param name="testCaseResults">The list of test case results for the execution</param>
-    public CodeExecutionResult(string standardOutput, List<TestCaseResultRequest> testCaseResults)
+    public CodeExecutionResult(string standardOutput, List<TestCaseResultRequest> testCaseResults) :
+        base(string.Empty, string.Empty, standardOutput, true)
     {
-        ErrorMessage = string.Empty;
-        StandardError = string.Empty;
-        StandardOutput = standardOutput;
         _testCaseResults = testCaseResults;
 
         IsSuccess = _testCaseResults.All(testCaseResult => testCaseResult.Passed);
@@ -84,9 +54,6 @@ public record CodeExecutionResult
 
     public static CodeExecutionResult FromException(Exception exception)
     {
-        return new CodeExecutionResult(
-            exception.Message,
-            exception.StackTrace ?? string.Empty,
-            string.Empty);
+        return new CodeExecutionResult(exception);
     }
 }
