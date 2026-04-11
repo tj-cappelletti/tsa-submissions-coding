@@ -25,7 +25,7 @@ RUN dotnet publish -c Release -o /app/publish --self-contained true -r linux-x64
 FROM mcr.microsoft.com/dotnet/sdk:${LANG_VERSION}
 
 # Create non-root user
-RUN useradd -m -u 1000 -s /bin/bash coderunner
+RUN useradd -m -s /bin/bash coderunner
 
 # Copy the runner executable
 COPY --from=build /app/publish/Tsa.Submissions.Coding.CodeExecutor.Runner /usr/local/bin/runner
