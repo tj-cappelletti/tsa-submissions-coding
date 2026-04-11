@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Tsa.Submissions.Coding.Contracts.ProblemLanguageVariants;
 using Tsa.Submissions.Coding.Contracts.TestCases;
 
 namespace Tsa.Submissions.Coding.Contracts.CodeExecutor;
@@ -26,6 +27,9 @@ public record RunnerJobPayload
     [JsonPropertyName("testCases")]
     public List<TestCaseResponse> TestCases { get; init; }
 
+    [JsonPropertyName("workspaceFiles")]
+    public List<WorkspaceFileResponse> WorkspaceFiles { get; init; }
+
     public RunnerJobPayload(
         string language,
         string languageFixture,
@@ -33,7 +37,8 @@ public record RunnerJobPayload
         string problemId,
         string solution,
         string submissionId,
-        List<TestCaseResponse> testCases)
+        List<TestCaseResponse> testCases,
+        List<WorkspaceFileResponse> workspaceFiles)
     {
         Language = language;
         LanguageFixture = languageFixture;
@@ -42,5 +47,6 @@ public record RunnerJobPayload
         Solution = solution;
         SubmissionId = submissionId;
         TestCases = testCases;
+        WorkspaceFiles = workspaceFiles;
     }
 }
