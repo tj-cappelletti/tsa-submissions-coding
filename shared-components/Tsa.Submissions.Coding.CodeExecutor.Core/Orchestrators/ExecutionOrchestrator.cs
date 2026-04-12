@@ -21,7 +21,7 @@ public static class ExecutionOrchestrator
         Console.WriteLine("Runner starting up...");
 
         var executionPayloadJson = Environment.GetEnvironmentVariable("EXECUTION_PAYLOAD");
-        var outputToken = Environment.GetEnvironmentVariable("OUTPUT_TOKEN") ?? "###CODE-EXECUTION-RESULT###";
+        var outputToken = Environment.GetEnvironmentVariable("OUTPUT_TOKEN") ?? "###EXECUTION-RESULT###";
 
         if (string.IsNullOrEmpty(executionPayloadJson))
         {
