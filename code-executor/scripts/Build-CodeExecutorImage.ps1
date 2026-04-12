@@ -7,6 +7,9 @@ param(
     [switch]$BuildJava,
 
     [Parameter()]
+    [switch]$BuildScorer,
+
+    [Parameter()]
     [ValidateSet("docker", "podman")]
     [string]$ContainerEngine = $null
 )
@@ -78,4 +81,16 @@ if ($BuildJava) {
 
         Write-Host "Built Code Executor Runner image for Java $version." -ForegroundColor Green
     }
+}
+
+if ($BuildScorer) {
+    Write-Host ""
+    Write-Host "Building Code Executor Scorer image using $containerEngine..." -ForegroundColor Cyan
+
+    & $containerEngine build `
+        --tag "code-executor-scorer:$semVer" `
+        --file .\code-executor\Tsa.Submissions.Coding.CodeExecutor.Scorer\Dockerfile `
+        --quiet .
+
+    Write-Host "Built Code Executor Scorer image." -ForegroundColor Green
 }
