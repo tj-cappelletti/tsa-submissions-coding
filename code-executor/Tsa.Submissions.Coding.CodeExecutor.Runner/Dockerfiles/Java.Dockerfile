@@ -1,11 +1,11 @@
 # Global ARG for Java version
 ARG LANG_VERSION=21
 
-# Build Stage - Code Executor Runner
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy the project files and restore dependencies
+COPY ["shared-components/Tsa.Submissions.Coding.CodeExecutor.Core/Tsa.Submissions.Coding.CodeExecutor.Core.csproj", "shared-components/Tsa.Submissions.Coding.CodeExecutor.Core/"]
 COPY ["shared-components/Tsa.Submissions.Coding.Contracts/Tsa.Submissions.Coding.Contracts.csproj", "shared-components/Tsa.Submissions.Coding.Contracts/Tsa.Submissions.Coding.Contracts/"]
 COPY ["code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.Coding.CodeExecutor.Runner.csproj", "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/"]
 
@@ -13,6 +13,7 @@ COPY ["code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.
 RUN dotnet restore "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.Coding.CodeExecutor.Runner.csproj"
 
 # Copy source code
+COPY ["shared-components/Tsa.Submissions.Coding.CodeExecutor.Core", "shared-components/Tsa.Submissions.Coding.CodeExecutor.Core/"]
 COPY ["shared-components/Tsa.Submissions.Coding.Contracts", "shared-components/Tsa.Submissions.Coding.Contracts/"]
 COPY ["code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner", "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/"]
 
@@ -24,7 +25,7 @@ RUN dotnet publish -c Release -o /app/publish --self-contained true -r linux-x64
 FROM eclipse-temurin:${LANG_VERSION}-jdk-jammy
 
 # Create non-root user
-RUN useradd -m -u 1000 -s /bin/bash coderunner
+RUN useradd -m -s /bin/bash coderunner
 
 # Copy the runner executable
 COPY --from=build /app/publish/Tsa.Submissions.Coding.CodeExecutor.Runner /usr/local/bin/runner
