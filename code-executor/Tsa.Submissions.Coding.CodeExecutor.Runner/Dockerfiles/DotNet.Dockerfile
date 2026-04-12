@@ -7,6 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy the project files and restore dependencies
+COPY ["shared-components/Tsa.Submissions.Coding.CodeExecutor.Core/Tsa.Submissions.Coding.CodeExecutor.Core.csproj", "shared-components/Tsa.Submissions.Coding.CodeExecutor.Core/"]
 COPY ["shared-components/Tsa.Submissions.Coding.Contracts/Tsa.Submissions.Coding.Contracts.csproj", "shared-components/Tsa.Submissions.Coding.Contracts/Tsa.Submissions.Coding.Contracts/"]
 COPY ["code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.Coding.CodeExecutor.Runner.csproj", "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/"]
 
@@ -14,6 +15,7 @@ COPY ["code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.
 RUN dotnet restore "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/Tsa.Submissions.Coding.CodeExecutor.Runner.csproj"
 
 # Copy source code
+COPY ["shared-components/Tsa.Submissions.Coding.CodeExecutor.Core", "shared-components/Tsa.Submissions.Coding.CodeExecutor.Core/"]
 COPY ["shared-components/Tsa.Submissions.Coding.Contracts", "shared-components/Tsa.Submissions.Coding.Contracts/"]
 COPY ["code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner", "code-executor/Tsa.Submissions.Coding.CodeExecutor.Runner/"]
 
