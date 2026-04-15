@@ -22,6 +22,15 @@ public class DotNetExecutor : ILanguageExecutor
 
     private static void CreateProjectFile(CodeExecutionContext context)
     {
+        //TODO: Need to find a better way to manage dependencies and project file contents.
+        // This is going to get out of hand as we add more languages and test frameworks.
+        // We may want to consider having project file templates for each language and test framework combination, and then populate those templates as needed.
+        // Maybe we should consider making this configurable in the problem? That way the user sets up exactly what they need in the project file, and we just write it to disk.
+        // This would also allow us to support more complex scenarios that we may not be able to anticipate.
+        // Since we have a baseline solution, we can easily execute a test for the user to validate that their project file is set up correctly before the competition.
+        // We almost need the ability to create a workspace for each language and version combination, and then just copy the contents of that workspace to the working directory for each execution.
+        // That way we can have a known good configuration for each scenario, and we can easily update those configurations as needed without having to change code in the executor.
+        // The runner would just need to write the participant's solution to disk in a well-defined location
         var projectFileContents = $"""
                                    <Project Sdk="Microsoft.NET.Sdk">
                                      <PropertyGroup>
@@ -44,6 +53,42 @@ public class DotNetExecutor : ILanguageExecutor
         var projectFilePath = Path.Combine(context.WorkingDirectory, "Solution.csproj");
 
         File.WriteAllTextAsync(projectFilePath, projectFileContents);
+    }
+
+    public ExecutorResult ExecuteBuild(CodeExecutionContext context, TimeSpan timeout)
+    {
+        try
+        {
+            // Build the project
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = "build -c Release --nologo",
+                WorkingDirectory = context.WorkingDirectory,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(processStartInfo);
+
+            if (process == null)
+            {
+                throw new InvalidOperationException("Failed to start dotnet build process");
+            }
+
+            process.WaitForExit();
+
+            var errorMessage = process.ExitCode == 0 ? null : "Build failed";
+
+            return ExecutorResult.FromProcess(process, errorMessage);
+        }
+        catch (Exception exception)
+        {
+            return ExecutorResult.FromException(exception);
+        }
     }
 
     public ExecutorResult ExecuteTests(CodeExecutionContext context, TimeSpan timeout)
@@ -240,30 +285,14 @@ public class DotNetExecutor : ILanguageExecutor
             WriteSolutionToDisk(context, _languageExtension);
             WriteTestFixtureToDisk(context, _languageExtension);
 
-            // Build the project
-            var processStartInfo = new ProcessStartInfo
+            return new ExecutorResult
             {
-                FileName = "dotnet",
-                Arguments = "build -c Release --nologo",
-                WorkingDirectory = context.WorkingDirectory,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                ExitCode = 0,
+                IsSuccess = true,
+                ErrorMessage = null,
+                StandardError = string.Empty,
+                StandardOutput = string.Empty
             };
-
-            using var process = Process.Start(processStartInfo);
-            if (process == null)
-            {
-                throw new InvalidOperationException("Failed to start dotnet build process");
-            }
-
-            process.WaitForExit();
-
-            var errorMessage = process.ExitCode == 0 ? null : "Build failed";
-
-            return ExecutorResult.FromProcess(process, errorMessage);
         }
         catch (Exception exception)
         {

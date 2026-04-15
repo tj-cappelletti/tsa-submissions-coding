@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tsa.Submissions.Coding.ApiClient;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Configuration;
+using Tsa.Submissions.Coding.CodeExecutor.Worker.Orchestrator;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Services;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Worker;
@@ -88,7 +89,7 @@ public class Program
         });
 
         builder.Services.AddHostedService<SubmissionJobDispatcher>();
-        builder.Services.AddScoped<KubernetesJobManager>();
+        builder.Services.AddScoped<KubernetesOrchestrator>();
 
         logger.LogInformation("Application starting up");
 

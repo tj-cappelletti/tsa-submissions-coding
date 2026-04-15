@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace Tsa.Submissions.Coding.Contracts.CodeExecutor;
 
+/// <summary>
+///     Base class for execution results (business-level outcome)
+/// </summary>
 public abstract record ExecutionResult
 {
     /// <summary>
@@ -50,7 +48,6 @@ public abstract record ExecutionResult
     /// <summary>
     ///     Protected constructor for creating failed execution results from exceptions
     /// </summary>
-    /// <param name="exception">The exception that caused the failure</param>
     protected ExecutionResult(Exception exception)
         : this(exception.Message, exception.StackTrace ?? string.Empty, string.Empty, false)
     {

@@ -208,6 +208,7 @@ public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsControll
     [Trait("TestCategory", "UnitTest")]
     public async Task Get_Should_Return_Ok_When_Results_Has_Less_Pages_Then_Requested()
     {
+        Assert.Fail("This test needs to be updated with proper test data to be successful");
         // Arrange
         const int defaultPageSize = 20;
 
@@ -231,26 +232,26 @@ public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsControll
 
         var submissionListResponses = new List<SubmissionListResponse>();
 
-        foreach (var submission in submissions)
-        {
-            var user = users.First(entity => entity.Id == submission.UserId);
+        //foreach (var submission in submissions)
+        //{
+        //    var user = users.First(entity => entity.Id == submission.UserId);
 
-            submissionListResponses.Add(new SubmissionListResponse(
-                submission.Id!,
-                submission.ProblemId!,
-                submission.ProgrammingLanguageId!,
-                submission.ProgrammingLanguageVersionTag!,
-                submission.SubmittedOn!.Value,
-                submission.EvaluatedOn,
-                new UserResponse(
-                    user.Id!,
-                    user.UserName!,
-                    user.Role!,
-                    new TeamResponse(user.Team!.CompetitionLevel.ToString(), user.Team.SchoolNumber, user.Team.TeamNumber),
-                    user.Participants
-                )
-            ));
-        }
+        //    submissionListResponses.Add(new SubmissionListResponse(
+        //        submission.Id!,
+        //        submission.ProblemId!,
+        //        submission.ProgrammingLanguageId!,
+        //        submission.ProgrammingLanguageVersionTag!,
+        //        submission.SubmittedOn!.Value,
+        //        submission.EvaluatedOn,
+        //        new UserResponse(
+        //            user.Id!,
+        //            user.UserName!,
+        //            user.Role!,
+        //            new TeamResponse(user.Team!.CompetitionLevel.ToString(), user.Team.SchoolNumber, user.Team.TeamNumber),
+        //            user.Participants
+        //        )
+        //    ));
+        //}
 
         var mockedLogger = new Mock<ILogger<SubmissionsController>>();
 

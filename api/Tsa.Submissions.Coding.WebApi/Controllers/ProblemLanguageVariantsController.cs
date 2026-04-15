@@ -134,6 +134,44 @@ public class ProblemLanguageVariantsController : WebApiBaseController
     }
 
     /// <summary>
+    ///     Gets a specific language variant for a problem by programming language and version.
+    ///     This is the primary lookup used by the code executor during submission evaluation.
+    /// </summary>
+    /// <param name="problemId">The ID of the problem</param>
+    /// <param name="programmingLanguageId">The ID of the programming language</param>
+    /// <param name="versionTag">The programming language version tag</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <response code="200">Returns the requested language variant</response>
+    /// <response code="401">Authentication has failed</response>
+    /// <response code="404">The problem or language variant does not exist</response>
+    [Authorize(Roles = SubmissionRoles.All)]
+    [HttpGet("languages/{programmingLanguageId:length(24)}/versions/{versionTag}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProblemLanguageVariantResponse))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ApiErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiErrorResponse))]
+    public async Task<ActionResult<ProblemLanguageVariantResponse>> GetByLanguageAndVersion(
+        string problemId,
+        string programmingLanguageId,
+        string versionTag,
+        CancellationToken cancellationToken = default)
+    {
+        var problem = await _problemsService.GetAsync(problemId, cancellationToken);
+
+        if (problem == null) return NotFound(ApiErrorEntityNotFound(nameof(Problem), problemId));
+
+        var variant = await _problemLanguageVariantsService.GetByProblemLanguageAndVersionAsync(
+            problemId, programmingLanguageId, versionTag, cancellationToken);
+
+        if (variant == null)
+        {
+            return NotFound(ApiErrorEntityNotFound(nameof(ProblemLanguageVariant),
+                $"{problemId}.{programmingLanguageId}.{versionTag}"));
+        }
+
+        return Ok(variant.ToResponse());
+    }
+
+    /// <summary>
     ///     Creates a new language variant for a problem.
     /// </summary>
     /// <param name="problemId">The ID of the problem</param>

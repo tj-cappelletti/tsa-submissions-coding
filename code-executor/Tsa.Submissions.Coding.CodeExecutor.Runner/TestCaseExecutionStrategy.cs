@@ -5,14 +5,14 @@ using Tsa.Submissions.Coding.Contracts.CodeExecutor;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Runner;
 
-public class TestCaseExecutionStrategy : IExecutionStrategy<CodeExecutionResult>
+public class TestCaseExecutionStrategy : IExecutionStrategy<RunnerResult>
 {
     public const int DefaultOverheadTimeInSeconds = 2;
     public const int DefaultTimeoutPerTestCaseInSeconds = 2;
 
     public string StrategyName => nameof(TestCaseExecutionStrategy);
 
-    public CodeExecutionResult Execute(RunnerJobPayload payload)
+    public RunnerResult Execute(RunnerJobPayload payload)
     {
         try
         {
@@ -40,7 +40,7 @@ public class TestCaseExecutionStrategy : IExecutionStrategy<CodeExecutionResult>
 
             if (prepareExecutorResult.IsFailure)
             {
-                return new CodeExecutionResult("Code preparation failed", prepareExecutorResult.StandardError, prepareExecutorResult.StandardOutput);
+                return new RunnerResult("Code preparation failed", prepareExecutorResult.StandardError, prepareExecutorResult.StandardOutput);
             }
 
             outputStringBuilder.AppendLine("==== Prepare Code Step ====");
@@ -55,7 +55,7 @@ public class TestCaseExecutionStrategy : IExecutionStrategy<CodeExecutionResult>
 
             if (buildExecutorResult.IsFailure)
             {
-                return new CodeExecutionResult("Code build failed", buildExecutorResult.StandardError, buildExecutorResult.StandardOutput);
+                return new RunnerResult("Code build failed", buildExecutorResult.StandardError, buildExecutorResult.StandardOutput);
             }
 
             outputStringBuilder.AppendLine("==== Build Code Step ====");
@@ -70,17 +70,17 @@ public class TestCaseExecutionStrategy : IExecutionStrategy<CodeExecutionResult>
 
             if (executeTestsExecutorResult.IsFailure)
             {
-                return new CodeExecutionResult("Code execution failed", executeTestsExecutorResult.StandardError, outputStringBuilder.ToString());
+                return new RunnerResult("Code execution failed", executeTestsExecutorResult.StandardError, outputStringBuilder.ToString());
             }
 
             var testCaseResults = executor.GetTestCaseResults(codeExecutionContext);
 
-            return new CodeExecutionResult(outputStringBuilder.ToString(), testCaseResults);
+            return new RunnerResult(outputStringBuilder.ToString(), testCaseResults);
         }
         catch (Exception exception)
         {
             Console.WriteLine($"Exception occurred: {exception.Message}");
-            return CodeExecutionResult.FromException(exception);
+            return RunnerResult.FromException(exception);
         }
     }
 }
