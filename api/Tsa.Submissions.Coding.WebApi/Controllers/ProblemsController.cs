@@ -18,15 +18,24 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 [Produces("application/json")]
 public class ProblemsController : WebApiBaseController
 {
+    private readonly IEventService _eventService;
     private readonly IValidator<ProblemRequest> _problemRequestValidator;
     private readonly IProblemsService _problemsService;
     private readonly ITestCasesService _testCasesService;
+    private readonly IUsersService _usersService;
 
-    public ProblemsController(IValidator<ProblemRequest> problemRequestValidator, IProblemsService problemsService, ITestCasesService testCasesService)
+    public ProblemsController(
+        IEventService eventService,
+        IValidator<ProblemRequest> problemRequestValidator,
+        IProblemsService problemsService,
+        ITestCasesService testCasesService,
+        IUsersService usersService)
     {
+        _eventService = eventService;
         _problemRequestValidator = problemRequestValidator;
         _problemsService = problemsService;
         _testCasesService = testCasesService;
+        _usersService = usersService;
     }
 
     /// <summary>
@@ -58,11 +67,24 @@ public class ProblemsController : WebApiBaseController
     /// </summary>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="200">All available problems returned</response>
+    /// <response code="403">The event is not currently active</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ProblemListResponse>))]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<IList<ProblemListResponse>>> Get(CancellationToken cancellationToken = default)
     {
+        if (User.IsInRole(SubmissionRoles.Participant))
+        {
+            var currentEvent = await _eventService.GetCurrentAsync(cancellationToken);
+            var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
+
+            if (user == null || currentEvent == null || !currentEvent.IsActiveForUser(user.Id!))
+            {
+                return Forbid();
+            }
+        }
+
         var problems = await _problemsService.GetAsync(cancellationToken);
 
         return problems.Count == 0
@@ -77,14 +99,27 @@ public class ProblemsController : WebApiBaseController
     /// <param name="expandTestCases">If true, the test sets are returned with the problem, otherwise null is returned</param>
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="200">Returns the requested problem</response>
+    /// <response code="403">The event is not currently active</response>
     /// <response code="404">The problem does not exist in the database</response>
     [Authorize(Roles = SubmissionRoles.All)]
     [HttpGet("{id:length(24)}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProblemResponse))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProblemResponse>> Get(string id, bool expandTestCases = false, CancellationToken cancellationToken = default)
     {
+        if (User.IsInRole(SubmissionRoles.Participant))
+        {
+            var currentEvent = await _eventService.GetCurrentAsync(cancellationToken);
+            var user = await _usersService.GetByUserNameAsync(User.Identity!.Name!, cancellationToken);
+
+            if (user == null || currentEvent == null || !currentEvent.IsActiveForUser(user.Id!))
+            {
+                return Forbid();
+            }
+        }
+
         var problem = await _problemsService.GetAsync(id, cancellationToken);
 
         if (problem == null) return NotFound();
