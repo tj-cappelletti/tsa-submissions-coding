@@ -44,6 +44,11 @@ public abstract class WebApiBaseController : ControllerBase
         return new ApiErrorResponse((int)ErrorCodes.SubmissionAlreadyEvaluated, "The submission has already been evaluated and cannot be modified.");
     }
 
+    protected static ApiErrorResponse ApiErrorEventNotActive()
+    {
+        return new ApiErrorResponse((int)ErrorCodes.EventNotActive, "The event is not currently active.");
+    }
+
     protected static ApiErrorResponse ApiErrorUnauthorized()
     {
         return new ApiErrorResponse((int)ErrorCodes.Unauthorized, "Client is unauthorized");

@@ -112,6 +112,24 @@ public class Startup(IConfiguration configuration)
 
         services.Configure<SubmissionsDatabase>(submissionsDatabaseSection);
 
+        var eventSection = Configuration.GetSection(EventSettings.SectionName);
+
+        var eventSettings = eventSection.Get<EventSettings>() ??
+                            throw new NullReferenceException("The configuration for the Event settings was null.");
+
+        if (!eventSettings.IsValid())
+        {
+            var error = eventSettings.GetError();
+            var errorMessage = error switch
+            {
+                EventSettingsConfigError.DurationInMinutes => "The configuration for the Event settings was invalid. DurationInMinutes is required and must be greater than zero.",
+                _ => "An unknown error occurred while validating the configuration for the Event settings."
+            };
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        services.Configure<EventSettings>(eventSection);
+
         var conventionPack = new ConventionPack
         {
             new CamelCaseElementNameConvention(),

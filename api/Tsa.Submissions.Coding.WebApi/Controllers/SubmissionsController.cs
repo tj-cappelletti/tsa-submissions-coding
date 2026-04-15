@@ -26,6 +26,7 @@ namespace Tsa.Submissions.Coding.WebApi.Controllers;
 [Produces("application/json")]
 public class SubmissionsController : WebApiBaseController
 {
+    private readonly IEventService _eventService;
     private readonly ILogger<SubmissionsController> _logger;
     private readonly IProblemsService _problemsService;
     private readonly IProgrammingLanguagesService _programmingLanguagesService;
@@ -35,6 +36,7 @@ public class SubmissionsController : WebApiBaseController
     private readonly IUsersService _usersService;
 
     public SubmissionsController(
+        IEventService eventService,
         ILogger<SubmissionsController> logger,
         IProblemsService problemsService,
         IProgrammingLanguagesService programmingLanguagesService,
@@ -43,6 +45,7 @@ public class SubmissionsController : WebApiBaseController
         ISubmissionsQueueService submissionsQueueService,
         IUsersService usersService)
     {
+        _eventService = eventService;
         _logger = logger;
         _problemsService = problemsService;
         _programmingLanguagesService = programmingLanguagesService;
@@ -221,7 +224,7 @@ public class SubmissionsController : WebApiBaseController
     /// <param name="cancellationToken">The .NET cancellation token</param>
     /// <response code="201">Returns the requested submission</response>
     /// <response code="400">The submission is not in a valid state and cannot be created</response>
-    /// <response code="403">You do not have permission to use this endpoint</response>
+    /// <response code="403">You do not have permission to use this endpoint, or the event is not currently active</response>
     [Authorize(Roles = SubmissionRoles.Participant)]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -248,6 +251,14 @@ public class SubmissionsController : WebApiBaseController
         if (user == null)
         {
             _logger.LogWarning("User {UserName} not found", User.Identity?.Name?.SanitizeForLogging() ?? "Unknown");
+            return Forbid();
+        }
+
+        var currentEvent = await _eventService.GetCurrentAsync(cancellationToken);
+
+        if (currentEvent == null || !currentEvent.IsActiveForUser(user.Id!))
+        {
+            _logger.LogWarning("User {UserName} attempted to submit but the event is not active", User.Identity?.Name?.SanitizeForLogging() ?? "Unknown");
             return Forbid();
         }
 

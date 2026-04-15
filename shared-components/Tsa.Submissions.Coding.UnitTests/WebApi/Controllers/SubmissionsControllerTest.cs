@@ -29,6 +29,7 @@ public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsControll
     private static readonly Type ControllerType = typeof(SubmissionsController);
 
     private static SubmissionsController CreateController(
+        IMock<IEventService> eventService,
         IMock<ILogger<SubmissionsController>> logger,
         IMock<IProblemsService> problemsService,
         IMock<IProgrammingLanguagesService> programmingLanguagesService,
@@ -38,6 +39,7 @@ public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsControll
         IMock<IUsersService> usersService)
     {
         return new SubmissionsController(
+            eventService.Object,
             logger.Object,
             problemsService.Object,
             programmingLanguagesService.Object,
@@ -168,6 +170,8 @@ public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsControll
 
         var mockedLogger = new Mock<ILogger<SubmissionsController>>();
 
+        var mockedEventService = new Mock<IEventService>();
+
         var mockedProblemsService = new MockedProblemsServiceBuilder().Build();
 
         var mockedProgrammingLanguagesService = new MockedProgrammingLanguagesServiceBuilder().Build();
@@ -185,6 +189,7 @@ public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsControll
             .Build();
 
         var controller = CreateController(
+            mockedEventService,
             mockedLogger,
             mockedProblemsService,
             mockedProgrammingLanguagesService,
@@ -254,6 +259,8 @@ public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsControll
 
         var mockedLogger = new Mock<ILogger<SubmissionsController>>();
 
+        var mockedEventService = new Mock<IEventService>();
+
         var mockedProblemsService = new MockedProblemsServiceBuilder().Build();
 
         var mockedProgrammingLanguagesService = new MockedProgrammingLanguagesServiceBuilder().Build();
@@ -271,6 +278,7 @@ public class SubmissionsControllerTest : ControllerTestsBase<SubmissionsControll
             .Build();
 
         var controller = CreateController(
+            mockedEventService,
             mockedLogger,
             mockedProblemsService,
             mockedProgrammingLanguagesService,

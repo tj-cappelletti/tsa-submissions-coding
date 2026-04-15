@@ -197,8 +197,11 @@ public class ProblemsControllerTests
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
+
         var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+            new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object);
 
         // Act
         var actionResult = await problemsController.Delete("64639f6fcdde06187b09ecae");
@@ -217,8 +220,11 @@ public class ProblemsControllerTests
         var mockedProblemsService = new Mock<IProblemsService>();
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
+
         var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+            new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object);
         // Act
         var actionResult = await problemsController.Delete("64639f6fcdde06187b09ecae");
 
@@ -235,9 +241,24 @@ public class ProblemsControllerTests
         var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
         var mockedProblemsService = new Mock<IProblemsService>();
         var mockedTestCasesService = new Mock<ITestCasesService>();
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
 
-        var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(false);
+
+        var httpContext = new DefaultHttpContext
+        {
+            User = claimsPrincipalMock.Object
+        };
+
+        var problemsController = new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            }
+        };
         // Act
         var actionResult = await problemsController.Get("64639f6fcdde06187b09ecae");
 
@@ -262,9 +283,24 @@ public class ProblemsControllerTests
             .ReturnsAsync(problem);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
 
-        var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(false);
+
+        var httpContext = new DefaultHttpContext
+        {
+            User = claimsPrincipalMock.Object
+        };
+
+        var problemsController = new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            }
+        };
 
         // Act
         var actionResult = await problemsController.Get("64639f6fcdde06187b09ecae");
@@ -296,6 +332,8 @@ public class ProblemsControllerTests
             .ReturnsAsync(problem);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
 
         var identityMock = new Mock<IIdentity>();
         identityMock.Setup(i => i.Name).Returns("0000-000");
@@ -309,7 +347,7 @@ public class ProblemsControllerTests
             User = claimsPrincipalMock.Object
         };
 
-        var problemsController = new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object)
+        var problemsController = new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -348,6 +386,27 @@ public class ProblemsControllerTests
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
 
+        var participantUser = new User
+        {
+            Id = "64639f6fcdde06187b09eca0",
+            UserName = "0000-000",
+            Role = "participant"
+        };
+
+        var activeEvent = new Event
+        {
+            Id = "64639f6fcdde06187b09ecbe",
+            IsActive = true,
+            StartTime = DateTimeOffset.UtcNow.AddMinutes(-30),
+            EndTime = DateTimeOffset.UtcNow.AddMinutes(90)
+        };
+
+        var mockedEventService = new Mock<IEventService>();
+        mockedEventService.Setup(s => s.GetCurrentAsync(default)).ReturnsAsync(activeEvent);
+
+        var mockedUsersService = new Mock<IUsersService>();
+        mockedUsersService.Setup(s => s.GetByUserNameAsync("0000-000", default)).ReturnsAsync(participantUser);
+
         var identityMock = new Mock<IIdentity>();
         identityMock.Setup(i => i.Name).Returns("0000-000");
 
@@ -360,7 +419,7 @@ public class ProblemsControllerTests
             User = claimsPrincipalMock.Object
         };
 
-        var problemsController = new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object)
+        var problemsController = new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -379,6 +438,56 @@ public class ProblemsControllerTests
 
     [Fact]
     [Trait("TestCategory", "UnitTest")]
+    public async Task Get_Should_Return_Forbidden_For_Participant_When_Event_Not_Active()
+    {
+        // Arrange
+        var mockedProblemRequestValidator = new Mock<IValidator<ProblemRequest>>();
+        var mockedProblemsService = new Mock<IProblemsService>();
+        var mockedTestCasesService = new Mock<ITestCasesService>();
+
+        var participantUser = new User
+        {
+            Id = "64639f6fcdde06187b09eca0",
+            UserName = "0000-000",
+            Role = "participant"
+        };
+
+        var mockedEventService = new Mock<IEventService>();
+        mockedEventService.Setup(s => s.GetCurrentAsync(default)).ReturnsAsync((Event?)null);
+
+        var mockedUsersService = new Mock<IUsersService>();
+        mockedUsersService.Setup(s => s.GetByUserNameAsync("0000-000", default)).ReturnsAsync(participantUser);
+
+        var identityMock = new Mock<IIdentity>();
+        identityMock.Setup(i => i.Name).Returns("0000-000");
+
+        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(cp => cp.Identity).Returns(identityMock.Object);
+        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(true);
+
+        var httpContext = new DefaultHttpContext
+        {
+            User = claimsPrincipalMock.Object
+        };
+
+        var problemsController = new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            }
+        };
+
+        // Act
+        var actionResult = await problemsController.Get();
+
+        // Assert
+        Assert.NotNull(actionResult);
+        Assert.IsType<ForbidResult>(actionResult.Result);
+    }
+
+    [Fact]
+    [Trait("TestCategory", "UnitTest")]
     public async Task Get_Should_Return_Ok_When_Empty()
     {
         // Arrange
@@ -391,9 +500,24 @@ public class ProblemsControllerTests
             .ReturnsAsync(emptyProblemsList);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
 
-        var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(false);
+
+        var httpContext = new DefaultHttpContext
+        {
+            User = claimsPrincipalMock.Object
+        };
+
+        var problemsController = new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            }
+        };
 
         // Act
         var actionResult = await problemsController.Get();
@@ -424,9 +548,24 @@ public class ProblemsControllerTests
             .ReturnsAsync(problemsList);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
 
-        var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+        var claimsPrincipalMock = new Mock<ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(cp => cp.IsInRole(It.IsAny<string>())).Returns(false);
+
+        var httpContext = new DefaultHttpContext
+        {
+            User = claimsPrincipalMock.Object
+        };
+
+        var problemsController = new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            }
+        };
 
         // Act
         var actionResult = await problemsController.Get();
@@ -472,9 +611,11 @@ public class ProblemsControllerTests
             .Returns(Task.CompletedTask);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
 
         var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+            new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object);
 
 
         // Act
@@ -525,9 +666,11 @@ public class ProblemsControllerTests
             .ReturnsAsync(problem);
 
         var mockedTestCasesService = new Mock<ITestCasesService>();
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
 
         var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+            new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object);
 
         // Act
         var actionResult = await problemsController.Put(problem.Id!, updatedProblem);
@@ -554,9 +697,11 @@ public class ProblemsControllerTests
 
         var mockedProblemsService = new Mock<IProblemsService>();
         var mockedTestCasesService = new Mock<ITestCasesService>();
+        var mockedEventService = new Mock<IEventService>();
+        var mockedUsersService = new Mock<IUsersService>();
 
         var problemsController =
-            new ProblemsController(mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object);
+            new ProblemsController(mockedEventService.Object, mockedProblemRequestValidator.Object, mockedProblemsService.Object, mockedTestCasesService.Object, mockedUsersService.Object);
 
         // Act
         var actionResult = await problemsController.Put("64639f6fcdde06187b09ecae", updatedProblem);
