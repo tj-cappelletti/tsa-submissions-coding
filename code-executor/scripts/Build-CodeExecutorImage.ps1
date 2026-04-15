@@ -10,6 +10,12 @@ param(
     [switch]$BuildScorer,
 
     [Parameter()]
+    [switch]$BuildAll,
+
+    [Parameter()]
+    [switch]$SetLatestTag,
+
+    [Parameter()]
     [ValidateSet("docker", "podman")]
     [string]$ContainerEngine = $null
 )
@@ -53,44 +59,62 @@ else {
 $dotNetVersions = @("9.0", "10.0")
 $javaVersions = @("21")
 
-if ($BuildDotNet) {
+if ($BuildDotNet -or $BuildAll) {
     foreach ($version in $dotNetVersions) {
         Write-Host ""
         Write-Host "Building Code Executor Runner image for .NET $version using $containerEngine..." -ForegroundColor Cyan
 
+        $tag = "code-executor-runner:$semVer-dotnet$version"
+
         & $containerEngine build `
-            --tag "code-executor-runner:$semVer-dotnet$version" `
+            --tag $tag `
             --file .\code-executor\Tsa.Submissions.Coding.CodeExecutor.Runner\Dockerfiles\DotNet.Dockerfile `
             --build-arg "LANG_VERSION=$version" `
             --quiet .
+
+        if($SetLatestTag) {
+            & $containerEngine tag $tag "code-executor-runner:latest-dotnet$version"
+        }
 
         Write-Host "Built Code Executor Runner image for .NET $version." -ForegroundColor Green
     }
 }
 
-if ($BuildJava) {
+if ($BuildJava -or $BuildAll) {
     foreach ($version in $javaVersions) {
         Write-Host ""
         Write-Host "Building Code Executor Runner image for Java $version using $containerEngine..." -ForegroundColor Cyan
+        
+        $tag = "code-executor-runner:$semVer-java$version"
 
         & $containerEngine build `
-            --tag "code-executor-runner:$semVer-java$version" `
+            --tag $tag `
             --file .\code-executor\Tsa.Submissions.Coding.CodeExecutor.Runner\Dockerfiles\Java.Dockerfile `
             --build-arg "LANG_VERSION=$version" `
             --quiet .
+
+        if($SetLatestTag) {
+            & $containerEngine tag $tag "code-executor-runner:latest-java$version"
+        }
 
         Write-Host "Built Code Executor Runner image for Java $version." -ForegroundColor Green
     }
 }
 
-if ($BuildScorer) {
+if ($BuildScorer -or $BuildAll) {
     Write-Host ""
     Write-Host "Building Code Executor Scorer image using $containerEngine..." -ForegroundColor Cyan
 
+    $tag = "code-executor-scorer:$semVer"
+
     & $containerEngine build `
-        --tag "code-executor-scorer:$semVer" `
+        --tag $tag `
         --file .\code-executor\Tsa.Submissions.Coding.CodeExecutor.Scorer\Dockerfile `
         --quiet .
+
+    if($SetLatestTag) {
+        & $containerEngine tag $tag "code-executor-scorer:latest"
+    }
 
     Write-Host "Built Code Executor Scorer image." -ForegroundColor Green
 }

@@ -1,11 +1,16 @@
-﻿using System.Text;
-using System.Text.Json;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using System.Text;
+using System.Text.Json;
 using Tsa.Submissions.Coding.ApiClient;
+using Tsa.Submissions.Coding.CodeExecutor.Worker.Configuration;
+using Tsa.Submissions.Coding.CodeExecutor.Worker.Orchestrator;
 using Tsa.Submissions.Coding.CodeExecutor.Worker.Services;
+using Tsa.Submissions.Coding.CodeExecutor.Worker.Strategies;
 using Tsa.Submissions.Coding.Contracts.CodeExecutor;
 using Tsa.Submissions.Coding.Contracts.Messages;
+using Tsa.Submissions.Coding.Contracts.ProblemLanguageVariants;
 using Tsa.Submissions.Coding.Contracts.Submissions;
 using Tsa.Submissions.Coding.Contracts.TestCases;
 
@@ -14,14 +19,27 @@ namespace Tsa.Submissions.Coding.CodeExecutor.Worker.QueueConsumers;
 internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
 {
     private readonly ICodingApiClient _codingApiClient;
-    private readonly KubernetesJobManager _kubernetesJobManager;
+    private readonly KubernetesOrchestrator _kubernetesOrchestrator;
     private readonly ILogger _logger;
+    private readonly RunnerImageRegistry _runnerImageRegistry;
+    private readonly ScorerImageRegistry _scorerImageRegistry;
 
-    public SubmissionsQueueConsumer(ICodingApiClient codingApiClient, IChannel channel, KubernetesJobManager kubernetesJobManager, ILogger logger) : base(channel)
+    public SubmissionsQueueConsumer(
+        ICodingApiClient codingApiClient,
+        IChannel channel,
+        KubernetesOrchestrator kubernetesOrchestrator,
+        ILogger logger,
+        IOptions<RunnerImageRegistry> runnerImageRegistry,
+        IOptions<ScorerImageRegistry> scorerImageRegistry) :
+        base(channel)
     {
         _codingApiClient = codingApiClient;
-        _kubernetesJobManager = kubernetesJobManager;
+        _kubernetesOrchestrator = kubernetesOrchestrator;
         _logger = logger;
+
+        //TODO: Refactor to inject a list of registries or a registry provider instead of individual registries
+        _runnerImageRegistry = runnerImageRegistry.Value;
+        _scorerImageRegistry = scorerImageRegistry.Value;
     }
 
     public override async Task HandleBasicDeliverAsync(
@@ -54,25 +72,55 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
             }
 
             // Fetch problem and submission to create the job payload
-            _logger.LogInformation("Fetching problem and submission from API");
+            _logger.LogInformation("Fetching submission from API");
             var submission = await _codingApiClient.Submissions.GetAsync(submissionMessage.SubmissionId, cancellationToken);
-            var problem = await _codingApiClient.Problems.GetAsync(submission.ProblemId, true, cancellationToken);
 
-            _logger.LogInformation("Processing submission {SubmissionId}", submissionMessage.SubmissionId);
-            // Null-forgiving operator is used here because we expect test cases to be present for a valid problem
-            var success = await ProcessSubmissionAsync(submission, problem.TestCases!, cancellationToken);
-
-            if (success)
+            if (submission.EvaluatedOn != null)
             {
-                _logger.LogInformation("Successfully processed submission {SubmissionId}", submissionMessage.SubmissionId);
+                _logger.LogInformation("Submission {SubmissionId} has already been evaluated. Skipping processing.", submissionMessage.SubmissionId);
+                
                 await Channel.BasicAckAsync(deliveryTag, false, cancellationToken);
+                return;
             }
-            else
+
+            _logger.LogInformation("Fetching problem and language variant from API");
+            
+            var problem = await _codingApiClient.Problems.GetAsync(submission.Problem.Id, true, cancellationToken);
+            var problemLanguageVariant = await _codingApiClient.Problems.GetLanguageVariantAsync(
+                problem.Id,
+                submission.ProgrammingLanguage.Id,
+                submission.ProgrammingLanguageVersionTag,
+                cancellationToken);
+
+            var runnerJobPayload = new RunnerJobPayload(
+                submission.ProgrammingLanguage.Name,
+                problemLanguageVariant.TestHarnessCode,
+                submission.ProgrammingLanguageVersionTag,
+                submission.Problem.Id,
+                submission.Solution,
+                submission.Id,
+                problem.TestCases ?? [],
+                problemLanguageVariant.WorkspaceFiles);
+
+            var runnerJobStrategy = new RunnerJobStrategy(_runnerImageRegistry);
+
+            var runnerResult = await _kubernetesOrchestrator.ExecuteJobAsync(
+                runnerJobStrategy,
+                runnerJobPayload,
+                cancellationToken);
+
+            // This call is now safe to retry if it fails
+            await _codingApiClient.Submissions.PostTestCaseResultsAsync(
+                submission.Id,
+                runnerResult.TestCaseResults.ToList(),
+                cancellationToken);
+
+            if (runnerResult.IsSuccess)
             {
-                // Business logic failure - send to DLQ for investigation
-                _logger.LogError("Processing of submission {SubmissionId} failed. Sending to dead letter queue", submissionMessage.SubmissionId);
-                await Channel.BasicNackAsync(deliveryTag, false, false, cancellationToken);
+                var scorerJobStrategy = new ScorerJobStrategy(_scorerImageRegistry);
             }
+
+            await Channel.BasicAckAsync(deliveryTag, false, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -84,19 +132,24 @@ internal class SubmissionsQueueConsumer : AsyncDefaultBasicConsumer
         }
     }
 
-    private Task<bool> ProcessSubmissionAsync(SubmissionResponse submission, List<TestCaseResponse> testCases, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-        //await _kubernetesJobManager.ExecuteJobAsync(
-        //    new RunnerJobPayload(
-        //        submission.Language.Name,
-        //        submission.Language.Version,
-        //        submission.ProblemId,
-        //        submission.Solution,
-        //        submission.Id,
-        //        testCases),
-        //    cancellationToken);
+    //private async Task<bool> ProcessSubmissionAsync(
+    //    SubmissionResponse submission,
+    //    ProblemLanguageVariantResponse problemLanguageVariant,
+    //    List<TestCaseResponse> testCases,
+    //    CancellationToken cancellationToken)
+    //{
+    //    var runnerJobPayload = new RunnerJobPayload(
+    //        submission.ProgrammingLanguage.Name,
+    //        problemLanguageVariant.TestHarnessCode,
+    //        submission.ProgrammingLanguageVersionTag,
+    //        submission.Problem.Id,
+    //        submission.Solution,
+    //        submission.Id,
+    //        testCases,
+    //        problemLanguageVariant.WorkspaceFiles);
 
-        //return true;
-    }
+    //    await _kubernetesJobManager.ExecuteJobAsync(runnerJobPayload, cancellationToken);
+
+    //    return true;
+    //}
 }

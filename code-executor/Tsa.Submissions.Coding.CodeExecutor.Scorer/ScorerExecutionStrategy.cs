@@ -5,12 +5,12 @@ using Tsa.Submissions.Coding.Contracts.Constants;
 
 namespace Tsa.Submissions.Coding.CodeExecutor.Scorer;
 
-public class ScorerExecutionStrategy : IExecutionStrategy<ScorerExecutionResult>
+public class ScorerExecutionStrategy : IExecutionStrategy<ScorerResult>
 {
     private const string MissingSubmissionFileErrorMessage = "No submission source file found in workspace files.";
     public string StrategyName => nameof(ScorerExecutionStrategy);
 
-    public ScorerExecutionResult Execute(RunnerJobPayload payload)
+    public ScorerResult Execute(RunnerJobPayload payload)
     {
         try
         {
@@ -23,7 +23,7 @@ public class ScorerExecutionStrategy : IExecutionStrategy<ScorerExecutionResult>
             if (solutionWorkspaceFile == null)
             {
                 Console.WriteLine("ERROR: {0}", MissingSubmissionFileErrorMessage);
-                return new ScorerExecutionResult(MissingSubmissionFileErrorMessage, string.Empty, string.Empty, false, 0, 0);
+                return new ScorerResult(MissingSubmissionFileErrorMessage, string.Empty, string.Empty);
             }
 
             var solutionFilePath = Path.Combine(workingDir, solutionWorkspaceFile.Path);
@@ -64,20 +64,20 @@ public class ScorerExecutionStrategy : IExecutionStrategy<ScorerExecutionResult>
 
                 if (lizardFileMeasures.Count != 1)
                 {
-                    return new ScorerExecutionResult("Unexpected number of lizard file measures", string.Empty, output, false, 0, 0);
+                    return new ScorerResult("Unexpected number of lizard file measures", string.Empty, output);
                 }
 
                 var lizardFileMeasure = lizardFileMeasures[0];
 
                 if(lizardFileMeasure.MetricsByLabel == null)
                 {
-                    return new ScorerExecutionResult("Lizard file measure metrics by label is null", string.Empty, output, false, 0, 0);
+                    return new ScorerResult("Lizard file measure metrics by label is null", string.Empty, output);
                 }
 
-                var cyclomaticComplexity = lizardFileMeasure.MetricsByLabel["CCN"];
-                var linesOfCode = lizardFileMeasure.MetricsByLabel["NCSS"];
+                var cyclomaticComplexity = Convert.ToInt32(lizardFileMeasure.MetricsByLabel["CCN"]);
+                var linesOfCode = Convert.ToInt32(lizardFileMeasure.MetricsByLabel["NCSS"]);
 
-                return new ScorerExecutionResult(string.Empty, string.Empty, output, true, cyclomaticComplexity, linesOfCode);
+                return new ScorerResult(output, cyclomaticComplexity, linesOfCode);
             }
 
             var errorMessage = "Failed to calculate code metrics";
@@ -87,12 +87,12 @@ public class ScorerExecutionStrategy : IExecutionStrategy<ScorerExecutionResult>
             Console.WriteLine(errorMessage);
             Console.WriteLine(errorOutput);
 
-            return new ScorerExecutionResult(errorMessage, errorOutput, string.Empty, false, 0, 0);
+            return new ScorerResult(errorMessage, errorOutput, string.Empty);
         }
         catch (Exception exception)
         {
             Console.WriteLine($"Exception occurred: {exception.Message}");
-            return ScorerExecutionResult.FromException(exception);
+            return ScorerResult.FromException(exception);
         }
     }
 }

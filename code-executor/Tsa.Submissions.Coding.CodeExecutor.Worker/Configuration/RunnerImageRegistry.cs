@@ -1,6 +1,6 @@
 ﻿namespace Tsa.Submissions.Coding.CodeExecutor.Worker.Configuration;
 
-public class RunnerImageRegistry
+public class RunnerImageRegistry : IImageRegistry
 {
     public const string SectionName = "RunnerImageRegistry";
 
@@ -10,7 +10,7 @@ public class RunnerImageRegistry
 
     public LanguageTags? LanguageTags { get; set; }
 
-    public string? RegistryUrl { get; set; }
+    public string? RegistryUri { get; set; }
 }
 
 public class LanguageTags

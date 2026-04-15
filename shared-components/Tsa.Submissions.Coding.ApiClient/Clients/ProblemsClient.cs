@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using RestSharp;
+using Tsa.Submissions.Coding.Contracts.ProblemLanguageVariants;
 using Tsa.Submissions.Coding.Contracts.Problems;
 
 namespace Tsa.Submissions.Coding.ApiClient.Clients;
@@ -39,5 +40,29 @@ public class ProblemsClient : IProblemsClient
         }
 
         return problemResponse;
+    }
+
+    public async Task<ProblemLanguageVariantResponse> GetLanguageVariantAsync(string problemId, string languageId, string versionTag,
+        CancellationToken cancellationToken)
+    {
+        var request = new RestRequest($"/api/problems/{problemId}/languages/{languageId}/versions/{versionTag}");
+
+        var response = await _restClient.GetAsync(request, cancellationToken);
+
+        if (response == null)
+        {
+            throw new InvalidOperationException("Failed to fetch the language variant.");
+        }
+
+        var variantResponse = response.Content != null
+            ? JsonSerializer.Deserialize<ProblemLanguageVariantResponse>(response.Content)
+            : null;
+
+        if (variantResponse == null)
+        {
+            throw new InvalidOperationException("Failed to deserialize language variant response.");
+        }
+
+        return variantResponse;
     }
 }
