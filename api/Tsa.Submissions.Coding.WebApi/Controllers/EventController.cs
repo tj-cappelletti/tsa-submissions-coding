@@ -9,6 +9,7 @@ using Tsa.Submissions.Coding.Contracts.Events;
 using Tsa.Submissions.Coding.WebApi.Authorization;
 using Tsa.Submissions.Coding.WebApi.Configuration;
 using Tsa.Submissions.Coding.WebApi.Entities;
+using Tsa.Submissions.Coding.WebApi.ExtensionMethods;
 using Tsa.Submissions.Coding.WebApi.Services;
 
 namespace Tsa.Submissions.Coding.WebApi.Controllers;
@@ -134,11 +135,11 @@ public class EventController : WebApiBaseController
 
         if (user == null)
         {
-            _logger.LogWarning("User with ID {UserId} not found when setting event end time override", userId);
+            _logger.LogWarning("User with ID {UserId} not found when setting event end time override", userId.SanitizeForLogging());
             return BadRequest(ApiErrorEntityNotFound("User", userId));
         }
 
-        _logger.LogInformation("Setting event end time override for user {UserId} to {EndTime}", userId, request.EndTime);
+        _logger.LogInformation("Setting event end time override for user {UserId} to {EndTime}", userId.SanitizeForLogging(), request.EndTime);
 
         var @event = await _eventService.SetUserEndTimeOverrideAsync(userId, request.EndTime, cancellationToken);
 
