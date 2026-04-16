@@ -4,12 +4,15 @@ import { map, catchError } from 'rxjs/operators';
 import { of, Observable } from 'rxjs';
 import { Problem } from '../models/problem.models';
 import { AuthService } from './auth.service';
+import { ApiConfig } from '../config/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class ProblemsService {
-    readonly apiUrl: string = 'http://api.tsa.localdev.me:5000/api/problems';
+    readonly apiUrl: string;
 
-    constructor(private http: HttpClient, private authService: AuthService) { }
+    constructor(private http: HttpClient, private authService: AuthService, private apiConfig: ApiConfig) {
+        this.apiUrl = this.apiConfig.getApiEndpoint('problems');
+    }
 
     private createHeaders(): HttpHeaders {
         const token = this.authService.getToken();

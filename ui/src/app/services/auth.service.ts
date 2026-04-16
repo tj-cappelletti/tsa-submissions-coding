@@ -3,13 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { map, catchError } from 'rxjs/operators';
 import { of, Observable } from 'rxjs';
 import { Authentication, JwtPayload, LoginResponse } from '../models/auth.models';
+import { ApiConfig } from '../config/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  readonly apiUrl: string = 'http://api.tsa.localdev.me:5000/api/auth';
+  readonly apiUrl: string;
   readonly jwtKeyName = 'jwt';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private apiConfig: ApiConfig) {
+    this.apiUrl = this.apiConfig.getApiEndpoint('auth');
+  }
 
   getUserName(): string | null {
     const jwtPayload = this.getTokenPayload();

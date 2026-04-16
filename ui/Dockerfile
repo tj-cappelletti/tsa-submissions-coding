@@ -21,6 +21,8 @@ FROM nginx:alpine
 
 # Copy the built Angular app to the Nginx HTML directory
 COPY --from=build /app/dist/tsa-submissions-coding-ui/browser /usr/share/nginx/html
+COPY docker-entrypoint.d/40-env-config.sh /docker-entrypoint.d/40-env-config.sh
+RUN chmod +x /docker-entrypoint.d/40-env-config.sh
 
 # Expose port 80
 EXPOSE 80
