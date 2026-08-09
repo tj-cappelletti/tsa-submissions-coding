@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Application/">
+    <Project Path="src/Application/Tsa.Submissions.Coding.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Domain/">
+    <Project Path="src/Domain/Tsa.Submissions.Coding.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Infrastructure/Tsa.Submissions.Coding.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/SharedKernel/">
+    <Project Path="src/SharedKernel/Tsa.Submissions.Coding.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Web/" />
+  <Folder Name="/src/Web/Api/">
+    <Project Path="src/Web/Api/Tsa.Submissions.Coding.Web.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Web/Blazor/">
+    <Project Path="src/Web/Blazor/Tsa.Submissions.Coding.Web.Blazor.csproj" />
+  </Folder>
+</Solution>

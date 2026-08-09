@@ -1,0 +1,6 @@
+@Tsa.Submissions.Coding.Web.Api_HostAddress = http://localhost:5153
+
+GET {{Tsa.Submissions.Coding.Web.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
